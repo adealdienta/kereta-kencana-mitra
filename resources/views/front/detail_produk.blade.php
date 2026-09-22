@@ -71,9 +71,9 @@
                         <a href="{{ route('pesanan.form', ['produk' => $produk->slug]) }}" class="btn btn-gold" style="padding: 12px 20px; text-align: center;">
                             <i class="fa-solid fa-cart-shopping"></i> Order Online (Slop/Bal)
                         </a>
-                        <a href="#" class="btn btn-wa btn-open-wa-order" 
-                           data-product-name="{{ $produk->nama }}" 
-                           data-min-order="1" 
+                        <a href="https://wa.me/6281234567890?text={{ urlencode('Halo Admin PR. KERETA KENCANA, saya ingin memesan pasokan rokok ' . $produk->nama . ' (Mulai 1 Slop). Mohon info stok & harga partai.') }}" 
+                           target="_blank" rel="noopener noreferrer"
+                           class="btn btn-wa" 
                            style="padding: 10px 20px; text-align: center; font-size: 13px;">
                             <i class="fa-brands fa-whatsapp"></i> Chat WhatsApp
                         </a>

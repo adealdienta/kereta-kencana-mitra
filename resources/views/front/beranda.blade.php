@@ -142,9 +142,7 @@
                             </div>
 
                             <div style="display: flex; flex-direction: column; gap: 8px;">
-                                <a href="#" class="btn btn-wa btn-block btn-open-wa-order" 
-                                   data-product-name="{{ $p->nama }}" 
-                                   data-min-order="1">
+                                <a href="https://wa.me/6281234567890?text={{ urlencode('Halo Admin PR. KERETA KENCANA, saya ingin memesan pasokan rokok ' . $p->nama . ' (Mulai 1 Slop). Mohon info stok & ongkir.') }}" target="_blank" rel="noopener noreferrer" class="btn btn-wa btn-block">
                                     <i class="fa-brands fa-whatsapp"></i> Pesan via WA (Mulai 1 Slop)
                                 </a>
                                 <a href="{{ route('pesanan.form', ['produk' => $p->slug]) }}" class="btn btn-outline-gold btn-block btn-sm">

@@ -28,8 +28,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (btnRejectAge) {
       btnRejectAge.addEventListener('click', function () {
-        alert('Mohon maaf, Anda belum memenuhi batas usia minimum (21+) untuk melihat informasi produk tembakau.');
-        window.location.href = 'https://www.google.com';
+        const modal = ageGateOverlay.querySelector('.age-gate-modal');
+        if (modal) {
+          modal.innerHTML = `
+            <div class="age-badge" style="background: #ef4444; color: #fff;">Akses Dibatasi</div>
+            <h2 class="age-gate-title" style="margin-top: 16px;">MOHON MAAF</h2>
+            <p class="age-gate-text" style="color: #cbd5e1;">
+              Sesuai dengan regulasi PP 28/2024, materi informasi produk hasil tembakau hanya diperuntukkan bagi mitra usaha yang telah berusia <strong>21 tahun ke atas</strong>.
+            </p>
+            <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 12px;">
+              Anda dapat menutup tab browser ini. Terima kasih atas pengertiannya.
+            </p>
+          `;
+        }
       });
     }
   }

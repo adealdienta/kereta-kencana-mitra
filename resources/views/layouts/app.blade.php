@@ -47,7 +47,7 @@
         </div>
     </div>
 
-    <!-- 2. Header & Navigasi Sistem (Persis Sesuai Desain Asli) -->
+    <!-- 2. Header & Navigasi Sistem -->
     <header class="site-header">
         <div class="container header-inner">
             <a href="{{ route('beranda') }}" class="logo-brand">
@@ -62,9 +62,7 @@
                 <a href="{{ route('beranda') }}" class="nav-link {{ request()->routeIs('beranda') ? 'active' : '' }}">Beranda</a>
                 <a href="{{ route('profil') }}" class="nav-link {{ request()->routeIs('profil') ? 'active' : '' }}">Profil Pabrik</a>
                 <a href="{{ route('katalog.index') }}" class="nav-link {{ request()->routeIs('katalog.*') || request()->routeIs('produk.*') ? 'active' : '' }}">Katalog Rokok</a>
-                
                 <a href="{{ route('pesanan.form') }}" class="nav-link {{ request()->routeIs('pesanan.*') ? 'active' : '' }}">Order</a>
-
                 <a href="{{ route('kontak') }}" class="nav-link {{ request()->routeIs('kontak') ? 'active' : '' }}">Kontak & Lokasi</a>
                 
                 <div class="nav-actions">
@@ -103,72 +101,7 @@
         @yield('content')
     </main>
 
-    <!-- 3. Modal Drawer Pemesanan Cepat WhatsApp (Persis Sesuai Desain Asli) -->
-    <div id="waOrderModal" class="modal-overlay">
-        <div class="modal-content">
-            <button type="button" class="modal-close" id="closeWaModal">&times;</button>
-            <div class="modal-header">
-                <div class="eyebrow"><i class="fa-brands fa-whatsapp"></i> JALUR RESMI PABRIK</div>
-                <h3 class="modal-title">Form Pemesanan Cepat</h3>
-                <p class="modal-subtitle">Isi rincian toko untuk langsung terhubung dengan manajemen penjualan WhatsApp resmi.</p>
-            </div>
-
-            <form id="waOrderForm" data-wa-target="6281234567890">
-                <div class="form-group">
-                    <label class="form-label" for="waNamaToko">Nama Toko / Agen / Mitra Distributor <span style="color: #ef4444;">*</span></label>
-                    <input type="text" id="waNamaToko" class="form-control" required placeholder="Contoh: Toko Berkah Tembakau">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="waNomorHp">Nomor WhatsApp Aktif <span style="color: #ef4444;">*</span></label>
-                    <input type="tel" id="waNomorHp" class="form-control" required placeholder="Contoh: 081234567890">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="waAlamat">Alamat Pengiriman Logistik <span style="color: #ef4444;">*</span></label>
-                    <textarea id="waAlamat" class="form-control" rows="2" required placeholder="Nama jalan, pasar, kecamatan, kota/kabupaten..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="waVarianProduk">Pilihan Varian Produk</label>
-                    <select id="waVarianProduk" class="form-control">
-                        <option value="Kencana Merah 12" data-price-slop="62500" data-price-bal="1250000">Kencana Merah 12 (SKM) &bull; Rp 62.500/Slop &bull; Rp 1.250.000/Bal</option>
-                        <option value="Kencana Mild 16" data-price-slop="72500" data-price-bal="1450000">Kencana Mild 16 (SKM) &bull; Rp 72.500/Slop &bull; Rp 1.450.000/Bal</option>
-                        <option value="Kencana Biru 20" data-price-slop="87500" data-price-bal="1750000">Kencana Biru 20 (SKM) &bull; Rp 87.500/Slop &bull; Rp 1.750.000/Bal</option>
-                        <option value="Kereta Klasik 12" data-price-slop="49000" data-price-bal="980000">Kereta Klasik 12 (SKT) &bull; Rp 49.000/Slop &bull; Rp 980.000/Bal</option>
-                        <option value="Kereta Sepur 16" data-price-slop="59000" data-price-bal="1180000">Kereta Sepur 16 (SKT) &bull; Rp 59.000/Slop &bull; Rp 1.180.000/Bal</option>
-                        <option value="Kencana Emas 12" data-price-slop="76000" data-price-bal="1520000">Kencana Emas 12 (SKT) &bull; Rp 76.000/Slop &bull; Rp 1.520.000/Bal</option>
-                    </select>
-                </div>
-
-                <div class="form-row-order">
-                    <div class="form-group">
-                        <label class="form-label" for="waJumlah">Jumlah Pesanan</label>
-                        <input type="number" id="waJumlah" class="form-control" min="1" value="1" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="waSatuan">Satuan Pembelian</label>
-                        <select id="waSatuan" class="form-control">
-                            <option value="Slop" selected>Slop (10 Bungkus) - Min. 1 Slop</option>
-                            <option value="Bal">Bal (20 Slop / 200 Bungkus)</option>
-                            <option value="Karton / Master Box">Karton / Master Box</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="waCatatan">Catatan Ekspedisi (Opsional)</label>
-                    <input type="text" id="waCatatan" class="form-control" placeholder="Contoh: Kirim via ekspedisi langganan truk">
-                </div>
-
-                <button type="submit" class="btn btn-wa btn-block" style="padding: 14px; font-weight: 800; margin-top: 8px;">
-                    <i class="fa-brands fa-whatsapp" style="font-size: 1.2rem;"></i> Kirim Pesanan ke WhatsApp Pabrik
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- 4. Footer & Lokasi Maps (Persis Sesuai Desain Asli) -->
+    <!-- 3. Footer & Lokasi Maps -->
     <footer class="site-footer">
         <div class="container">
             <div class="footer-top-grid">
@@ -252,15 +185,14 @@
         </div>
     </footer>
 
-    <!-- 5. Peringatan Regulasi Pemerintah (Permanent Bottom Bar Sesuai Desain Asli) -->
+    <!-- 4. Peringatan Regulasi Pemerintah -->
     <div class="health-warning-bar">
         <span class="warning-pill">21+ KHUSUS MITRA USAHA</span>
         <span>PERINGATAN: MEROKOK DAPAT MENYEBABKAN KANKER, SERANGAN JANTUNG, IMPOTENSI DAN GANGGUAN KEHAMILAN DAN JANIN.</span>
     </div>
 
-    <!-- Script Utama & Handler Order -->
+    <!-- Script Utama -->
     <script src="{{ asset('assets/js/main.js') }}"></script>
-    <script src="{{ asset('assets/js/wa-order.js') }}"></script>
     @stack('scripts')
 </body>
 </html>
