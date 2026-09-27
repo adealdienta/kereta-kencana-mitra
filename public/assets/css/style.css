@@ -96,6 +96,16 @@ iframe {
   width: 100%;
 }
 
+.section-py {
+  padding: 80px 0;
+}
+
+.bg-darker {
+  background-color: #0b0e10;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
 /* Typography Utilities */
 .font-serif { font-family: var(--font-serif); }
 .text-gold { color: var(--gold); }

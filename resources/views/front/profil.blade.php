@@ -35,21 +35,56 @@
 </section>
 
 <!-- Visi & Misi Cards -->
-<section class="section-py bg-darker">
-    <div class="container">
+<section class="section-py" style="background: linear-gradient(180deg, #090c0e 0%, #13171b 50%, #090c0e 100%); border-top: 1px solid rgba(197, 160, 89, 0.25); border-bottom: 1px solid rgba(197, 160, 89, 0.25); position: relative; overflow: hidden;">
+    <!-- Subtle Ambient Gold Glow -->
+    <div style="position: absolute; top: -40px; left: 50%; transform: translateX(-50%); width: 650px; height: 160px; background: radial-gradient(ellipse, rgba(197, 160, 89, 0.12), transparent 70%); pointer-events: none;"></div>
+
+    <div class="container" style="position: relative; z-index: 1;">
+        <!-- Header Pemisah Visi & Misi -->
+        <div class="section-header text-center" style="margin-bottom: 42px;">
+            <span class="eyebrow"><i class="fa-solid fa-compass"></i> LANDASAN STRATEGIS PABRIK</span>
+            <h2 class="section-title">VISI & MISI PERUSAHAAN</h2>
+            <div class="gold-divider"></div>
+            <p class="section-desc" style="margin: 0 auto; color: var(--text-muted);">
+                Prinsip arah dan komitmen mutu PR. KERETA KENCANA dalam melayani pasokan hasil tembakau dan kemitraan distributor di seluruh wilayah.
+            </p>
+        </div>
+
         <div class="grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fa-solid fa-compass"></i></div>
-                <h3>Visi Perusahaan</h3>
-                <p>Menjadi produsen sigaret kretek terpercaya di tingkat nasional yang dikenal akan konsistensi cita rasa, kepatuhan regulasi industri hasil tembakau, serta kemitraan bisnis yang adil dan berkelanjutan bagi distributor daerah.</p>
+            <!-- Kartu Visi -->
+            <div style="background: #15191d; border: 1px solid rgba(197, 160, 89, 0.25); border-top: 4px solid var(--gold); border-radius: var(--radius-lg); padding: 36px 30px; box-shadow: 0 12px 32px rgba(0,0,0,0.5); display: flex; flex-direction: column;">
+                <div style="width: 52px; height: 52px; border-radius: 12px; background: rgba(197, 160, 89, 0.12); border: 1px solid rgba(197, 160, 89, 0.35); display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: 22px; margin-bottom: 20px;">
+                    <i class="fa-solid fa-compass"></i>
+                </div>
+                <h3 style="font-family: var(--font-serif); color: #ffffff; font-size: 1.4rem; font-weight: 700; margin-bottom: 14px; letter-spacing: 0.5px;">
+                    Visi Perusahaan
+                </h3>
+                <p style="color: #cbd5e1; font-size: 0.98rem; line-height: 1.8; margin: 0;">
+                    Menjadi produsen sigaret kretek terpercaya di tingkat nasional yang dikenal akan konsistensi cita rasa, kepatuhan regulasi industri hasil tembakau, serta kemitraan bisnis yang adil dan berkelanjutan bagi distributor daerah.
+                </p>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fa-solid fa-bullseye"></i></div>
-                <h3>Misi Perusahaan</h3>
-                <ul style="color: var(--text-muted); list-style-type: none; padding-left: 0; line-height: 1.8;">
-                    <li style="margin-bottom: 8px;"><i class="fa-solid fa-check" style="color: var(--gold);"></i> Menjaga kemurnian racikan tembakau pegunungan dan cengkeh pilihan.</li>
-                    <li style="margin-bottom: 8px;"><i class="fa-solid fa-check" style="color: var(--gold);"></i> Mematuhi seluruh regulasi perizinan, cukai, dan batas kadar tar/nikotin.</li>
-                    <li style="margin-bottom: 8px;"><i class="fa-solid fa-check" style="color: var(--gold);"></i> Mengembangkan jaringan distribusi terstruktur berbasis pasokan berkelanjutan.</li>
+
+            <!-- Kartu Misi -->
+            <div style="background: #15191d; border: 1px solid rgba(197, 160, 89, 0.25); border-top: 4px solid var(--gold); border-radius: var(--radius-lg); padding: 36px 30px; box-shadow: 0 12px 32px rgba(0,0,0,0.5); display: flex; flex-direction: column;">
+                <div style="width: 52px; height: 52px; border-radius: 12px; background: rgba(197, 160, 89, 0.12); border: 1px solid rgba(197, 160, 89, 0.35); display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: 22px; margin-bottom: 20px;">
+                    <i class="fa-solid fa-bullseye"></i>
+                </div>
+                <h3 style="font-family: var(--font-serif); color: #ffffff; font-size: 1.4rem; font-weight: 700; margin-bottom: 14px; letter-spacing: 0.5px;">
+                    Misi Perusahaan
+                </h3>
+                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 14px;">
+                    <li style="display: flex; align-items: flex-start; gap: 12px; color: #cbd5e1; font-size: 0.95rem; line-height: 1.6;">
+                        <span style="color: var(--gold); font-size: 15px; margin-top: 3px;"><i class="fa-solid fa-circle-check"></i></span>
+                        <span>Menjaga kemurnian racikan tembakau pegunungan dan cengkeh pilihan asli Nusantara.</span>
+                    </li>
+                    <li style="display: flex; align-items: flex-start; gap: 12px; color: #cbd5e1; font-size: 0.95rem; line-height: 1.6;">
+                        <span style="color: var(--gold); font-size: 15px; margin-top: 3px;"><i class="fa-solid fa-circle-check"></i></span>
+                        <span>Mematuhi seluruh regulasi perizinan cukai negara dan standarisasi batas kadar tar/nikotin resmi.</span>
+                    </li>
+                    <li style="display: flex; align-items: flex-start; gap: 12px; color: #cbd5e1; font-size: 0.95rem; line-height: 1.6;">
+                        <span style="color: var(--gold); font-size: 15px; margin-top: 3px;"><i class="fa-solid fa-circle-check"></i></span>
+                        <span>Mengembangkan jaringan distribusi terstruktur berbasis pasokan berkelanjutan dan kemudahan order bagi mitra.</span>
+                    </li>
                 </ul>
             </div>
         </div>
