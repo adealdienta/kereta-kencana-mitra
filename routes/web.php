@@ -32,7 +32,6 @@ Route::post('/kontak', [FrontController::class, 'kirimPesan'])->name('kontak.kir
 
 // API Endpoint AJAX pencatatan WhatsApp Modal (BKPM Acara 21)
 Route::post('/api/log-order-wa', [PemesananController::class, 'apiLogWa'])->name('api.log.wa');
-Route::post('/api_log_order.php', [PemesananController::class, 'apiLogWa']);
 
 // --- 2. RUTE AUTENTIKASI ---
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
