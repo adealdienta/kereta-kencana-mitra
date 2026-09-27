@@ -5,26 +5,38 @@
 
 @section('content')
 <div style="background: #fff; border-radius: 8px; border: 1px solid #e2e8f0; padding: 24px;">
-    <!-- Filter & Pencarian (BKPM Acara 23) -->
+    <!-- Filter & Tombol Aksi -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 16px;">
         <form action="{{ route('admin.transaksis.index') }}" method="GET" style="display: flex; gap: 8px; flex-wrap: wrap;">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari kode, mitra, no. DO, resi..." 
-                   style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; min-width: 240px;">
+                   style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; min-width: 220px;">
             
             <select name="status" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
                 <option value="">-- Semua Status --</option>
                 <option value="Baru Masuk" {{ request('status') === 'Baru Masuk' ? 'selected' : '' }}>Baru Masuk</option>
-                <option value="Diproses" {{ request('status') === 'Diproses' ? 'selected' : '' }}>Diproses Pabrik</option>
-                <option value="Selesai" {{ request('status') === 'Selesai' ? 'selected' : '' }}>Selesai / Terkirim</option>
+                <option value="Diproses" {{ request('status') === 'Diproses' ? 'selected' : '' }}>Diproses Gudang</option>
+                <option value="Dikirim" {{ request('status') === 'Dikirim' ? 'selected' : '' }}>Sedang Dikirim</option>
+                <option value="Selesai" {{ request('status') === 'Selesai' ? 'selected' : '' }}>Selesai / Diterima</option>
                 <option value="Dibatalkan" {{ request('status') === 'Dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
+            </select>
+
+            <select name="sumber" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+                <option value="">-- Semua Saluran --</option>
+                <option value="Web" {{ request('sumber') === 'Web' ? 'selected' : '' }}>Pesanan Online Web</option>
+                <option value="Offline" {{ request('sumber') === 'Offline' ? 'selected' : '' }}>Langsung Pabrik (Offline)</option>
             </select>
 
             <button type="submit" class="btn btn-secondary btn-sm"><i class="fa-solid fa-filter"></i> Saring Data</button>
         </form>
 
-        <a href="{{ route('pesanan.form') }}" target="_blank" style="background: #121619; color: #fff; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600;">
-            <i class="fa-solid fa-plus"></i> Input Order Baru (Kasir B2B)
-        </a>
+        <div style="display: flex; gap: 8px;">
+            <a href="{{ route('admin.transaksis.offline') }}" style="background: #10b981; color: #fff; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-cash-register"></i> + Transaksi Langsung di Pabrik (Offline)
+            </a>
+            <a href="{{ route('pesanan.form') }}" target="_blank" style="background: #121619; color: #fff; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600;">
+                <i class="fa-solid fa-cart-plus"></i> Form Order Web
+            </a>
+        </div>
     </div>
 
     <!-- Tabel Pesanan -->
@@ -36,9 +48,9 @@
                     <th style="padding: 12px;">Tanggal</th>
                     <th style="padding: 12px;">Nama Mitra / Toko</th>
                     <th style="padding: 12px;">Varian Produk</th>
-                    <th style="padding: 12px; text-align: center;">Jumlah Bal</th>
+                    <th style="padding: 12px; text-align: center;">Jumlah</th>
                     <th style="padding: 12px; text-align: right;">Total Nilai</th>
-                    <th style="padding: 12px;">No. DO / Resi</th>
+                    <th style="padding: 12px;">Bukti Terima</th>
                     <th style="padding: 12px; text-align: center;">Status</th>
                     <th style="padding: 12px; text-align: center;">Aksi</th>
                 </tr>
@@ -50,7 +62,17 @@
                             <a href="{{ route('admin.transaksis.show', $t->id) }}" style="color: #b45309; text-decoration: none;">
                                 #{{ $t->kode_transaksi }}
                             </a>
-                            <div style="font-size: 10px; color: #94a3b8;">{{ $t->sumber }}</div>
+                            <div style="font-size: 10.5px; margin-top: 2px;">
+                                @if(str_contains($t->sumber, 'Offline'))
+                                    <span style="background: #ecfdf5; color: #047857; padding: 2px 6px; border-radius: 4px; font-weight: 600;">
+                                        <i class="fa-solid fa-store"></i> Kasir Pabrik
+                                    </span>
+                                @else
+                                    <span style="color: #64748b;">
+                                        <i class="fa-solid fa-globe"></i> {{ $t->sumber }}
+                                    </span>
+                                @endif
+                            </div>
                         </td>
                         <td style="padding: 12px; color: #64748b;">{{ $t->created_at->format('d/m/y H:i') }}</td>
                         <td style="padding: 12px;">
@@ -67,15 +89,20 @@
                         <td style="padding: 12px; text-align: right; font-weight: 700; color: #0f1316;">
                             {{ $t->formatted_total }}
                         </td>
-                        <td style="padding: 12px; font-size: 11px; font-family: monospace;">
-                            @if($t->nomor_do)
-                                <div>DO: {{ $t->nomor_do }}</div>
-                            @endif
-                            @if($t->nomor_resi)
-                                <div style="color: #0284c7;">Resi: {{ $t->nomor_resi }}</div>
-                            @endif
-                            @if(!$t->nomor_do && !$t->nomor_resi)
-                                <span style="color: #cbd5e1;">- Belum Terbit -</span>
+                        <td style="padding: 12px;">
+                            @if($t->bukti_penerimaan)
+                                <a href="{{ asset('storage/' . $t->bukti_penerimaan) }}" target="_blank" style="display: inline-flex; align-items: center; gap: 4px; color: #059669; font-weight: 600; text-decoration: none; font-size: 11.5px; background: #ecfdf5; padding: 3px 8px; border-radius: 4px;">
+                                    <i class="fa-solid fa-image"></i> Lihat Foto
+                                </a>
+                            @elseif($t->status === 'Dikirim')
+                                <form action="{{ route('admin.transaksis.verifikasi_manual', $t->id) }}" method="POST" onsubmit="return confirm('Verifikasi manual transaksi {{ $t->kode_transaksi }} berdasarkan tanda tangan nota fisik?')" style="display: inline;">
+                                    @csrf
+                                    <button type="submit" style="background: #f8fafc; border: 1px solid #cbd5e1; color: #475569; padding: 3px 6px; border-radius: 4px; font-size: 11px; cursor: pointer;" title="Klik jika nota fisik bertanda tangan sudah kembali">
+                                        <i class="fa-solid fa-stamp"></i> Verif Nota
+                                    </button>
+                                </form>
+                            @else
+                                <span style="color: #cbd5e1; font-size: 11px;">-</span>
                             @endif
                         </td>
                         <td style="padding: 12px; text-align: center;">
@@ -83,6 +110,7 @@
                                 $color = match($t->status) {
                                     'Baru Masuk' => 'background: #fef3c7; color: #92400e;',
                                     'Diproses' => 'background: #e0f2fe; color: #0369a1;',
+                                    'Dikirim' => 'background: #f3e8ff; color: #7e22ce;',
                                     'Selesai' => 'background: #ecfdf5; color: #065f46;',
                                     'Dibatalkan' => 'background: #fef2f2; color: #991b1b;',
                                     default => 'background: #f1f5f9; color: #475569;'
@@ -119,6 +147,7 @@
         </table>
     </div>
 
+    <!-- Pagination -->
     <div style="margin-top: 20px;">
         {{ $transaksis->links() }}
     </div>

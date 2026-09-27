@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Transaksi;
 use App\Models\Barang;
+use App\Models\User;
 use App\Helpers\ActivityLogger;
+use Illuminate\Support\Str;
 
 class TransaksiController extends Controller
 {
@@ -17,6 +19,11 @@ class TransaksiController extends Controller
         // Filter status (BKPM Acara 23)
         if ($request->filled('status')) {
             $query->where('status', $request->status);
+        }
+
+        // Filter sumber (Web B2B vs Offline)
+        if ($request->filled('sumber')) {
+            $query->where('sumber', 'like', "%{$request->sumber}%");
         }
 
         // Pencarian nama mitra atau kode transaksi (BKPM Acara 23)
@@ -47,7 +54,7 @@ class TransaksiController extends Controller
         $transaksi = Transaksi::findOrFail($id);
 
         $validated = $request->validate([
-            'status' => ['required', 'in:Baru Masuk,Diproses,Selesai,Dibatalkan'],
+            'status' => ['required', 'in:Baru Masuk,Diproses,Dikirim,Selesai,Dibatalkan'],
             'nomor_do' => ['nullable', 'string', 'max:100'],
             'nomor_resi' => ['nullable', 'string', 'max:100'],
             'catatan' => ['nullable', 'string'],
@@ -57,12 +64,20 @@ class TransaksiController extends Controller
         $statusBaru = $validated['status'];
 
         // Jika status diubah menjadi 'Dibatalkan', kembalikan stok (BKPM Acara 18: Stok Recovery)
+        $slopPerBal = $transaksi->barang->slop_per_bal ?: 20;
+        $balDeduct = $transaksi->satuan === 'Bal' ? $transaksi->jumlah : max(1, (int)ceil($transaksi->jumlah / $slopPerBal));
+
         if ($statusBaru === 'Dibatalkan' && $statusLama !== 'Dibatalkan') {
-            $transaksi->barang->increment('stok', $transaksi->jumlah);
+            $transaksi->barang->increment('stok', $balDeduct);
         }
         // Jika status semula 'Dibatalkan' lalu diaktifkan kembali
         elseif ($statusLama === 'Dibatalkan' && $statusBaru !== 'Dibatalkan') {
-            $transaksi->barang->decrement('stok', $transaksi->jumlah);
+            $transaksi->barang->decrement('stok', $balDeduct);
+        }
+
+        // Jika admin mengubah langsung ke Selesai
+        if ($statusBaru === 'Selesai' && !$transaksi->diterima_pada) {
+            $transaksi->diterima_pada = now();
         }
 
         $transaksi->update($validated);
@@ -72,13 +87,103 @@ class TransaksiController extends Controller
         return back()->with('success', 'Status dan dokumen pengiriman pesanan berhasil diperbarui.');
     }
 
+    /**
+     * Verifikasi Manual oleh Admin via Nota/Surat Jalan Fisik (Bypass Upload Foto)
+     */
+    public function verifikasiManual(Request $request, $id)
+    {
+        $transaksi = Transaksi::findOrFail($id);
+
+        $transaksi->update([
+            'status' => 'Selesai',
+            'diterima_pada' => now(),
+            'catatan_penerima' => '[Diverifikasi Manual oleh Admin Pabrik berdasarkan tanda tangan Surat Jalan/Nota fisik]',
+        ]);
+
+        ActivityLogger::log('Verifikasi Manual', "Admin memverifikasi penerimaan transaksi {$transaksi->kode_transaksi} secara manual");
+
+        return back()->with('success', "Transaksi {$transaksi->kode_transaksi} telah diselesaikan secara manual. Kunci pemesanan mitra terkait telah dibuka.");
+    }
+
+    /**
+     * Formulir Input Penjualan Langsung / Kasir Offline di Pabrik
+     */
+    public function createOffline()
+    {
+        $barangs = Barang::aktif()->orderBy('urutan')->get();
+        $pelanggans = User::where('role', 'pelanggan')->orderBy('name')->get();
+
+        return view('admin.transaksis.create_offline', compact('barangs', 'pelanggans'));
+    }
+
+    /**
+     * Simpan Transaksi Offline / Langsung di Pabrik
+     */
+    public function storeOffline(Request $request)
+    {
+        $request->validate([
+            'barang_id' => ['required', 'exists:barangs,id'],
+            'satuan' => ['required', 'in:Slop,Bal'],
+            'jumlah' => ['required', 'integer', 'min:1'],
+            'nama_mitra' => ['required', 'string', 'max:150'],
+            'telepon' => ['nullable', 'string', 'max:30'],
+            'alamat' => ['nullable', 'string'],
+            'catatan' => ['nullable', 'string'],
+            'user_id' => ['nullable', 'exists:users,id'],
+        ]);
+
+        $barang = Barang::findOrFail($request->barang_id);
+        $satuan = $request->satuan;
+        $hargaSatuan = $satuan === 'Slop' ? $barang->harga_per_slop : $barang->harga_per_bal;
+        $total_harga = $request->jumlah * $hargaSatuan;
+
+        // Validasi stok
+        $slopPerBal = $barang->slop_per_bal ?: 20;
+        $balDeduct = $satuan === 'Bal' ? $request->jumlah : max(1, (int)ceil($request->jumlah / $slopPerBal));
+
+        if ($barang->stok < $balDeduct) {
+            return back()->withInput()->withErrors([
+                'jumlah' => "Stok di gudang tidak mencukupi (sisa {$barang->stok} Bal).",
+            ]);
+        }
+
+        $kode_transaksi = 'OFF-' . date('Ymd') . '-' . strtoupper(Str::random(4));
+
+        $transaksi = Transaksi::create([
+            'kode_transaksi' => $kode_transaksi,
+            'user_id' => $request->user_id ?: null,
+            'barang_id' => $barang->id,
+            'nama_mitra' => $request->nama_mitra,
+            'telepon' => $request->telepon ?: '-',
+            'alamat' => $request->alamat ?: 'Serah Terima Langsung di Pabrik (Ponggok, Blitar)',
+            'jumlah' => $request->jumlah,
+            'satuan' => $satuan,
+            'total_harga' => $total_harga,
+            'catatan' => $request->catatan ?: 'Pembelian Tunai / Kasir Langsung di Pabrik',
+            'status' => 'Selesai',
+            'sumber' => 'Langsung di Pabrik (Offline)',
+            'diterima_pada' => now(),
+            'catatan_penerima' => 'Barang langsung diterima pembeli di pabrik (Cash & Carry)',
+        ]);
+
+        // Kurangi stok gudang
+        $barang->decrement('stok', $balDeduct);
+
+        ActivityLogger::log('Transaksi Offline', "Transaksi kasir langsung di pabrik {$kode_transaksi} ({$request->nama_mitra})");
+
+        return redirect()->route('admin.transaksis.faktur', $transaksi->id)
+            ->with('success', "Transaksi langsung di pabrik {$kode_transaksi} berhasil dicatat dan lunas! Faktur kasir siap dicetak.");
+    }
+
     public function destroy($id)
     {
         $transaksi = Transaksi::findOrFail($id);
 
         // BKPM Acara 18: Stok Recovery jika transaksi dihapus sebelum selesai
         if ($transaksi->status !== 'Dibatalkan') {
-            $transaksi->barang->increment('stok', $transaksi->jumlah);
+            $slopPerBal = $transaksi->barang->slop_per_bal ?: 20;
+            $balDeduct = $transaksi->satuan === 'Bal' ? $transaksi->jumlah : max(1, (int)ceil($transaksi->jumlah / $slopPerBal));
+            $transaksi->barang->increment('stok', $balDeduct);
         }
 
         $kode = $transaksi->kode_transaksi;

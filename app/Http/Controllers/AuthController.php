@@ -13,9 +13,63 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check()) {
+            if (Auth::user()->isPelanggan()) {
+                return redirect()->route('pesanan.saya');
+            }
             return redirect()->route('admin.dashboard');
         }
         return view('auth.login');
+    }
+
+    public function showRegister()
+    {
+        if (Auth::check()) {
+            if (Auth::user()->isPelanggan()) {
+                return redirect()->route('pesanan.form');
+            }
+            return redirect()->route('admin.dashboard');
+        }
+        return view('auth.register');
+    }
+
+    public function register(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+            'nama_toko' => ['required', 'string', 'max:150'],
+            'email' => ['required', 'email', 'unique:users,email'],
+            'telepon' => ['required', 'string', 'max:30'],
+            'alamat' => ['required', 'string', 'max:500'],
+            'password' => ['required', 'min:6', 'confirmed'],
+        ], [
+            'name.required' => 'Nama lengkap wajib diisi.',
+            'nama_toko.required' => 'Nama toko / warung / mitra usaha wajib diisi.',
+            'email.required' => 'Alamat email wajib diisi.',
+            'email.unique' => 'Email ini sudah terdaftar. Silakan gunakan email lain atau login.',
+            'telepon.required' => 'Nomor WhatsApp / telepon wajib diisi untuk koordinasi pengiriman.',
+            'alamat.required' => 'Alamat lengkap pengiriman barang wajib diisi.',
+            'password.required' => 'Kata sandi wajib diisi.',
+            'password.min' => 'Kata sandi minimal 6 karakter.',
+            'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
+        ]);
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'nama_toko' => $validated['nama_toko'],
+            'email' => $validated['email'],
+            'telepon' => $validated['telepon'],
+            'alamat' => $validated['alamat'],
+            'password' => Hash::make($validated['password']),
+            'role' => 'pelanggan',
+        ]);
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        ActivityLogger::log('Registrasi Mitra', "Mitra toko '{$user->nama_toko}' berhasil mendaftar akun baru");
+
+        return redirect()->route('pesanan.form')
+            ->with('success', 'Pendaftaran berhasil! Selamat datang, ' . $user->name . ' (' . $user->nama_toko . '). Silakan lanjutkan formulir pemesanan rokok Anda.');
     }
 
     public function login(Request $request)
@@ -30,7 +84,12 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
 
-            ActivityLogger::log('Login Sistem', 'Pengguna berhasil masuk ke dashboard');
+            ActivityLogger::log('Login Sistem', 'Pengguna berhasil masuk: ' . Auth::user()->name);
+
+            if (Auth::user()->isPelanggan()) {
+                return redirect()->intended(route('pesanan.saya'))
+                    ->with('success', 'Selamat datang kembali, ' . Auth::user()->name . ' (' . (Auth::user()->nama_toko ?? 'Mitra Usaha') . ')!');
+            }
 
             return redirect()->intended(route('admin.dashboard'))
                 ->with('success', 'Selamat datang kembali, ' . Auth::user()->name . '!');
@@ -49,7 +108,7 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')->with('success', 'Anda telah berhasil keluar.');
+        return redirect()->route('beranda')->with('success', 'Anda telah berhasil keluar dari sesi akun.');
     }
 
     public function profile()
@@ -65,11 +124,17 @@ class AuthController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
+            'nama_toko' => ['nullable', 'string', 'max:150'],
+            'telepon' => ['nullable', 'string', 'max:30'],
+            'alamat' => ['nullable', 'string', 'max:500'],
             'email' => ['required', 'email', 'unique:users,email,' . $user->id],
             'password' => ['nullable', 'min:6'],
         ]);
 
         $user->name = $validated['name'];
+        if (isset($validated['nama_toko'])) $user->nama_toko = $validated['nama_toko'];
+        if (isset($validated['telepon'])) $user->telepon = $validated['telepon'];
+        if (isset($validated['alamat'])) $user->alamat = $validated['alamat'];
         $user->email = $validated['email'];
 
         if (!empty($validated['password'])) {

@@ -14,7 +14,10 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name',
+        'nama_toko',
         'email',
+        'telepon',
+        'alamat',
         'password',
         'role',
     ];
@@ -45,6 +48,11 @@ class User extends Authenticatable
     public function isStaff(): bool
     {
         return $this->role === 'staff';
+    }
+
+    public function isPelanggan(): bool
+    {
+        return $this->role === 'pelanggan';
     }
 
     public function transaksis(): HasMany

@@ -16,6 +16,44 @@
     <div class="container" style="max-width: 900px;">
         <div style="background: var(--bg-card); border: 1px solid var(--charcoal-border); border-radius: var(--radius-lg); padding: 36px; box-shadow: var(--shadow-lg);">
             
+            @if($isLocked)
+                <!-- Banner Kunci Pemesanan (Order Lock) -->
+                <div style="background: rgba(239, 68, 68, 0.12); border: 2px solid #ef4444; border-radius: var(--radius-lg); padding: 26px; margin-bottom: 28px; text-align: center;">
+                    <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(239, 68, 68, 0.2); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 14px;">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <h3 style="color: #ffffff; font-size: 20px; margin-bottom: 8px;">Pemesanan Baru Terkunci Sementara</h3>
+                    <p style="color: #cbd5e1; font-size: 14px; max-width: 620px; margin: 0 auto 18px; line-height: 1.6;">
+                        Toko Anda masih memiliki pesanan aktif <strong>{{ $lockedOrder->kode_transaksi }}</strong> ({{ $lockedOrder->barang->nama }} - {{ $lockedOrder->jumlah }} {{ $lockedOrder->satuan }}) yang sedang berstatus <strong>Sedang Dikirim</strong>.
+                        <br><br>
+                        Sesuai standar operasional PR. KERETA KENCANA, mohon lakukan <strong>Konfirmasi Penerimaan Barang & Unggah Foto Bukti</strong> pada menu <em>Pesanan Saya</em> saat barang tiba di toko untuk membuka kembali hak pemesanan baru.
+                    </p>
+                    <a href="{{ route('pesanan.saya') }}" class="btn btn-gold" style="padding: 12px 24px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-box-open"></i> Buka Menu Pesanan Saya & Konfirmasi Bukti
+                    </a>
+                </div>
+            @endif
+
+            <!-- Banner Akun Mitra Aktif -->
+            <div style="background: rgba(212,175,55,0.06); border: 1px solid rgba(212,175,55,0.25); border-radius: 8px; padding: 14px 18px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(212,175,55,0.2); color: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                        <i class="fa-solid fa-store"></i>
+                    </div>
+                    <div>
+                        <div style="color: #ffffff; font-weight: 700; font-size: 14px;">
+                            {{ $user->nama_toko ?: $user->name }}
+                        </div>
+                        <div style="color: var(--text-muted); font-size: 12px;">
+                            Akun Mitra: {{ $user->email }} &bull; {{ $user->telepon ?: 'Belum ada nomor' }}
+                        </div>
+                    </div>
+                </div>
+                <a href="{{ route('pesanan.saya') }}" class="btn btn-sm btn-outline-gold" style="font-size: 12px;">
+                    <i class="fa-solid fa-list-check"></i> Riwayat & Pelacakan Pesanan
+                </a>
+            </div>
+
             <form action="{{ route('pesanan.store') }}" method="POST" id="formOrder">
                 @csrf
 
@@ -28,7 +66,7 @@
 
                 <div class="form-group" style="margin-bottom: 20px;">
                     <label style="display: block; color: var(--text-light); font-size: 14px; margin-bottom: 6px;">Pilih Varian Rokok <span style="color: var(--danger);">*</span></label>
-                    <select name="barang_id" id="selectBarang" class="form-control" required 
+                    <select name="barang_id" id="selectBarang" class="form-control" required {{ $isLocked ? 'disabled' : '' }}
                             style="width: 100%; padding: 12px; background: #121619; border: 1px solid var(--charcoal-border); color: #fff; border-radius: 6px;">
                         <option value="">-- Pilih Varian Rokok (Dwipantara / Sembada / Kereta Kencana) --</option>
                         @foreach($produks as $p)
@@ -52,7 +90,7 @@
                     <label style="display: block; color: var(--text-light); font-size: 14px; margin-bottom: 8px;">Pilihan Satuan Pembelian <span style="color: var(--danger);">*</span></label>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                         <label class="satuan-card" id="cardSatuanSlop" style="background: #121619; border: 2px solid var(--gold); border-radius: 8px; padding: 16px; cursor: pointer; display: flex; align-items: flex-start; gap: 12px; transition: 0.2s;">
-                            <input type="radio" name="satuan" value="Slop" id="satuanSlop" {{ old('satuan', $selectedSatuan ?? 'Slop') === 'Slop' ? 'checked' : '' }} style="margin-top: 4px;">
+                            <input type="radio" name="satuan" value="Slop" id="satuanSlop" {{ old('satuan', $selectedSatuan ?? 'Slop') === 'Slop' ? 'checked' : '' }} {{ $isLocked ? 'disabled' : '' }} style="margin-top: 4px;">
                             <div>
                                 <strong style="color: var(--text-white); font-size: 15px; display: block;">Per Slop (10 Bungkus)</strong>
                                 <span style="color: var(--gold); font-size: 12px; font-weight: 600; display: block; margin-top: 2px;">★ Rekomendasi: Minimal Cuma 1 Slop</span>
@@ -61,42 +99,42 @@
                         </label>
 
                         <label class="satuan-card" id="cardSatuanBal" style="background: #121619; border: 1px solid var(--charcoal-border); border-radius: 8px; padding: 16px; cursor: pointer; display: flex; align-items: flex-start; gap: 12px; transition: 0.2s;">
-                            <input type="radio" name="satuan" value="Bal" id="satuanBal" {{ old('satuan', $selectedSatuan ?? 'Slop') === 'Bal' ? 'checked' : '' }} style="margin-top: 4px;">
+                            <input type="radio" name="satuan" value="Bal" id="satuanBal" {{ old('satuan', $selectedSatuan ?? '') === 'Bal' ? 'checked' : '' }} {{ $isLocked ? 'disabled' : '' }} style="margin-top: 4px;">
                             <div>
-                                <strong style="color: var(--text-white); font-size: 15px; display: block;">Per Bal (20 Slop / 200 Bungkus)</strong>
-                                <span style="color: #94a3b8; font-size: 12px; font-weight: 600; display: block; margin-top: 2px;">Paket Grosir Distributor (B2B)</span>
-                                <small style="color: var(--text-muted); font-size: 11px; display: block; margin-top: 4px;">Kemasan dus segel pabrik untuk pasokan distributor & agen partai besar.</small>
+                                <strong style="color: var(--text-white); font-size: 15px; display: block;">Paket Grosir Bal</strong>
+                                <span style="color: var(--text-muted); font-size: 12px; display: block; margin-top: 2px;">20 Slop (200 Bungkus) / Bal</span>
+                                <small style="color: var(--text-muted); font-size: 11px; display: block; margin-top: 4px;">Harga partai grosir khusus agen distributor toko besar.</small>
                             </div>
                         </label>
                     </div>
                 </div>
 
-                <div class="grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div class="grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
                     <div class="form-group">
                         <label style="display: block; color: var(--text-light); font-size: 14px; margin-bottom: 6px;">
                             Jumlah Pesanan (<span id="labelSatuanJumlah">Slop</span>) <span style="color: var(--danger);">*</span>
                         </label>
-                        <input type="number" name="jumlah" id="inputJumlah" class="form-control" min="1" value="{{ old('jumlah', 1) }}" required
-                               style="width: 100%; padding: 12px; background: #121619; border: 1px solid var(--charcoal-border); color: #fff; border-radius: 6px;">
-                        <small id="minOrderNotice" style="display: block; color: var(--gold); font-size: 12px; margin-top: 4px;">Min. Order: 1 Slop (10 Bungkus)</small>
+                        <input type="number" name="jumlah" id="inputJumlah" class="form-control" min="1" value="{{ old('jumlah', 1) }}" required {{ $isLocked ? 'disabled' : '' }}
+                               style="width: 100%; padding: 12px; background: #121619; border: 1px solid var(--charcoal-border); color: #fff; border-radius: 6px; font-size: 16px; font-weight: 600;">
+                        <small id="minOrderNotice" style="color: var(--gold); font-size: 12px; display: block; margin-top: 4px;">
+                            Minimal: 1 Slop
+                        </small>
                     </div>
 
                     <div class="form-group">
-                        <label style="display: block; color: var(--text-light); font-size: 14px; margin-bottom: 6px;">Harga Satuan Berlaku</label>
-                        <input type="text" id="displayHargaSatuan" class="form-control" readonly value="Rp 0"
-                               style="width: 100%; padding: 12px; background: #0d1012; border: 1px solid var(--charcoal-border); color: var(--gold); font-weight: 700; border-radius: 6px;">
-                        <small style="display: block; color: var(--text-muted); font-size: 12px; margin-top: 4px;">Harga resmi pabrik berpita cukai</small>
+                        <label style="display: block; color: var(--text-light); font-size: 14px; margin-bottom: 6px;">Harga Satuan</label>
+                        <input type="text" id="displayHargaSatuan" readonly class="form-control" value="Rp 0"
+                               style="width: 100%; padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--charcoal-border); color: var(--gold); font-weight: 700; font-size: 16px; border-radius: 6px;">
                     </div>
                 </div>
 
-                <!-- Kalkulator Ringkasan Nilai Order Dinamis -->
-                <div style="background: rgba(197, 160, 89, 0.08); border: 1px solid var(--gold); border-radius: var(--radius); padding: 18px 24px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                <!-- Estimasi Total Kalkulasi Realtime -->
+                <div style="background: rgba(212, 175, 55, 0.05); border: 1px dashed var(--gold); border-radius: 8px; padding: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <span style="display: block; color: var(--text-muted); font-size: 12px; text-transform: uppercase;">Total Volume Rokok Didapat:</span>
-                        <strong id="calcSlop" style="font-size: 18px; color: var(--text-white);">1 Slop (10 Bungkus)</strong>
+                        <span style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Estimasi Total Pemesanan</span>
+                        <div style="font-size: 13px; color: var(--text-light); margin-top: 4px;" id="calcSlop">0 Bungkus</div>
                     </div>
                     <div style="text-align: right;">
-                        <span style="display: block; color: var(--text-muted); font-size: 12px; text-transform: uppercase;">Estimasi Total Faktur:</span>
                         <strong id="calcTotal" style="font-size: 26px; color: var(--gold); font-weight: 800;">Rp 0</strong>
                     </div>
                 </div>
@@ -105,38 +143,44 @@
                     <h3 style="color: var(--gold); font-size: 18px; margin-bottom: 6px;">
                         <i class="fa-solid fa-address-card"></i> 2. Identitas Pemesan / Toko Mitra
                     </h3>
-                    <p style="color: var(--text-muted); font-size: 13px;">Data resmi mitra untuk surat jalan, nota fisik, & konfirmasi pengiriman armada.</p>
+                    <p style="color: var(--text-muted); font-size: 13px;">Data resmi mitra untuk surat jalan, nota fisik, & konfirmasi pengiriman armada (terisi otomatis dari akun Anda).</p>
                 </div>
 
                 <div class="grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                     <div class="form-group">
                         <label style="display: block; color: var(--text-light); font-size: 14px; margin-bottom: 6px;">Nama Toko / Warung / Mitra Distributor <span style="color: var(--danger);">*</span></label>
-                        <input type="text" name="nama_mitra" class="form-control" required value="{{ old('nama_mitra') }}" placeholder="Contoh: Toko Berkah Mandiri / Kios Barokah"
+                        <input type="text" name="nama_mitra" class="form-control" required value="{{ old('nama_mitra', $user->nama_toko ?: $user->name) }}" placeholder="Contoh: Toko Berkah Mandiri / Kios Barokah" {{ $isLocked ? 'disabled' : '' }}
                                style="width: 100%; padding: 12px; background: #121619; border: 1px solid var(--charcoal-border); color: #fff; border-radius: 6px;">
                     </div>
 
                     <div class="form-group">
                         <label style="display: block; color: var(--text-light); font-size: 14px; margin-bottom: 6px;">Nomor WhatsApp Aktif <span style="color: var(--danger);">*</span></label>
-                        <input type="tel" name="telepon" class="form-control" required value="{{ old('telepon') }}" placeholder="08xxxxxxxxxx"
+                        <input type="tel" name="telepon" class="form-control" required value="{{ old('telepon', $user->telepon) }}" placeholder="08xxxxxxxxxx" {{ $isLocked ? 'disabled' : '' }}
                                style="width: 100%; padding: 12px; background: #121619; border: 1px solid var(--charcoal-border); color: #fff; border-radius: 6px;">
                     </div>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 20px;">
                     <label style="display: block; color: var(--text-light); font-size: 14px; margin-bottom: 6px;">Alamat Lengkap Tujuan Pengiriman <span style="color: var(--danger);">*</span></label>
-                    <textarea name="alamat" class="form-control" rows="3" required placeholder="Alamat pengiriman toko/rumah, nama jalan, RT/RW, desa/kelurahan, kecamatan, kabupaten/kota..."
-                              style="width: 100%; padding: 12px; background: #121619; border: 1px solid var(--charcoal-border); color: #fff; border-radius: 6px;">{{ old('alamat') }}</textarea>
+                    <textarea name="alamat" class="form-control" rows="3" required placeholder="Alamat pengiriman toko/rumah, nama jalan, RT/RW, desa/kelurahan, kecamatan, kabupaten/kota..." {{ $isLocked ? 'disabled' : '' }}
+                              style="width: 100%; padding: 12px; background: #121619; border: 1px solid var(--charcoal-border); color: #fff; border-radius: 6px;">{{ old('alamat', $user->alamat) }}</textarea>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 30px;">
                     <label style="display: block; color: var(--text-light); font-size: 14px; margin-bottom: 6px;">Catatan Khusus Pengiriman (Opsional)</label>
-                    <textarea name="catatan" class="form-control" rows="2" placeholder="Contoh: Kirim via kargo langganan, titip bus/travel, atau ambil sendiri di gudang pabrik Ponggok..."
+                    <textarea name="catatan" class="form-control" rows="2" placeholder="Contoh: Kirim via kargo langganan, titip bus/travel, atau ambil sendiri di gudang pabrik Ponggok..." {{ $isLocked ? 'disabled' : '' }}
                               style="width: 100%; padding: 12px; background: #121619; border: 1px solid var(--charcoal-border); color: #fff; border-radius: 6px;">{{ old('catatan') }}</textarea>
                 </div>
 
-                <button type="submit" class="btn btn-gold" style="width: 100%; padding: 16px; font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                    <i class="fa-solid fa-file-invoice"></i> Terbitkan Surat Pesanan & Faktur Resmi
-                </button>
+                @if($isLocked)
+                    <button type="button" class="btn btn-secondary" disabled style="width: 100%; padding: 16px; font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: not-allowed; opacity: 0.65;">
+                        <i class="fa-solid fa-lock"></i> Pemesanan Terkunci (Selesaikan Pesanan Sebelumnya Terlebih Dahulu)
+                    </button>
+                @else
+                    <button type="submit" class="btn btn-gold" style="width: 100%; padding: 16px; font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <i class="fa-solid fa-file-invoice"></i> Terbitkan Surat Pesanan & Faktur Resmi
+                    </button>
+                @endif
             </form>
         </div>
     </div>
@@ -158,6 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const cardBal = document.getElementById('cardSatuanBal');
 
     function updateCards() {
+        if (!radioSlop || !radioBal) return;
         if (radioSlop.checked) {
             cardSlop.style.borderColor = 'var(--gold)';
             cardSlop.style.background = 'rgba(197, 160, 89, 0.08)';
@@ -167,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
             cardBal.style.background = '#121619';
             cardBal.style.boxShadow = 'none';
             cardBal.style.transform = 'scale(1)';
-            labelSatuan.innerText = 'Slop';
+            if (labelSatuan) labelSatuan.innerText = 'Slop';
         } else {
             cardBal.style.borderColor = 'var(--gold)';
             cardBal.style.background = 'rgba(197, 160, 89, 0.08)';
@@ -177,21 +222,22 @@ document.addEventListener('DOMContentLoaded', function() {
             cardSlop.style.background = '#121619';
             cardSlop.style.boxShadow = 'none';
             cardSlop.style.transform = 'scale(1)';
-            labelSatuan.innerText = 'Bal';
+            if (labelSatuan) labelSatuan.innerText = 'Bal';
         }
     }
 
     function hitung() {
+        if (!select || !inputJumlah) return;
         updateCards();
         const opt = select.options[select.selectedIndex];
         if (!opt || !opt.value) {
-            calcTotal.innerText = 'Rp 0';
-            calcSlop.innerText = '0 Bungkus';
-            displayHargaSatuan.value = 'Rp 0';
+            if (calcTotal) calcTotal.innerText = 'Rp 0';
+            if (calcSlop) calcSlop.innerText = '0 Bungkus';
+            if (displayHargaSatuan) displayHargaSatuan.value = 'Rp 0';
             return;
         }
 
-        const isSlop = radioSlop.checked;
+        const isSlop = radioSlop && radioSlop.checked;
         const hargaSlop = parseFloat(opt.dataset.hargaSlop || 0);
         const hargaBal = parseFloat(opt.dataset.hargaBal || 0);
         const minSlop = parseInt(opt.dataset.minSlop || 1);
@@ -203,33 +249,33 @@ document.addEventListener('DOMContentLoaded', function() {
         if (jumlah < 1) jumlah = 1;
 
         if (isSlop) {
-            notice.innerText = `Min. Order: ${minSlop} Slop (${minSlop * bungkusPerSlop} Bungkus)`;
+            if (notice) notice.innerText = `Min. Order: ${minSlop} Slop (${minSlop * bungkusPerSlop} Bungkus)`;
             inputJumlah.min = minSlop;
-            displayHargaSatuan.value = 'Rp ' + hargaSlop.toLocaleString('id-ID') + ' / Slop';
+            if (displayHargaSatuan) displayHargaSatuan.value = 'Rp ' + hargaSlop.toLocaleString('id-ID') + ' / Slop';
 
             const total = hargaSlop * jumlah;
             const totalBungkus = jumlah * bungkusPerSlop;
 
-            calcTotal.innerText = 'Rp ' + total.toLocaleString('id-ID');
-            calcSlop.innerText = `${jumlah.toLocaleString('id-ID')} Slop (${totalBungkus.toLocaleString('id-ID')} Bungkus)`;
+            if (calcTotal) calcTotal.innerText = 'Rp ' + total.toLocaleString('id-ID');
+            if (calcSlop) calcSlop.innerText = `${jumlah.toLocaleString('id-ID')} Slop (${totalBungkus.toLocaleString('id-ID')} Bungkus)`;
         } else {
-            notice.innerText = `Min. Order: ${minBal} Bal (${minBal * slopPerBal} Slop / ${minBal * slopPerBal * bungkusPerSlop} Bungkus)`;
+            if (notice) notice.innerText = `Min. Order: ${minBal} Bal (${minBal * slopPerBal} Slop / ${minBal * slopPerBal * bungkusPerSlop} Bungkus)`;
             inputJumlah.min = minBal;
-            displayHargaSatuan.value = 'Rp ' + hargaBal.toLocaleString('id-ID') + ' / Bal';
+            if (displayHargaSatuan) displayHargaSatuan.value = 'Rp ' + hargaBal.toLocaleString('id-ID') + ' / Bal';
 
             const total = hargaBal * jumlah;
             const totalSlop = jumlah * slopPerBal;
             const totalBungkus = totalSlop * bungkusPerSlop;
 
-            calcTotal.innerText = 'Rp ' + total.toLocaleString('id-ID');
-            calcSlop.innerText = `${jumlah.toLocaleString('id-ID')} Bal (${totalSlop.toLocaleString('id-ID')} Slop / ${totalBungkus.toLocaleString('id-ID')} Bks)`;
+            if (calcTotal) calcTotal.innerText = 'Rp ' + total.toLocaleString('id-ID');
+            if (calcSlop) calcSlop.innerText = `${jumlah.toLocaleString('id-ID')} Bal (${totalSlop.toLocaleString('id-ID')} Slop / ${totalBungkus.toLocaleString('id-ID')} Bks)`;
         }
     }
 
-    radioSlop.addEventListener('change', hitung);
-    radioBal.addEventListener('change', hitung);
-    select.addEventListener('change', hitung);
-    inputJumlah.addEventListener('input', hitung);
+    if (radioSlop) radioSlop.addEventListener('change', hitung);
+    if (radioBal) radioBal.addEventListener('change', hitung);
+    if (select) select.addEventListener('change', hitung);
+    if (inputJumlah) inputJumlah.addEventListener('input', hitung);
     hitung();
 });
 </script>

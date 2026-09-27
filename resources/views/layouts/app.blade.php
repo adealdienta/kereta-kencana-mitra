@@ -62,13 +62,47 @@
                 <a href="{{ route('beranda') }}" class="nav-link {{ request()->routeIs('beranda') ? 'active' : '' }}">Beranda</a>
                 <a href="{{ route('profil') }}" class="nav-link {{ request()->routeIs('profil') ? 'active' : '' }}">Profil Pabrik</a>
                 <a href="{{ route('katalog.index') }}" class="nav-link {{ request()->routeIs('katalog.*') || request()->routeIs('produk.*') ? 'active' : '' }}">Katalog Rokok</a>
-                <a href="{{ route('pesanan.form') }}" class="nav-link {{ request()->routeIs('pesanan.*') ? 'active' : '' }}">Order</a>
+                <a href="{{ route('pesanan.form') }}" class="nav-link {{ request()->routeIs('pesanan.form') ? 'active' : '' }}">Order</a>
+                @auth
+                    @if(Auth::user()->isPelanggan())
+                        <a href="{{ route('pesanan.saya') }}" class="nav-link {{ request()->routeIs('pesanan.saya') ? 'active' : '' }}" style="color: var(--gold);">
+                            <i class="fa-solid fa-box-open"></i> Pesanan Saya
+                        </a>
+                    @endif
+                @endauth
                 <a href="{{ route('kontak') }}" class="nav-link {{ request()->routeIs('kontak') ? 'active' : '' }}">Kontak & Lokasi</a>
                 
-                <div class="nav-actions">
-                    <a href="{{ route('login') }}" class="btn btn-sm btn-outline-gold">
-                        <i class="fa-solid fa-shield-halved"></i> Portal Staf
-                    </a>
+                <div class="nav-actions" style="display: flex; align-items: center; gap: 8px;">
+                    @guest
+                        <a href="{{ route('register') }}" class="btn btn-sm btn-outline" style="font-size: 12px; padding: 6px 12px;">
+                            <i class="fa-solid fa-user-plus"></i> Daftar Mitra
+                        </a>
+                        <a href="{{ route('login') }}" class="btn btn-sm btn-outline-gold" style="font-size: 12px; padding: 6px 12px;">
+                            <i class="fa-solid fa-right-to-bracket"></i> Masuk
+                        </a>
+                    @else
+                        @if(Auth::user()->isPelanggan())
+                            <span style="font-size: 12px; color: var(--text-light); display: inline-flex; align-items: center; gap: 6px; background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.3); padding: 5px 10px; border-radius: 6px;">
+                                <i class="fa-solid fa-store" style="color: var(--gold);"></i> {{ Str::limit(Auth::user()->nama_toko ?: Auth::user()->name, 16) }}
+                            </span>
+                            <form action="{{ route('logout') }}" method="POST" style="display: inline;">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-secondary" style="font-size: 12px; padding: 6px 10px;" title="Keluar">
+                                    <i class="fa-solid fa-right-from-bracket"></i>
+                                </button>
+                            </form>
+                        @else
+                            <a href="{{ route('admin.dashboard') }}" class="btn btn-sm btn-gold" style="font-size: 12px; padding: 6px 12px;">
+                                <i class="fa-solid fa-shield-halved"></i> Panel Staf
+                            </a>
+                            <form action="{{ route('logout') }}" method="POST" style="display: inline;">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-secondary" style="font-size: 12px; padding: 6px 10px;" title="Keluar">
+                                    <i class="fa-solid fa-right-from-bracket"></i>
+                                </button>
+                            </form>
+                        @endif
+                    @endguest
                 </div>
             </nav>
 

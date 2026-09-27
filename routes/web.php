@@ -24,25 +24,41 @@ Route::get('/', [FrontController::class, 'beranda'])->name('beranda');
 Route::get('/profil', [FrontController::class, 'profil'])->name('profil');
 Route::get('/katalog', [KatalogController::class, 'index'])->name('katalog.index');
 Route::get('/produk/{slug}', [KatalogController::class, 'detail'])->name('produk.detail');
-Route::get('/pesan', [PemesananController::class, 'form'])->name('pesanan.form');
-Route::post('/pesan', [PemesananController::class, 'store'])->name('pesanan.store');
-Route::get('/invoice/{kode_transaksi}', [PemesananController::class, 'invoice'])->name('pesanan.invoice');
 Route::get('/kontak', [FrontController::class, 'kontak'])->name('kontak');
 Route::post('/kontak', [FrontController::class, 'kirimPesan'])->name('kontak.kirim');
 
 // API Endpoint AJAX pencatatan WhatsApp Modal (BKPM Acara 21)
 Route::post('/api/log-order-wa', [PemesananController::class, 'apiLogWa'])->name('api.log.wa');
 
-// --- 2. RUTE AUTENTIKASI ---
+// --- 2. RUTE AUTENTIKASI (LOGIN & REGISTER MITRA) ---
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// --- 3. RUTE DASHBOARD OPERASIONAL (MIDDLEWARE AUTH) ---
+// --- 3. RUTE PEMESANAN & PELACAKAN (WAJIB AUTHENTIKASI MITRA) ---
+Route::middleware(['auth'])->group(function () {
+    Route::get('/pesan', [PemesananController::class, 'form'])->name('pesanan.form');
+    Route::post('/pesan', [PemesananController::class, 'store'])->name('pesanan.store');
+    Route::get('/pesanan-saya', [PemesananController::class, 'pelacakan'])->name('pesanan.saya');
+    Route::post('/pesanan/{id}/konfirmasi-terima', [PemesananController::class, 'konfirmasiTerima'])->name('pesanan.konfirmasi');
+    Route::post('/pesanan/{id}/batal', [PemesananController::class, 'batalkanPesanan'])->name('pesanan.batal');
+});
+
+// Halaman Invoice Digital (Bisa dibuka pelanggan/staf via link kode transaksi)
+Route::get('/invoice/{kode_transaksi}', [PemesananController::class, 'invoice'])->name('pesanan.invoice');
+
+// --- 4. RUTE DASHBOARD OPERASIONAL INTERNAL (ROLE STAFF, ADMIN, OWNER) ---
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/profil', [AuthController::class, 'profile'])->name('profile');
     Route::put('/profil', [AuthController::class, 'updateProfile'])->name('profile.update');
+
+    // Transaksi Offline / Kasir Langsung di Pabrik
+    Route::get('/transaksis/offline', [TransaksiController::class, 'createOffline'])->name('transaksis.offline');
+    Route::post('/transaksis/offline', [TransaksiController::class, 'storeOffline'])->name('transaksis.store_offline');
+    Route::post('/transaksis/{id}/verifikasi-manual', [TransaksiController::class, 'verifikasiManual'])->name('transaksis.verifikasi_manual');
 
     // Transaksi & Pesanan Distributor (Acara 17, 18, 23)
     Route::get('/transaksis', [TransaksiController::class, 'index'])->name('transaksis.index');

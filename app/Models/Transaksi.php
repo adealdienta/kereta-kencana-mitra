@@ -27,6 +27,9 @@ class Transaksi extends Model
         'nomor_do',
         'nomor_resi',
         'sumber',
+        'bukti_penerimaan',
+        'diterima_pada',
+        'catatan_penerima',
     ];
 
     protected function casts(): array
@@ -34,6 +37,7 @@ class Transaksi extends Model
         return [
             'total_harga' => 'decimal:2',
             'jumlah' => 'integer',
+            'diterima_pada' => 'datetime',
         ];
     }
 
