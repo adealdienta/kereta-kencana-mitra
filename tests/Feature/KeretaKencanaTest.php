@@ -201,4 +201,63 @@ class KeretaKencanaTest extends TestCase
         $this->actingAs($staff)->get('/admin/transaksis')->assertStatus(200);
         $this->actingAs($staff)->get('/admin/users')->assertStatus(403);
     }
+
+    public function test_pemesanan_multi_item_dengan_satuan_independen_slop_dan_bal(): void
+    {
+        $customer = User::factory()->create([
+            'role' => 'pelanggan',
+            'nama_toko' => 'Toko Campuran Jaya',
+            'telepon' => '085712349999',
+            'alamat' => 'Jl. Merdeka No. 88, Ponggok, Blitar',
+        ]);
+
+        $barangs = Barang::take(2)->get();
+        $this->assertCount(2, $barangs);
+
+        $b1 = $barangs[0]; // misal pesan 1 Bal
+        $b2 = $barangs[1]; // misal pesan 1 Slop
+
+        $stokAwalB1 = $b1->stok;
+        $stokAwalB2 = $b2->stok;
+
+        $response = $this->actingAs($customer)->post('/pesan', [
+            'nama_mitra' => $customer->nama_toko,
+            'telepon' => $customer->telepon,
+            'alamat' => $customer->alamat,
+            'catatan' => 'Pesanan kombinasi 1 Bal B1 dan 1 Slop B2',
+            'items' => [
+                $b1->id => [
+                    'satuan' => 'Bal',
+                    'jumlah' => 1,
+                ],
+                $b2->id => [
+                    'satuan' => 'Slop',
+                    'jumlah' => 1,
+                ],
+            ],
+        ]);
+
+        $trx = Transaksi::where('nama_mitra', 'Toko Campuran Jaya')->latest()->first();
+        $this->assertNotNull($trx);
+        $response->assertRedirect(route('pesanan.invoice', $trx->kode_transaksi));
+
+        // Verifikasi rincian transaksi (transaksi_details)
+        $this->assertCount(2, $trx->details);
+
+        $expectedTotal = (1 * (float)$b1->harga_per_bal) + (1 * (float)$b2->harga_per_slop);
+        $this->assertEquals($expectedTotal, (float)$trx->total_harga);
+
+        // Verifikasi stok berkurang akurat per varian
+        $b1->refresh();
+        $b2->refresh();
+        $this->assertEquals($stokAwalB1 - 1, $b1->stok);
+        $this->assertEquals($stokAwalB2 - 1, $b2->stok); // 1 Slop = 1 Bal dipotong (ceil)
+
+        // Verifikasi pembatalan memulihkan kedua stok varian
+        $this->actingAs($customer)->post("/pesanan/{$trx->id}/batal");
+        $b1->refresh();
+        $b2->refresh();
+        $this->assertEquals($stokAwalB1, $b1->stok);
+        $this->assertEquals($stokAwalB2, $b2->stok);
+    }
 }

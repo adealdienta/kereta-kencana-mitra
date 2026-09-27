@@ -24,7 +24,7 @@
                     </div>
                     <h3 style="color: #ffffff; font-size: 20px; margin-bottom: 8px;">Pemesanan Baru Terkunci Sementara</h3>
                     <p style="color: #cbd5e1; font-size: 14px; max-width: 620px; margin: 0 auto 18px; line-height: 1.6;">
-                        Toko Anda masih memiliki pesanan aktif <strong>{{ $lockedOrder->kode_transaksi }}</strong> ({{ $lockedOrder->barang->nama }} - {{ $lockedOrder->jumlah }} {{ $lockedOrder->satuan }}) yang sedang berstatus <strong>Sedang Dikirim</strong>.
+                        Toko Anda masih memiliki pesanan aktif <strong>{{ $lockedOrder->kode_transaksi }}</strong> ({{ $lockedOrder->ringkasan_item }}) yang sedang berstatus <strong>Sedang Dikirim</strong>.
                         <br><br>
                         Sesuai standar operasional PR. KERETA KENCANA, mohon lakukan <strong>Konfirmasi Penerimaan Barang & Unggah Foto Bukti</strong> pada menu <em>Pesanan Saya</em> saat barang tiba di toko untuk membuka kembali hak pemesanan baru.
                     </p>
@@ -57,85 +57,131 @@
             <form action="{{ route('pesanan.store') }}" method="POST" id="formOrder">
                 @csrf
 
-                <div style="border-bottom: 1px solid var(--charcoal-border); padding-bottom: 20px; margin-bottom: 24px;">
+                <div style="border-bottom: 1px solid var(--charcoal-border); padding-bottom: 18px; margin-bottom: 24px;">
                     <h3 style="color: var(--gold); font-size: 18px; margin-bottom: 6px;">
-                        <i class="fa-solid fa-boxes-stacked"></i> 1. Pilihan Varian & Satuan Pemesanan
+                        <i class="fa-solid fa-boxes-stacked"></i> 1. Pilihan Varian Produk & Satuan Pemesanan
                     </h3>
-                    <p style="color: var(--text-muted); font-size: 13px;">Pabrik melayani pembelian mulai dari <strong>minimal 1 Slop</strong> untuk mendukung kemitraan toko, warung, hingga distributor bal partai besar.</p>
+                    <p style="color: var(--text-muted); font-size: 13px; margin: 0; line-height: 1.5;">
+                        Anda dapat memesan <strong>lebih dari 1 jenis produk</strong> dalam satu surat pesanan resmi. 
+                        Tentukan pilihan satuan secara mandiri untuk tiap produk: <strong>Slop (10 Bungkus)</strong> atau <strong>Paket Grosir Bal (200 Bungkus)</strong>.
+                    </p>
                 </div>
 
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label style="display: block; color: var(--text-light); font-size: 14px; margin-bottom: 6px;">Pilih Varian Rokok <span style="color: var(--danger);">*</span></label>
-                    <select name="barang_id" id="selectBarang" class="form-control" required {{ $isLocked ? 'disabled' : '' }}
-                            style="width: 100%; padding: 12px; background: #121619; border: 1px solid var(--charcoal-border); color: #fff; border-radius: 6px;">
-                        <option value="">-- Pilih Varian Rokok (Dwipantara / Sembada / Kereta Kencana) --</option>
-                        @foreach($produks as $p)
-                            <option value="{{ $p->id }}" 
-                                    data-harga-slop="{{ $p->harga_per_slop }}"
-                                    data-harga-bal="{{ $p->harga_per_bal }}" 
-                                    data-min-slop="{{ $p->min_order_slop ?? 1 }}"
-                                    data-min-bal="{{ $p->min_order_bal ?? 1 }}"
-                                    data-stok="{{ $p->stok }}"
-                                    data-slop="{{ $p->slop_per_bal }}"
-                                    data-bungkus="{{ $p->bungkus_per_slop }}"
-                                    {{ (old('barang_id') == $p->id || (isset($selectedProduk) && $selectedProduk->id == $p->id)) ? 'selected' : '' }}>
-                                {{ $p->nama }} ({{ $p->kategori->nama_kategori }}) &bull; {{ $p->formatted_harga_slop }}/Slop &bull; {{ $p->formatted_harga }}/Bal
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+                @if($errors->has('items') || $errors->has('order_lock'))
+                    <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid #ef4444; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; color: #fca5a5; font-size: 13.5px;">
+                        <i class="fa-solid fa-triangle-exclamation"></i> {{ $errors->first('items') ?: $errors->first('order_lock') }}
+                    </div>
+                @endif
 
-                <!-- Pilihan Satuan (Slop vs Bal) -->
-                <div class="form-group" style="margin-bottom: 24px;">
-                    <label style="display: block; color: var(--text-light); font-size: 14px; margin-bottom: 8px;">Pilihan Satuan Pembelian <span style="color: var(--danger);">*</span></label>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                        <label class="satuan-card" id="cardSatuanSlop" style="background: #121619; border: 2px solid var(--gold); border-radius: 8px; padding: 16px; cursor: pointer; display: flex; align-items: flex-start; gap: 12px; transition: 0.2s;">
-                            <input type="radio" name="satuan" value="Slop" id="satuanSlop" {{ old('satuan', $selectedSatuan ?? 'Slop') === 'Slop' ? 'checked' : '' }} {{ $isLocked ? 'disabled' : '' }} style="margin-top: 4px;">
-                            <div>
-                                <strong style="color: var(--text-white); font-size: 15px; display: block;">Per Slop (10 Bungkus)</strong>
-                                <span style="color: var(--gold); font-size: 12px; font-weight: 600; display: block; margin-top: 2px;">★ Rekomendasi: Minimal Cuma 1 Slop</span>
-                                <small style="color: var(--text-muted); font-size: 11px; display: block; margin-top: 4px;">Cocok untuk toko kelontong, warung kopi, atau uji pasar daerah baru.</small>
+                <!-- Daftar Multi-Produk PR. Kereta Kencana -->
+                <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px;">
+                    @foreach($produks as $p)
+                        @php
+                            $isPreselected = ($preselectedSlug === $p->slug);
+                            $oldQty = old('items.'.$p->id.'.jumlah', $isPreselected ? 1 : 0);
+                            $oldSatuan = old('items.'.$p->id.'.satuan', 'Slop');
+                        @endphp
+                        <div class="product-item-card" id="card_prod_{{ $p->id }}" 
+                             style="background: #121619; border: 1px solid {{ ($isPreselected || $oldQty > 0) ? 'var(--gold)' : 'var(--charcoal-border)' }}; border-radius: 10px; padding: 18px; transition: all 0.2s ease;">
+                            
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px;">
+                                <!-- Info Produk -->
+                                <div style="flex: 1 1 260px; min-width: 240px;">
+                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                                        <h4 style="color: #ffffff; font-size: 16px; margin: 0; font-weight: 700;">
+                                            {{ $p->nama }}
+                                        </h4>
+                                        <span style="background: rgba(212, 175, 55, 0.15); color: var(--gold); border: 1px solid rgba(212, 175, 55, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600;">
+                                            {{ $p->kategori->nama_kategori }}
+                                        </span>
+                                    </div>
+                                    <div style="font-size: 12.5px; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 4px;">
+                                        <span><strong style="color: var(--text-light);">Per Slop:</strong> {{ $p->formatted_harga_slop }}</span>
+                                        <span>&bull;</span>
+                                        <span><strong style="color: var(--text-light);">Per Bal:</strong> {{ $p->formatted_harga }}</span>
+                                    </div>
+                                    <div style="font-size: 11.5px; color: #10b981;">
+                                        <i class="fa-solid fa-circle-check"></i> Stok Pabrik: <strong>{{ $p->stok }} Bal</strong> (Tersedia)
+                                    </div>
+                                </div>
+
+                                <!-- Kontrol Satuan & Jumlah -->
+                                <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: flex-end;">
+                                    <!-- Satuan Toggle Pill -->
+                                    <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--charcoal-border); border-radius: 8px; padding: 4px; display: inline-flex; gap: 4px;">
+                                        <label style="cursor: pointer; margin: 0; padding: 6px 12px; border-radius: 6px; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: 0.2s;" 
+                                               id="label_satuan_{{ $p->id }}_slop"
+                                               class="satuan-toggle-label {{ $oldSatuan === 'Slop' ? 'active-satuan' : '' }}">
+                                            <input type="radio" name="items[{{ $p->id }}][satuan]" value="Slop" 
+                                                   class="item-satuan" data-id="{{ $p->id }}" 
+                                                   {{ $oldSatuan === 'Slop' ? 'checked' : '' }} 
+                                                   {{ $isLocked ? 'disabled' : '' }} style="display: none;">
+                                            <span>Slop (10 Bks)</span>
+                                        </label>
+                                        <label style="cursor: pointer; margin: 0; padding: 6px 12px; border-radius: 6px; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: 0.2s;" 
+                                               id="label_satuan_{{ $p->id }}_bal"
+                                               class="satuan-toggle-label {{ $oldSatuan === 'Bal' ? 'active-satuan' : '' }}">
+                                            <input type="radio" name="items[{{ $p->id }}][satuan]" value="Bal" 
+                                                   class="item-satuan" data-id="{{ $p->id }}" 
+                                                   {{ $oldSatuan === 'Bal' ? 'checked' : '' }} 
+                                                   {{ $isLocked ? 'disabled' : '' }} style="display: none;">
+                                            <span>Bal (200 Bks)</span>
+                                        </label>
+                                    </div>
+
+                                    <!-- Stepper Kuantitas -->
+                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                        <button type="button" class="btn-qty-minus" data-id="{{ $p->id }}" {{ $isLocked ? 'disabled' : '' }}
+                                                style="width: 34px; height: 36px; background: rgba(255,255,255,0.06); border: 1px solid var(--charcoal-border); color: #fff; border-radius: 6px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fa-solid fa-minus"></i>
+                                        </button>
+                                        <input type="number" name="items[{{ $p->id }}][jumlah]" id="input_qty_{{ $p->id }}" 
+                                               min="0" max="{{ $p->stok * ($p->slop_per_bal ?: 20) }}" value="{{ $oldQty }}" 
+                                               class="item-qty-input" data-id="{{ $p->id }}"
+                                               data-harga-slop="{{ $p->harga_per_slop }}"
+                                               data-harga-bal="{{ $p->harga_per_bal }}"
+                                               data-slop-per-bal="{{ $p->slop_per_bal ?: 20 }}"
+                                               data-bungkus-per-slop="{{ $p->bungkus_per_slop ?: 10 }}"
+                                               data-nama="{{ $p->nama }}"
+                                               {{ $isLocked ? 'disabled' : '' }}
+                                               style="width: 65px; height: 36px; text-align: center; background: #0c0f12; border: 1px solid var(--charcoal-border); color: #fff; border-radius: 6px; font-size: 15px; font-weight: 700;">
+                                        <button type="button" class="btn-qty-plus" data-id="{{ $p->id }}" {{ $isLocked ? 'disabled' : '' }}
+                                                style="width: 34px; height: 36px; background: rgba(255,255,255,0.06); border: 1px solid var(--charcoal-border); color: #fff; border-radius: 6px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fa-solid fa-plus"></i>
+                                        </button>
+                                    </div>
+
+                                    <!-- Subtotal Baris -->
+                                    <div style="min-width: 130px; text-align: right;">
+                                        <span style="font-size: 11px; color: var(--text-muted); display: block;">Subtotal:</span>
+                                        <strong id="display_subtotal_{{ $p->id }}" style="font-size: 14.5px; color: var(--gold); display: block;">
+                                            Rp 0
+                                        </strong>
+                                    </div>
+                                </div>
                             </div>
-                        </label>
+                        </div>
+                    @endforeach
+                </div>
 
-                        <label class="satuan-card" id="cardSatuanBal" style="background: #121619; border: 1px solid var(--charcoal-border); border-radius: 8px; padding: 16px; cursor: pointer; display: flex; align-items: flex-start; gap: 12px; transition: 0.2s;">
-                            <input type="radio" name="satuan" value="Bal" id="satuanBal" {{ old('satuan', $selectedSatuan ?? '') === 'Bal' ? 'checked' : '' }} {{ $isLocked ? 'disabled' : '' }} style="margin-top: 4px;">
-                            <div>
-                                <strong style="color: var(--text-white); font-size: 15px; display: block;">Paket Grosir Bal</strong>
-                                <span style="color: var(--text-muted); font-size: 12px; display: block; margin-top: 2px;">20 Slop (200 Bungkus) / Bal</span>
-                                <small style="color: var(--text-muted); font-size: 11px; display: block; margin-top: 4px;">Harga partai grosir khusus agen distributor toko besar.</small>
+                <!-- Estimasi Total Kalkulasi Realtime Multi-Item -->
+                <div style="background: rgba(212, 175, 55, 0.06); border: 1px dashed var(--gold); border-radius: 10px; padding: 22px; margin-bottom: 30px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                        <div>
+                            <span style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px;">
+                                Ringkasan Seluruh Pesanan:
+                            </span>
+                            <div id="summaryItemsList" style="font-size: 13.5px; color: #ffffff; font-weight: 600; line-height: 1.5;">
+                                Belum ada produk yang dipilih (Kuantitas 0)
                             </div>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
-                    <div class="form-group">
-                        <label style="display: block; color: var(--text-light); font-size: 14px; margin-bottom: 6px;">
-                            Jumlah Pesanan (<span id="labelSatuanJumlah">Slop</span>) <span style="color: var(--danger);">*</span>
-                        </label>
-                        <input type="number" name="jumlah" id="inputJumlah" class="form-control" min="1" value="{{ old('jumlah', 1) }}" required {{ $isLocked ? 'disabled' : '' }}
-                               style="width: 100%; padding: 12px; background: #121619; border: 1px solid var(--charcoal-border); color: #fff; border-radius: 6px; font-size: 16px; font-weight: 600;">
-                        <small id="minOrderNotice" style="color: var(--gold); font-size: 12px; display: block; margin-top: 4px;">
-                            Minimal: 1 Slop
-                        </small>
-                    </div>
-
-                    <div class="form-group">
-                        <label style="display: block; color: var(--text-light); font-size: 14px; margin-bottom: 6px;">Harga Satuan</label>
-                        <input type="text" id="displayHargaSatuan" readonly class="form-control" value="Rp 0"
-                               style="width: 100%; padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--charcoal-border); color: var(--gold); font-weight: 700; font-size: 16px; border-radius: 6px;">
-                    </div>
-                </div>
-
-                <!-- Estimasi Total Kalkulasi Realtime -->
-                <div style="background: rgba(212, 175, 55, 0.05); border: 1px dashed var(--gold); border-radius: 8px; padding: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <span style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Estimasi Total Pemesanan</span>
-                        <div style="font-size: 13px; color: var(--text-light); margin-top: 4px;" id="calcSlop">0 Bungkus</div>
-                    </div>
-                    <div style="text-align: right;">
-                        <strong id="calcTotal" style="font-size: 26px; color: var(--gold); font-weight: 800;">Rp 0</strong>
+                            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;" id="summaryTotalBungkus">
+                                0 Bungkus
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 2px;">TOTAL PEMESANAN:</span>
+                            <strong id="calcGrandTotal" style="font-size: 26px; color: var(--gold); font-weight: 800;">Rp 0</strong>
+                        </div>
                     </div>
                 </div>
 
@@ -177,7 +223,7 @@
                         <i class="fa-solid fa-lock"></i> Pemesanan Terkunci (Selesaikan Pesanan Sebelumnya Terlebih Dahulu)
                     </button>
                 @else
-                    <button type="submit" class="btn btn-gold" style="width: 100%; padding: 16px; font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <button type="submit" class="btn btn-gold" id="btnSubmitOrder" style="width: 100%; padding: 16px; font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px;">
                         <i class="fa-solid fa-file-invoice"></i> Terbitkan Surat Pesanan & Faktur Resmi
                     </button>
                 @endif
@@ -186,97 +232,166 @@
     </div>
 </section>
 
+@push('styles')
+<style>
+.active-satuan {
+    background: var(--gold) !important;
+    color: #0c0f12 !important;
+}
+.satuan-toggle-label:not(.active-satuan) {
+    color: var(--text-muted);
+}
+.satuan-toggle-label:not(.active-satuan):hover {
+    color: #ffffff;
+    background: rgba(255,255,255,0.06);
+}
+</style>
+@endpush
+
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const select = document.getElementById('selectBarang');
-    const inputJumlah = document.getElementById('inputJumlah');
-    const calcTotal = document.getElementById('calcTotal');
-    const calcSlop = document.getElementById('calcSlop');
-    const notice = document.getElementById('minOrderNotice');
-    const labelSatuan = document.getElementById('labelSatuanJumlah');
-    const displayHargaSatuan = document.getElementById('displayHargaSatuan');
-    const radioSlop = document.getElementById('satuanSlop');
-    const radioBal = document.getElementById('satuanBal');
-    const cardSlop = document.getElementById('cardSatuanSlop');
-    const cardBal = document.getElementById('cardSatuanBal');
+    const qtyInputs = document.querySelectorAll('.item-qty-input');
+    const satuanRadios = document.querySelectorAll('.item-satuan');
+    const formOrder = document.getElementById('formOrder');
+    const calcGrandTotal = document.getElementById('calcGrandTotal');
+    const summaryItemsList = document.getElementById('summaryItemsList');
+    const summaryTotalBungkus = document.getElementById('summaryTotalBungkus');
 
-    function updateCards() {
-        if (!radioSlop || !radioBal) return;
-        if (radioSlop.checked) {
-            cardSlop.style.borderColor = 'var(--gold)';
-            cardSlop.style.background = 'rgba(197, 160, 89, 0.08)';
-            cardSlop.style.boxShadow = '0 6px 18px rgba(197, 160, 89, 0.22)';
-            cardSlop.style.transform = 'scale(1.01)';
-            cardBal.style.borderColor = 'var(--charcoal-border)';
-            cardBal.style.background = '#121619';
-            cardBal.style.boxShadow = 'none';
-            cardBal.style.transform = 'scale(1)';
-            if (labelSatuan) labelSatuan.innerText = 'Slop';
-        } else {
-            cardBal.style.borderColor = 'var(--gold)';
-            cardBal.style.background = 'rgba(197, 160, 89, 0.08)';
-            cardBal.style.boxShadow = '0 6px 18px rgba(197, 160, 89, 0.22)';
-            cardBal.style.transform = 'scale(1.01)';
-            cardSlop.style.borderColor = 'var(--charcoal-border)';
-            cardSlop.style.background = '#121619';
-            cardSlop.style.boxShadow = 'none';
-            cardSlop.style.transform = 'scale(1)';
-            if (labelSatuan) labelSatuan.innerText = 'Bal';
+    function hitungSemua() {
+        let grandTotal = 0;
+        let totalBungkus = 0;
+        let activeSummaryItems = [];
+
+        qtyInputs.forEach(input => {
+            const id = input.dataset.id;
+            const card = document.getElementById('card_prod_' + id);
+            const hargaSlop = parseFloat(input.dataset.hargaSlop || 0);
+            const hargaBal = parseFloat(input.dataset.hargaBal || 0);
+            const slopPerBal = parseInt(input.dataset.slopPerBal || 20);
+            const bungkusPerSlop = parseInt(input.dataset.bungkusPerSlop || 10);
+            const nama = input.dataset.nama || 'Produk';
+
+            let qty = parseInt(input.value || 0);
+            if (qty < 0 || isNaN(qty)) {
+                qty = 0;
+                input.value = 0;
+            }
+
+            // Dapatkan satuan terpilih untuk produk ini
+            const radioSatuan = document.querySelector(`input[name="items[${id}][satuan]"]:checked`);
+            const satuan = radioSatuan ? radioSatuan.value : 'Slop';
+
+            // Update style tombol toggle satuan
+            const labelSlop = document.getElementById(`label_satuan_${id}_slop`);
+            const labelBal = document.getElementById(`label_satuan_${id}_bal`);
+            if (satuan === 'Slop') {
+                if (labelSlop) labelSlop.classList.add('active-satuan');
+                if (labelBal) labelBal.classList.remove('active-satuan');
+            } else {
+                if (labelBal) labelBal.classList.add('active-satuan');
+                if (labelSlop) labelSlop.classList.remove('active-satuan');
+            }
+
+            // Hitung subtotal produk ini
+            const hargaSatuan = (satuan === 'Slop') ? hargaSlop : hargaBal;
+            const subtotal = qty * hargaSatuan;
+
+            const displaySubtotal = document.getElementById('display_subtotal_' + id);
+            if (displaySubtotal) {
+                displaySubtotal.innerText = 'Rp ' + subtotal.toLocaleString('id-ID');
+            }
+
+            // Highlight kartu jika qty > 0
+            if (card) {
+                if (qty > 0) {
+                    card.style.borderColor = 'var(--gold)';
+                    card.style.background = 'rgba(212, 175, 55, 0.05)';
+                } else {
+                    card.style.borderColor = 'var(--charcoal-border)';
+                    card.style.background = '#121619';
+                }
+            }
+
+            if (qty > 0) {
+                grandTotal += subtotal;
+                const bksItem = (satuan === 'Slop') ? (qty * bungkusPerSlop) : (qty * slopPerBal * bungkusPerSlop);
+                totalBungkus += bksItem;
+                activeSummaryItems.push(`${qty} ${satuan} ${nama}`);
+            }
+        });
+
+        // Update Grand Total UI
+        if (calcGrandTotal) {
+            calcGrandTotal.innerText = 'Rp ' + grandTotal.toLocaleString('id-ID');
+        }
+
+        // Update Summary Bar
+        if (summaryItemsList) {
+            if (activeSummaryItems.length > 0) {
+                summaryItemsList.innerHTML = activeSummaryItems.map(item => `<span style="display: inline-block; background: rgba(255,255,255,0.08); padding: 3px 8px; border-radius: 4px; margin-right: 6px; margin-bottom: 4px;">• ${item}</span>`).join(' ');
+            } else {
+                summaryItemsList.innerHTML = '<span style="color: var(--text-muted); font-weight: normal;">Belum ada varian rokok yang dipilih (Kuantitas 0). Silakan masukkan kuantitas di atas.</span>';
+            }
+        }
+
+        if (summaryTotalBungkus) {
+            summaryTotalBungkus.innerText = `Total Volume: ${totalBungkus.toLocaleString('id-ID')} Bungkus Kretek SKT`;
         }
     }
 
-    function hitung() {
-        if (!select || !inputJumlah) return;
-        updateCards();
-        const opt = select.options[select.selectedIndex];
-        if (!opt || !opt.value) {
-            if (calcTotal) calcTotal.innerText = 'Rp 0';
-            if (calcSlop) calcSlop.innerText = '0 Bungkus';
-            if (displayHargaSatuan) displayHargaSatuan.value = 'Rp 0';
-            return;
-        }
+    // Event listener kuantitas stepper
+    document.querySelectorAll('.btn-qty-plus').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const input = document.getElementById('input_qty_' + id);
+            if (input) {
+                input.value = parseInt(input.value || 0) + 1;
+                hitungSemua();
+            }
+        });
+    });
 
-        const isSlop = radioSlop && radioSlop.checked;
-        const hargaSlop = parseFloat(opt.dataset.hargaSlop || 0);
-        const hargaBal = parseFloat(opt.dataset.hargaBal || 0);
-        const minSlop = parseInt(opt.dataset.minSlop || 1);
-        const minBal = parseInt(opt.dataset.minBal || 1);
-        const slopPerBal = parseInt(opt.dataset.slop || 20);
-        const bungkusPerSlop = parseInt(opt.dataset.bungkus || 10);
+    document.querySelectorAll('.btn-qty-minus').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const input = document.getElementById('input_qty_' + id);
+            if (input) {
+                let current = parseInt(input.value || 0);
+                if (current > 0) {
+                    input.value = current - 1;
+                    hitungSemua();
+                }
+            }
+        });
+    });
 
-        let jumlah = parseInt(inputJumlah.value || 1);
-        if (jumlah < 1) jumlah = 1;
+    qtyInputs.forEach(input => {
+        input.addEventListener('input', hitungSemua);
+        input.addEventListener('change', hitungSemua);
+    });
 
-        if (isSlop) {
-            if (notice) notice.innerText = `Min. Order: ${minSlop} Slop (${minSlop * bungkusPerSlop} Bungkus)`;
-            inputJumlah.min = minSlop;
-            if (displayHargaSatuan) displayHargaSatuan.value = 'Rp ' + hargaSlop.toLocaleString('id-ID') + ' / Slop';
+    satuanRadios.forEach(radio => {
+        radio.addEventListener('change', hitungSemua);
+    });
 
-            const total = hargaSlop * jumlah;
-            const totalBungkus = jumlah * bungkusPerSlop;
+    // Validasi form saat disubmit
+    if (formOrder) {
+        formOrder.addEventListener('submit', function(e) {
+            let totalQty = 0;
+            qtyInputs.forEach(input => {
+                totalQty += parseInt(input.value || 0);
+            });
 
-            if (calcTotal) calcTotal.innerText = 'Rp ' + total.toLocaleString('id-ID');
-            if (calcSlop) calcSlop.innerText = `${jumlah.toLocaleString('id-ID')} Slop (${totalBungkus.toLocaleString('id-ID')} Bungkus)`;
-        } else {
-            if (notice) notice.innerText = `Min. Order: ${minBal} Bal (${minBal * slopPerBal} Slop / ${minBal * slopPerBal * bungkusPerSlop} Bungkus)`;
-            inputJumlah.min = minBal;
-            if (displayHargaSatuan) displayHargaSatuan.value = 'Rp ' + hargaBal.toLocaleString('id-ID') + ' / Bal';
-
-            const total = hargaBal * jumlah;
-            const totalSlop = jumlah * slopPerBal;
-            const totalBungkus = totalSlop * bungkusPerSlop;
-
-            if (calcTotal) calcTotal.innerText = 'Rp ' + total.toLocaleString('id-ID');
-            if (calcSlop) calcSlop.innerText = `${jumlah.toLocaleString('id-ID')} Bal (${totalSlop.toLocaleString('id-ID')} Slop / ${totalBungkus.toLocaleString('id-ID')} Bks)`;
-        }
+            if (totalQty <= 0) {
+                e.preventDefault();
+                alert('Silakan tentukan minimal 1 varian rokok dengan kuantitas lebih dari 0 sebelum menerbitkan pesanan.');
+            }
+        });
     }
 
-    if (radioSlop) radioSlop.addEventListener('change', hitung);
-    if (radioBal) radioBal.addEventListener('change', hitung);
-    if (select) select.addEventListener('change', hitung);
-    if (inputJumlah) inputJumlah.addEventListener('input', hitung);
-    hitung();
+    // Jalankan kalkulasi awal saat halaman dimuat
+    hitungSemua();
 });
 </script>
 @endpush

@@ -39,20 +39,62 @@
         </div>
 
         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 16px; margin-bottom: 20px;">
-            <h4 style="font-size: 13px; text-transform: uppercase; color: #94a3b8; margin-bottom: 10px;">Item Rokok Dipesan:</h4>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <strong style="font-size: 15px; color: #0f1316;">{{ $transaksi->barang->nama }}</strong>
-                    <div style="font-size: 12px; color: #64748b;">
-                        {{ $transaksi->barang->kategori->nama_kategori }} ({{ $transaksi->barang->slop_per_bal }} Slop/Bal)
+            <h4 style="font-size: 13px; text-transform: uppercase; color: #94a3b8; margin-bottom: 12px;">Rincian Item Rokok Dipesan:</h4>
+            
+            @if($transaksi->details && $transaksi->details->isNotEmpty())
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 12px;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid #cbd5e1; text-align: left; color: #64748b; font-size: 12px;">
+                            <th style="padding: 6px 8px;">Produk</th>
+                            <th style="padding: 6px 8px; text-align: center;">Satuan</th>
+                            <th style="padding: 6px 8px; text-align: center;">Qty</th>
+                            <th style="padding: 6px 8px; text-align: right;">Harga</th>
+                            <th style="padding: 6px 8px; text-align: right;">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($transaksi->details as $d)
+                            <tr style="border-bottom: 1px solid #e2e8f0;">
+                                <td style="padding: 8px;">
+                                    <strong style="color: #0f1316;">{{ $d->barang?->nama ?? 'Produk' }}</strong>
+                                    <div style="font-size: 11px; color: #64748b;">
+                                        {{ $d->barang?->kategori?->nama_kategori }} ({{ $d->total_bungkus }} Bks)
+                                    </div>
+                                </td>
+                                <td style="padding: 8px; text-align: center;">
+                                    <span style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-size: 11.5px; font-weight: 600;">
+                                        {{ $d->satuan }}
+                                    </span>
+                                </td>
+                                <td style="padding: 8px; text-align: center; font-weight: 700;">
+                                    {{ $d->jumlah }}
+                                </td>
+                                <td style="padding: 8px; text-align: right; color: #475569;">
+                                    Rp {{ number_format($d->harga_satuan, 0, ',', '.') }}
+                                </td>
+                                <td style="padding: 8px; text-align: right; font-weight: 700; color: #0f1316;">
+                                    {{ $d->formatted_subtotal }}
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @elseif($transaksi->barang)
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong style="font-size: 15px; color: #0f1316;">{{ $transaksi->barang->nama }}</strong>
+                        <div style="font-size: 12px; color: #64748b;">
+                            {{ $transaksi->barang->kategori->nama_kategori }} ({{ $transaksi->barang->slop_per_bal }} Slop/Bal)
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 14px; font-weight: 700;">{{ $transaksi->jumlah }} {{ $transaksi->satuan }}</div>
+                        <div style="font-size: 12px; color: #64748b;">Rp {{ number_format($transaksi->total_harga / max(1, $transaksi->jumlah), 0, ',', '.') }} / {{ $transaksi->satuan }}</div>
                     </div>
                 </div>
-                <div style="text-align: right;">
-                    <div style="font-size: 14px; font-weight: 700;">{{ $transaksi->jumlah }} {{ $transaksi->satuan }}</div>
-                    <div style="font-size: 12px; color: #64748b;">Rp {{ number_format($transaksi->total_harga / max(1, $transaksi->jumlah), 0, ',', '.') }} / {{ $transaksi->satuan }}</div>
-                </div>
-            </div>
-            <div style="border-top: 1px dashed #cbd5e1; margin-top: 12px; padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+            @endif
+
+            <div style="border-top: 1px dashed #cbd5e1; margin-top: 10px; padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
                 <span style="font-weight: 700; font-size: 14px;">Total Nilai Pesanan:</span>
                 <span style="font-size: 18px; font-weight: 800; color: #b45309;">{{ $transaksi->formatted_total }}</span>
             </div>

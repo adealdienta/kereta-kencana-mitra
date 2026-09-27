@@ -5,15 +5,17 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Barang;
 use App\Models\Transaksi;
+use App\Models\TransaksiDetail;
 use App\Helpers\ActivityLogger;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Exception;
 
 class PemesananController extends Controller
 {
     /**
-     * Tampilkan formulir pemesanan rokok (Khusus Pengguna Login / Mitra)
+     * Tampilkan formulir pemesanan rokok Multi-Produk & Multi-Satuan (Khusus Mitra Login)
      */
     public function form(Request $request)
     {
@@ -36,18 +38,13 @@ class PemesananController extends Controller
         $isLocked = !is_null($lockedOrder);
 
         $produks = Barang::aktif()->orderBy('urutan')->get();
-        $selectedProduk = null;
-        $selectedSatuan = in_array($request->satuan, ['Slop', 'Bal']) ? $request->satuan : 'Slop';
+        $preselectedSlug = $request->query('produk');
 
-        if ($request->filled('produk')) {
-            $selectedProduk = Barang::where('slug', $request->produk)->orWhere('id', $request->produk)->first();
-        }
-
-        return view('front.pesan', compact('produks', 'selectedProduk', 'selectedSatuan', 'user', 'isLocked', 'lockedOrder'));
+        return view('front.pesan', compact('produks', 'user', 'isLocked', 'lockedOrder', 'preselectedSlug'));
     }
 
     /**
-     * Simpan pemesanan baru dari formulir web
+     * Simpan pemesanan baru (Mendukung Multi-Produk dan Satuan Independen Slop / Bal per produk)
      */
     public function store(Request $request)
     {
@@ -58,7 +55,7 @@ class PemesananController extends Controller
 
         $user = Auth::user();
 
-        // Cek kembali kuncian pesanan di sisi server
+        // Cek kuncian pesanan di sisi server
         $lockedOrder = Transaksi::where('user_id', $user->id)
             ->where('status', 'Dikirim')
             ->whereNull('bukti_penerimaan')
@@ -72,64 +69,130 @@ class PemesananController extends Controller
         }
 
         $request->validate([
-            'barang_id' => ['required', 'exists:barangs,id'],
             'nama_mitra' => ['required', 'string', 'max:150'],
             'telepon' => ['required', 'string', 'max:30'],
             'alamat' => ['required', 'string'],
-            'satuan' => ['nullable', 'in:Slop,Bal'],
-            'jumlah' => ['required', 'integer', 'min:1'],
             'catatan' => ['nullable', 'string'],
         ], [
-            'barang_id.required' => 'Silakan pilih salah satu varian produk rokok.',
             'nama_mitra.required' => 'Nama mitra/toko wajib diisi.',
             'telepon.required' => 'Nomor kontak WhatsApp aktif wajib diisi.',
             'alamat.required' => 'Alamat pengiriman tujuan wajib diisi lengkap.',
-            'jumlah.min' => 'Jumlah pesanan minimal 1 unit.',
         ]);
 
-        $barang = Barang::findOrFail($request->barang_id);
-        $satuan = $request->input('satuan', 'Bal');
+        // Kumpulkan item pesanan (Mendukung Multi-Item via 'items' atau Fallback Single Item)
+        $rawItems = [];
 
-        $minOrder = $satuan === 'Slop' ? ($barang->min_order_slop ?: 1) : ($barang->min_order_bal ?: 1);
+        if ($request->has('items') && is_array($request->items)) {
+            foreach ($request->items as $barangId => $data) {
+                $qty = isset($data['jumlah']) ? (int)$data['jumlah'] : 0;
+                $satuan = isset($data['satuan']) && in_array($data['satuan'], ['Slop', 'Bal']) ? $data['satuan'] : 'Slop';
 
-        if ($request->jumlah < $minOrder) {
+                if ($qty > 0) {
+                    $rawItems[] = [
+                        'barang_id' => (int)$barangId,
+                        'satuan' => $satuan,
+                        'jumlah' => $qty,
+                    ];
+                }
+            }
+        } elseif ($request->filled('barang_id') && $request->filled('jumlah')) {
+            // Fallback kompatibilitas jika dikirim sebagai single item (misal pengujian API/unit test lama)
+            $rawItems[] = [
+                'barang_id' => (int)$request->barang_id,
+                'satuan' => $request->input('satuan', 'Bal'),
+                'jumlah' => (int)$request->jumlah,
+            ];
+        }
+
+        if (empty($rawItems)) {
             return back()->withInput()->withErrors([
-                'jumlah' => "Minimum pemesanan varian {$barang->nama} untuk satuan {$satuan} adalah {$minOrder} {$satuan}.",
+                'items' => 'Silakan tentukan minimal 1 varian rokok dengan kuantitas pesanan di atas 0 (Slop atau Bal).',
             ]);
         }
 
-        $hargaSatuan = $satuan === 'Slop' ? $barang->harga_per_slop : $barang->harga_per_bal;
-        $total_harga = $request->jumlah * $hargaSatuan;
-        $kode_transaksi = 'TRX-' . date('Ymd') . '-' . strtoupper(Str::random(4));
+        // Jalankan Database Transaction untuk menjaga integritas data & pemotongan stok
+        try {
+            $transaksi = DB::transaction(function () use ($request, $user, $rawItems) {
+                $kode_transaksi = 'TRX-' . date('Ymd') . '-' . strtoupper(Str::random(4));
+                $grandTotal = 0;
+                $totalUnitQty = 0;
+                $processedDetails = [];
 
-        // 1. Simpan Transaksi dengan relasi user_id
-        $transaksi = Transaksi::create([
-            'kode_transaksi' => $kode_transaksi,
-            'user_id' => $user->id,
-            'barang_id' => $barang->id,
-            'nama_mitra' => $request->nama_mitra,
-            'telepon' => $request->telepon,
-            'alamat' => $request->alamat,
-            'jumlah' => $request->jumlah,
-            'satuan' => $satuan,
-            'total_harga' => $total_harga,
-            'catatan' => $request->catatan,
-            'status' => 'Baru Masuk',
-            'sumber' => 'Web B2B Form',
-        ]);
+                foreach ($rawItems as $itemData) {
+                    $barang = Barang::findOrFail($itemData['barang_id']);
+                    $satuan = $itemData['satuan'];
+                    $qty = $itemData['jumlah'];
 
-        // 2. Pengurangan Stok (Sesuai BKPM Acara 18)
-        $slopPerBal = $barang->slop_per_bal ?: 20;
-        $balDeduct = $satuan === 'Bal' ? $request->jumlah : max(1, (int)ceil($request->jumlah / $slopPerBal));
+                    // Cek minimum order
+                    $minOrder = ($satuan === 'Slop') ? ($barang->min_order_slop ?: 1) : ($barang->min_order_bal ?: 1);
+                    if ($qty < $minOrder) {
+                        throw new Exception("Minimum pemesanan untuk {$barang->nama} satuan {$satuan} adalah {$minOrder} {$satuan}.");
+                    }
 
-        if ($barang->stok >= $balDeduct) {
-            $barang->decrement('stok', $balDeduct);
+                    // Cek & Kurangi Stok Gudang (Stok dihitung dalam satuan Bal)
+                    $slopPerBal = $barang->slop_per_bal ?: 20;
+                    $balDeduct = ($satuan === 'Bal') ? $qty : max(1, (int)ceil($qty / $slopPerBal));
+
+                    if ($barang->stok < $balDeduct) {
+                        throw new Exception("Stok untuk varian {$barang->nama} tidak mencukupi (Tersedia: {$barang->stok} Bal, dibutuhkan: {$balDeduct} Bal).");
+                    }
+
+                    $hargaSatuan = ($satuan === 'Slop') ? $barang->harga_per_slop : $barang->harga_per_bal;
+                    $subtotal = $qty * $hargaSatuan;
+
+                    $grandTotal += $subtotal;
+                    $totalUnitQty += $qty;
+
+                    // Kurangi stok produk
+                    $barang->decrement('stok', $balDeduct);
+
+                    $processedDetails[] = [
+                        'barang_id' => $barang->id,
+                        'satuan' => $satuan,
+                        'jumlah' => $qty,
+                        'harga_satuan' => $hargaSatuan,
+                        'subtotal' => $subtotal,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+
+                // Buat Header Transaksi
+                $firstDetail = $processedDetails[0];
+                $trx = Transaksi::create([
+                    'kode_transaksi' => $kode_transaksi,
+                    'user_id' => $user->id,
+                    'barang_id' => $firstDetail['barang_id'],
+                    'nama_mitra' => $request->nama_mitra,
+                    'telepon' => $request->telepon,
+                    'alamat' => $request->alamat,
+                    'jumlah' => $totalUnitQty,
+                    'satuan' => count($processedDetails) === 1 ? $firstDetail['satuan'] : 'Campuran',
+                    'total_harga' => $grandTotal,
+                    'catatan' => $request->catatan,
+                    'status' => 'Baru Masuk',
+                    'sumber' => 'Web B2B Form',
+                ]);
+
+                // Simpan Setiap Item ke tabel transaksi_details
+                foreach ($processedDetails as &$detail) {
+                    $detail['transaksi_id'] = $trx->id;
+                }
+                TransaksiDetail::insert($processedDetails);
+
+                return $trx;
+            });
+
+            ActivityLogger::log('Pesanan Masuk', "Pesanan multi-item {$transaksi->kode_transaksi} oleh {$request->nama_mitra}");
+
+            return redirect()->route('pesanan.invoice', $transaksi->kode_transaksi)
+                ->with('success', 'Pesanan Anda berhasil dibuat! Faktur pemesanan multi-produk telah terbit.');
+
+        } catch (Exception $e) {
+            return back()->withInput()->withErrors([
+                'items' => $e->getMessage(),
+            ]);
         }
-
-        ActivityLogger::log('Pesanan Masuk', "Pesanan baru {$kode_transaksi} oleh {$request->nama_mitra} ({$request->jumlah} {$satuan})");
-
-        return redirect()->route('pesanan.invoice', $kode_transaksi)
-            ->with('success', 'Pesanan Anda berhasil dibuat! Faktur pemesanan telah terbit dan pesanan Anda kini masuk dalam antrean gudang.');
     }
 
     /**
@@ -143,13 +206,14 @@ class PemesananController extends Controller
         }
 
         $user = Auth::user();
-        $transaksis = Transaksi::with(['barang.kategori'])
+        $transaksis = Transaksi::with(['details.barang.kategori', 'barang.kategori'])
             ->where('user_id', $user->id)
             ->latest()
             ->paginate(10);
 
         // Cek apakah ada pesanan yang butuh upload foto bukti
-        $pendingDelivery = Transaksi::where('user_id', $user->id)
+        $pendingDelivery = Transaksi::with('details.barang')
+            ->where('user_id', $user->id)
             ->where('status', 'Dikirim')
             ->whereNull('bukti_penerimaan')
             ->first();
@@ -206,59 +270,77 @@ class PemesananController extends Controller
             return redirect()->route('login');
         }
 
-        $transaksi = Transaksi::where('user_id', Auth::id())->findOrFail($id);
+        $transaksi = Transaksi::with('details.barang', 'barang')->where('user_id', Auth::id())->findOrFail($id);
 
         if ($transaksi->status !== 'Baru Masuk') {
             return back()->with('error', 'Pesanan yang sudah diproses atau dikirim oleh pabrik tidak dapat dibatalkan mandiri. Silakan hubungi admin via WhatsApp.');
         }
 
-        // Kembalikan stok barang yang sudah didecrement
-        $slopPerBal = $transaksi->barang->slop_per_bal ?: 20;
-        $balDeduct = $transaksi->satuan === 'Bal' ? $transaksi->jumlah : max(1, (int)ceil($transaksi->jumlah / $slopPerBal));
-        $transaksi->barang->increment('stok', $balDeduct);
+        DB::transaction(function () use ($transaksi) {
+            // Kembalikan stok untuk seluruh item produk yang ada di transaksi ini
+            if ($transaksi->details && $transaksi->details->isNotEmpty()) {
+                foreach ($transaksi->details as $d) {
+                    if ($d->barang) {
+                        $slopPerBal = $d->barang->slop_per_bal ?: 20;
+                        $balDeduct = ($d->satuan === 'Bal') ? $d->jumlah : max(1, (int)ceil($d->jumlah / $slopPerBal));
+                        $d->barang->increment('stok', $balDeduct);
+                    }
+                }
+            } elseif ($transaksi->barang) {
+                $slopPerBal = $transaksi->barang->slop_per_bal ?: 20;
+                $balDeduct = ($transaksi->satuan === 'Bal') ? $transaksi->jumlah : max(1, (int)ceil($transaksi->jumlah / $slopPerBal));
+                $transaksi->barang->increment('stok', $balDeduct);
+            }
 
-        $transaksi->update([
-            'status' => 'Dibatalkan',
-            'catatan' => ($transaksi->catatan ? $transaksi->catatan . "\n" : '') . "[Dibatalkan oleh pembeli pada " . now()->format('d/m/Y H:i') . "]",
-        ]);
+            $transaksi->update([
+                'status' => 'Dibatalkan',
+                'catatan' => ($transaksi->catatan ? $transaksi->catatan . "\n" : '') . "[Dibatalkan oleh pembeli pada " . now()->format('d/m/Y H:i') . "]",
+            ]);
+        });
 
         ActivityLogger::log('Batal Pesanan', "Pesanan {$transaksi->kode_transaksi} dibatalkan oleh pembeli");
 
-        return back()->with('success', "Pesanan {$transaksi->kode_transaksi} berhasil dibatalkan dan kuota stok telah dipulihkan.");
+        return back()->with('success', "Pesanan {$transaksi->kode_transaksi} berhasil dibatalkan dan seluruh kuota stok telah dipulihkan.");
     }
 
     /**
-     * Tampilan Faktur / Invoice Digital
+     * Tampilan Faktur / Invoice Digital Multi-Item
      */
     public function invoice($kode_transaksi)
     {
-        $transaksi = Transaksi::with('barang.kategori')
+        $transaksi = Transaksi::with(['details.barang.kategori', 'barang.kategori'])
             ->where('kode_transaksi', $kode_transaksi)
             ->firstOrFail();
 
-        $volumeText = $transaksi->satuan === 'Slop' 
-            ? "{$transaksi->jumlah} Slop (" . ($transaksi->jumlah * 10) . " Bungkus)"
-            : "{$transaksi->jumlah} Bal (" . ($transaksi->jumlah * ($transaksi->barang->slop_per_bal ?: 20)) . " Slop / " . ($transaksi->jumlah * ($transaksi->barang->slop_per_bal ?: 20) * 10) . " Bungkus)";
+        // Susun teks rincian barang untuk WhatsApp
+        $daftarProdukText = "";
+        if ($transaksi->details && $transaksi->details->isNotEmpty()) {
+            foreach ($transaksi->details as $idx => $d) {
+                $num = $idx + 1;
+                $nama = $d->barang?->nama ?? 'Produk';
+                $daftarProdukText .= "  {$num}. {$nama} ({$d->jumlah} {$d->satuan}) - {$d->formatted_subtotal}%0A";
+            }
+        } else {
+            $daftarProdukText = "  • {$transaksi->barang->nama} ({$transaksi->jumlah} {$transaksi->satuan}) - {$transaksi->formatted_total}%0A";
+        }
 
-        // Format pesan WhatsApp otomatis
+        // Format pesan WhatsApp resmi
         $pesanWa = "Halo Tim Manajemen PR. KERETA KENCANA,%0A%0A"
             . "Saya telah membuat pemesanan resmi melalui website:%0A"
             . "• No. Pemesanan: *" . $transaksi->kode_transaksi . "*%0A"
             . "• Nama Mitra/Toko: *" . $transaksi->nama_mitra . "*%0A"
             . "• Telepon: " . $transaksi->telepon . "%0A"
-            . "• Produk: *" . $transaksi->barang->nama . "*%0A"
-            . "• Volume: *" . $volumeText . "*%0A"
-            . "• Satuan: *" . $transaksi->satuan . "*%0A"
-            . "• Estimasi Nilai: *" . $transaksi->formatted_total . "*%0A"
+            . "• Rincian Item Rokok:%0A" . $daftarProdukText
+            . "• Total Tagihan: *" . $transaksi->formatted_total . "*%0A"
             . "• Alamat Tujuan: " . urlencode($transaksi->alamat) . "%0A"
             . ($transaksi->catatan ? ("• Catatan: " . urlencode($transaksi->catatan) . "%0A") : "")
-            . "%0AMohon informasi jadwal pengiriman armada pabrik. Terima kasih.";
+            . "%0AMohon konfirmasi kesiapan pengiriman dan jadwal armada pabrik. Terima kasih.";
 
         return view('front.invoice', compact('transaksi', 'pesanWa'));
     }
 
     /**
-     * API Log WhatsApp Modal (BKPM Acara 21)
+     * API Log WhatsApp Modal
      */
     public function apiLogWa(Request $request)
     {
@@ -274,7 +356,7 @@ class PemesananController extends Controller
             ->first() ?? Barang::first();
 
         $satuan = $request->input('satuan', 'Slop');
-        $unitPrice = $satuan === 'Slop' ? ($barang ? $barang->harga_per_slop : 62500) : ($barang ? $barang->harga_per_bal : 1250000);
+        $unitPrice = $satuan === 'Slop' ? ($barang ? $barang->harga_per_slop : 49000) : ($barang ? $barang->harga_per_bal : 980000);
         $total_harga = (float)($request->total_harga ?? ($request->jumlah * $unitPrice));
         $kode_transaksi = 'WA-' . date('Ymd') . '-' . strtoupper(Str::random(4));
 
@@ -293,7 +375,16 @@ class PemesananController extends Controller
             'sumber' => 'Web WhatsApp',
         ]);
 
-        ActivityLogger::log('Log Pesanan WhatsApp', "Pemesanan WA dicatat {$kode_transaksi} dari {$request->nama_mitra} ({$request->jumlah} {$satuan})");
+        TransaksiDetail::create([
+            'transaksi_id' => $transaksi->id,
+            'barang_id' => $barang->id,
+            'satuan' => $satuan,
+            'jumlah' => $request->jumlah,
+            'harga_satuan' => $unitPrice,
+            'subtotal' => $total_harga,
+        ]);
+
+        ActivityLogger::log('Log Pesanan WhatsApp', "Pemesanan WA dicatat {$kode_transaksi} dari {$request->nama_mitra}");
 
         return response()->json([
             'status' => 'success',

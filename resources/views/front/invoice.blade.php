@@ -75,30 +75,59 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr style="border-bottom: 1px solid #e2e8f0;">
-                        <td style="padding: 14px 12px;">
-                            <strong>{{ $transaksi->barang->nama }}</strong>
-                            <div style="font-size: 12px; color: #64748b;">
-                                {{ $transaksi->barang->kategori->nama_kategori }} | Kode: {{ $transaksi->barang->kode_barang }}
-                            </div>
-                        </td>
-                        <td style="padding: 14px 12px; text-align: center;">
-                            @if($transaksi->satuan === 'Slop')
-                                1 Slop ({{ $transaksi->barang->bungkus_per_slop }} Bungkus)
-                            @else
-                                1 Bal ({{ $transaksi->barang->slop_per_bal }} Slop / {{ $transaksi->barang->slop_per_bal * $transaksi->barang->bungkus_per_slop }} Bungkus)
-                            @endif
-                        </td>
-                        <td style="padding: 14px 12px; text-align: center; font-weight: 700;">
-                            {{ $transaksi->jumlah }} {{ $transaksi->satuan }}
-                        </td>
-                        <td style="padding: 14px 12px; text-align: right;">
-                            Rp {{ number_format($transaksi->total_harga / max(1, $transaksi->jumlah), 0, ',', '.') }} / {{ $transaksi->satuan }}
-                        </td>
-                        <td style="padding: 14px 12px; text-align: right; font-weight: 700; color: #0f1316;">
-                            {{ $transaksi->formatted_total }}
-                        </td>
-                    </tr>
+                    @if($transaksi->details && $transaksi->details->isNotEmpty())
+                        @foreach($transaksi->details as $d)
+                            <tr style="border-bottom: 1px solid #e2e8f0;">
+                                <td style="padding: 14px 12px;">
+                                    <strong>{{ $d->barang->nama }}</strong>
+                                    <div style="font-size: 12px; color: #64748b;">
+                                        {{ $d->barang->kategori->nama_kategori }} | Kode: {{ $d->barang->kode_barang }}
+                                    </div>
+                                </td>
+                                <td style="padding: 14px 12px; text-align: center;">
+                                    @if($d->satuan === 'Slop')
+                                        1 Slop ({{ $d->barang->bungkus_per_slop }} Bungkus)
+                                    @else
+                                        1 Bal ({{ $d->barang->slop_per_bal }} Slop / {{ $d->barang->slop_per_bal * $d->barang->bungkus_per_slop }} Bungkus)
+                                    @endif
+                                </td>
+                                <td style="padding: 14px 12px; text-align: center; font-weight: 700;">
+                                    {{ $d->jumlah }} {{ $d->satuan }}
+                                </td>
+                                <td style="padding: 14px 12px; text-align: right;">
+                                    Rp {{ number_format($d->harga_satuan, 0, ',', '.') }} / {{ $d->satuan }}
+                                </td>
+                                <td style="padding: 14px 12px; text-align: right; font-weight: 700; color: #0f1316;">
+                                    {{ $d->formatted_subtotal }}
+                                </td>
+                            </tr>
+                        @endforeach
+                    @elseif($transaksi->barang)
+                        <tr style="border-bottom: 1px solid #e2e8f0;">
+                            <td style="padding: 14px 12px;">
+                                <strong>{{ $transaksi->barang->nama }}</strong>
+                                <div style="font-size: 12px; color: #64748b;">
+                                    {{ $transaksi->barang->kategori->nama_kategori }} | Kode: {{ $transaksi->barang->kode_barang }}
+                                </div>
+                            </td>
+                            <td style="padding: 14px 12px; text-align: center;">
+                                @if($transaksi->satuan === 'Slop')
+                                    1 Slop ({{ $transaksi->barang->bungkus_per_slop }} Bungkus)
+                                @else
+                                    1 Bal ({{ $transaksi->barang->slop_per_bal }} Slop / {{ $transaksi->barang->slop_per_bal * $transaksi->barang->bungkus_per_slop }} Bungkus)
+                                @endif
+                            </td>
+                            <td style="padding: 14px 12px; text-align: center; font-weight: 700;">
+                                {{ $transaksi->jumlah }} {{ $transaksi->satuan }}
+                            </td>
+                            <td style="padding: 14px 12px; text-align: right;">
+                                Rp {{ number_format($transaksi->total_harga / max(1, $transaksi->jumlah), 0, ',', '.') }} / {{ $transaksi->satuan }}
+                            </td>
+                            <td style="padding: 14px 12px; text-align: right; font-weight: 700; color: #0f1316;">
+                                {{ $transaksi->formatted_total }}
+                            </td>
+                        </tr>
+                    @endif
                 </tbody>
                 <tfoot>
                     <tr>

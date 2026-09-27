@@ -152,20 +152,34 @@
                         @endif
 
                         <!-- Detail Produk & Harga -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px;" class="grid-2col">
+                        <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; margin-bottom: 18px;" class="grid-2col">
                             <div>
-                                <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 2px;">Varian Produk Rokok:</div>
-                                <div style="color: #ffffff; font-size: 15px; font-weight: 700;">
-                                    {{ $t->barang->nama }} (SKT 12 Batang)
-                                </div>
-                                <div style="color: var(--text-light); font-size: 13px; margin-top: 2px;">
-                                    Jumlah: <strong>{{ $t->jumlah }} {{ $t->satuan }}</strong>
-                                    @if($t->satuan === 'Slop')
-                                        <span style="color: var(--text-muted);">({{ $t->jumlah * 10 }} Bungkus)</span>
-                                    @else
-                                        <span style="color: var(--text-muted);">({{ $t->jumlah * ($t->barang->slop_per_bal ?: 20) }} Slop / {{ $t->jumlah * ($t->barang->slop_per_bal ?: 20) * 10 }} Bks)</span>
-                                    @endif
-                                </div>
+                                <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 4px;">Item Rokok Dipesan:</div>
+                                @if($t->details && $t->details->isNotEmpty())
+                                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                                        @foreach($t->details as $d)
+                                            <div style="font-size: 13.5px; color: #ffffff;">
+                                                <strong style="color: var(--gold);">&bull; {{ $d->barang?->nama ?? 'Produk' }}</strong>: 
+                                                {{ $d->jumlah }} {{ $d->satuan }} 
+                                                <span style="color: var(--text-muted); font-size: 12px;">
+                                                    ({{ $d->total_bungkus }} Bks &bull; {{ $d->formatted_subtotal }})
+                                                </span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @elseif($t->barang)
+                                    <div style="color: #ffffff; font-size: 15px; font-weight: 700;">
+                                        {{ $t->barang->nama }} (SKT 12 Batang)
+                                    </div>
+                                    <div style="color: var(--text-light); font-size: 13px; margin-top: 2px;">
+                                        Jumlah: <strong>{{ $t->jumlah }} {{ $t->satuan }}</strong>
+                                        @if($t->satuan === 'Slop')
+                                            <span style="color: var(--text-muted);">({{ $t->jumlah * 10 }} Bungkus)</span>
+                                        @else
+                                            <span style="color: var(--text-muted);">({{ $t->jumlah * ($t->barang->slop_per_bal ?: 20) }} Slop / {{ $t->jumlah * ($t->barang->slop_per_bal ?: 20) * 10 }} Bks)</span>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
 
                             <div style="text-align: right;" class="text-left-mobile">

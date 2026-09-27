@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Transaksi;
+use App\Models\TransaksiDetail;
 use App\Models\Barang;
 use App\Models\User;
 use App\Helpers\ActivityLogger;
@@ -14,7 +15,7 @@ class TransaksiController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Transaksi::with(['barang.kategori', 'user']);
+        $query = Transaksi::with(['barang.kategori', 'details.barang.kategori', 'user']);
 
         // Filter status (BKPM Acara 23)
         if ($request->filled('status')) {
@@ -45,13 +46,13 @@ class TransaksiController extends Controller
 
     public function show($id)
     {
-        $transaksi = Transaksi::with(['barang.kategori', 'user'])->findOrFail($id);
+        $transaksi = Transaksi::with(['barang.kategori', 'details.barang.kategori', 'user'])->findOrFail($id);
         return view('admin.transaksis.show', compact('transaksi'));
     }
 
     public function update(Request $request, $id)
     {
-        $transaksi = Transaksi::findOrFail($id);
+        $transaksi = Transaksi::with(['details.barang', 'barang'])->findOrFail($id);
 
         $validated = $request->validate([
             'status' => ['required', 'in:Baru Masuk,Diproses,Dikirim,Selesai,Dibatalkan'],
@@ -64,15 +65,36 @@ class TransaksiController extends Controller
         $statusBaru = $validated['status'];
 
         // Jika status diubah menjadi 'Dibatalkan', kembalikan stok (BKPM Acara 18: Stok Recovery)
-        $slopPerBal = $transaksi->barang->slop_per_bal ?: 20;
-        $balDeduct = $transaksi->satuan === 'Bal' ? $transaksi->jumlah : max(1, (int)ceil($transaksi->jumlah / $slopPerBal));
-
         if ($statusBaru === 'Dibatalkan' && $statusLama !== 'Dibatalkan') {
-            $transaksi->barang->increment('stok', $balDeduct);
+            if ($transaksi->details && $transaksi->details->isNotEmpty()) {
+                foreach ($transaksi->details as $detail) {
+                    if ($detail->barang) {
+                        $slopPerBal = $detail->barang->slop_per_bal ?: 20;
+                        $balRestored = ($detail->satuan === 'Bal') ? $detail->jumlah : max(1, (int)ceil($detail->jumlah / $slopPerBal));
+                        $detail->barang->increment('stok', $balRestored);
+                    }
+                }
+            } elseif ($transaksi->barang) {
+                $slopPerBal = $transaksi->barang->slop_per_bal ?: 20;
+                $balDeduct = $transaksi->satuan === 'Bal' ? $transaksi->jumlah : max(1, (int)ceil($transaksi->jumlah / $slopPerBal));
+                $transaksi->barang->increment('stok', $balDeduct);
+            }
         }
         // Jika status semula 'Dibatalkan' lalu diaktifkan kembali
         elseif ($statusLama === 'Dibatalkan' && $statusBaru !== 'Dibatalkan') {
-            $transaksi->barang->decrement('stok', $balDeduct);
+            if ($transaksi->details && $transaksi->details->isNotEmpty()) {
+                foreach ($transaksi->details as $detail) {
+                    if ($detail->barang) {
+                        $slopPerBal = $detail->barang->slop_per_bal ?: 20;
+                        $balDeduct = ($detail->satuan === 'Bal') ? $detail->jumlah : max(1, (int)ceil($detail->jumlah / $slopPerBal));
+                        $detail->barang->decrement('stok', $balDeduct);
+                    }
+                }
+            } elseif ($transaksi->barang) {
+                $slopPerBal = $transaksi->barang->slop_per_bal ?: 20;
+                $balDeduct = $transaksi->satuan === 'Bal' ? $transaksi->jumlah : max(1, (int)ceil($transaksi->jumlah / $slopPerBal));
+                $transaksi->barang->decrement('stok', $balDeduct);
+            }
         }
 
         // Jika admin mengubah langsung ke Selesai
@@ -169,6 +191,16 @@ class TransaksiController extends Controller
         // Kurangi stok gudang
         $barang->decrement('stok', $balDeduct);
 
+        // Catat rincian item ke transaksi_details
+        TransaksiDetail::create([
+            'transaksi_id' => $transaksi->id,
+            'barang_id' => $barang->id,
+            'satuan' => $satuan,
+            'jumlah' => $request->jumlah,
+            'harga_satuan' => $hargaSatuan,
+            'subtotal' => $total_harga,
+        ]);
+
         ActivityLogger::log('Transaksi Offline', "Transaksi kasir langsung di pabrik {$kode_transaksi} ({$request->nama_mitra})");
 
         return redirect()->route('admin.transaksis.faktur', $transaksi->id)
@@ -177,13 +209,23 @@ class TransaksiController extends Controller
 
     public function destroy($id)
     {
-        $transaksi = Transaksi::findOrFail($id);
+        $transaksi = Transaksi::with(['details.barang', 'barang'])->findOrFail($id);
 
         // BKPM Acara 18: Stok Recovery jika transaksi dihapus sebelum selesai
         if ($transaksi->status !== 'Dibatalkan') {
-            $slopPerBal = $transaksi->barang->slop_per_bal ?: 20;
-            $balDeduct = $transaksi->satuan === 'Bal' ? $transaksi->jumlah : max(1, (int)ceil($transaksi->jumlah / $slopPerBal));
-            $transaksi->barang->increment('stok', $balDeduct);
+            if ($transaksi->details && $transaksi->details->isNotEmpty()) {
+                foreach ($transaksi->details as $detail) {
+                    if ($detail->barang) {
+                        $slopPerBal = $detail->barang->slop_per_bal ?: 20;
+                        $balRestored = ($detail->satuan === 'Bal') ? $detail->jumlah : max(1, (int)ceil($detail->jumlah / $slopPerBal));
+                        $detail->barang->increment('stok', $balRestored);
+                    }
+                }
+            } elseif ($transaksi->barang) {
+                $slopPerBal = $transaksi->barang->slop_per_bal ?: 20;
+                $balDeduct = $transaksi->satuan === 'Bal' ? $transaksi->jumlah : max(1, (int)ceil($transaksi->jumlah / $slopPerBal));
+                $transaksi->barang->increment('stok', $balDeduct);
+            }
         }
 
         $kode = $transaksi->kode_transaksi;
@@ -196,7 +238,7 @@ class TransaksiController extends Controller
 
     public function cetakFaktur($id)
     {
-        $transaksi = Transaksi::with(['barang.kategori'])->findOrFail($id);
+        $transaksi = Transaksi::with(['barang.kategori', 'details.barang.kategori'])->findOrFail($id);
         return view('admin.transaksis.faktur', compact('transaksi'));
     }
 }
