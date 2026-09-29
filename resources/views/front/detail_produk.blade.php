@@ -12,13 +12,41 @@
         </div>
 
         <div class="grid-2col" style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px; background: var(--bg-card); border: 1px solid var(--charcoal-border); border-radius: var(--radius-lg); padding: 32px;">
-            <!-- Gambar Produk -->
+            <!-- Gambar Produk & Galeri 4 Foto (Wismilak Reference) -->
             <div>
-                <div style="background: #ffffff; border-radius: var(--radius); border: 1px solid var(--charcoal-border); padding: 24px; display: flex; align-items: center; justify-content: center; min-height: 380px; box-shadow: var(--shadow-md);">
-                    <img src="{{ $produk->image_url }}" alt="{{ $produk->nama }}" 
-                         style="max-width: 100%; max-height: 340px; width: auto; height: auto; object-fit: contain;">
+                <div style="position: relative; background: #ffffff; border-radius: var(--radius); border: 1px solid var(--charcoal-border); padding: 24px; display: flex; align-items: center; justify-content: center; min-height: 380px; box-shadow: var(--shadow-md);">
+                    <img id="detailMainImg" src="{{ $produk->gallery_images[0]['url'] ?? $produk->image_url }}" alt="{{ $produk->nama }}" 
+                         style="max-width: 100%; max-height: 340px; width: auto; height: auto; object-fit: contain; cursor: zoom-in; transition: opacity 0.25s ease;"
+                         onclick="openDetailLightbox()">
+                    
+                    <span class="view-label-badge" id="detailViewBadge">
+                        <i class="fa-solid fa-camera"></i> {{ $produk->gallery_images[0]['label'] ?? 'Bungkus Utama' }}
+                    </span>
+
+                    <button type="button" class="btn-open-gallery-zoom" onclick="openDetailLightbox()" title="Perbesar Foto (4 Foto Asli)">
+                        <i class="fa-solid fa-expand"></i>
+                    </button>
                 </div>
-                <div style="margin-top: 16px; display: flex; gap: 10px;">
+
+                <!-- 4 Thumbnails Selector -->
+                @if(count($produk->gallery_images) > 1)
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px;">
+                        @foreach($produk->gallery_images as $idx => $img)
+                            <button type="button" 
+                                    class="product-gallery-thumb {{ $idx === 0 ? 'active' : '' }}" 
+                                    onclick="switchDetailImage('{{ $img['url'] }}', '{{ $img['label'] }}', {{ $idx }}, this)" 
+                                    style="height: 64px; border-radius: 8px; box-shadow: var(--shadow-sm);"
+                                    title="{{ $img['label'] }}">
+                                <img src="{{ $img['url'] }}" alt="{{ $img['label'] }}">
+                            </button>
+                        @endforeach
+                    </div>
+                    <div style="text-align: center; margin-top: 8px; font-size: 12px; color: var(--text-muted);">
+                        <i class="fa-solid fa-images" style="color: var(--gold);"></i> 4 Sudut Tampilan Produk Asli (Klik untuk berganti foto)
+                    </div>
+                @endif
+
+                <div style="margin-top: 16px; display: flex; gap: 10px; justify-content: space-between; align-items: center;">
                     <span class="category-tag category-{{ strtolower($produk->kategori->slug) }}" style="position: static;">
                         {{ $produk->kategori->nama_kategori }}
                     </span>
@@ -109,4 +137,128 @@
         @endif
     </div>
 </section>
+
+<!-- Modal Galeri Lightbox (Detail Produk) -->
+<div id="detailLightboxModal" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(5, 7, 9, 0.92); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px;">
+    <div style="position: relative; max-width: 800px; width: 100%; background: #13171b; border: 1px solid rgba(197, 160, 89, 0.4); border-radius: 14px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.8);">
+        
+        <!-- Header Modal -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--charcoal-border); background: #0e1215;">
+            <div>
+                <h4 style="color: #ffffff; font-family: var(--font-serif); margin: 0; font-size: 1.15rem;">{{ $produk->nama }}</h4>
+                <span id="detailLightboxLabel" style="color: var(--gold); font-size: 0.82rem; font-weight: 600;">Bungkus Utama</span>
+            </div>
+            <button type="button" onclick="closeDetailLightbox()" style="background: none; border: none; color: #94a3b8; font-size: 26px; cursor: pointer; line-height: 1; padding: 0;" aria-label="Tutup Galeri">
+                &times;
+            </button>
+        </div>
+
+        <!-- Main Lightbox Display -->
+        <div style="position: relative; background: #ffffff; height: 440px; display: flex; align-items: center; justify-content: center; padding: 20px; overflow: hidden;">
+            <img id="detailLightboxMainImg" src="" alt="Pratinjau Foto" style="max-height: 100%; max-width: 100%; width: auto; height: auto; object-fit: contain; transition: transform 0.25s ease;">
+            
+            <!-- Arrow Prev & Next -->
+            <button type="button" onclick="prevDetailLightboxImg()" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 50%; background: rgba(19, 23, 27, 0.8); border: 1px solid rgba(197, 160, 89, 0.5); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <button type="button" onclick="nextDetailLightboxImg()" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 50%; background: rgba(19, 23, 27, 0.8); border: 1px solid rgba(197, 160, 89, 0.5); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <!-- Lightbox Thumbnails Strip -->
+        <div id="detailLightboxThumbStrip" style="display: flex; gap: 8px; padding: 12px 20px; background: #0e1215; border-top: 1px solid var(--charcoal-border); justify-content: center; overflow-x: auto;">
+            @foreach($produk->gallery_images as $idx => $img)
+                <button type="button" 
+                        class="product-gallery-thumb {{ $idx === 0 ? 'active' : '' }}" 
+                        style="width: 46px; height: 46px; flex: none;"
+                        title="{{ $img['label'] }}"
+                        onclick="setDetailLightboxIndex({{ $idx }})">
+                    <img src="{{ $img['url'] }}" alt="{{ $img['label'] }}">
+                </button>
+            @endforeach
+        </div>
+    </div>
+</div>
 @endsection
+
+@push('scripts')
+<script>
+    const detailGallery = @json($produk->gallery_images);
+    let detailActiveIdx = 0;
+
+    function switchDetailImage(url, label, index, btn) {
+        detailActiveIdx = index;
+        const mainImg = document.getElementById('detailMainImg');
+        const badge = document.getElementById('detailViewBadge');
+
+        if (mainImg) {
+            mainImg.style.opacity = '0.35';
+            setTimeout(() => {
+                mainImg.src = url;
+                mainImg.style.opacity = '1';
+            }, 120);
+        }
+
+        if (badge) {
+            badge.innerHTML = '<i class="fa-solid fa-camera"></i> ' + label;
+        }
+
+        if (btn && btn.parentElement) {
+            const siblings = btn.parentElement.querySelectorAll('.product-gallery-thumb');
+            siblings.forEach(s => s.classList.remove('active'));
+            btn.classList.add('active');
+        }
+    }
+
+    function openDetailLightbox() {
+        if (!detailGallery.length) return;
+        setDetailLightboxIndex(detailActiveIdx);
+        document.getElementById('detailLightboxModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function setDetailLightboxIndex(index) {
+        detailActiveIdx = (index + detailGallery.length) % detailGallery.length;
+        const imgData = detailGallery[detailActiveIdx];
+
+        document.getElementById('detailLightboxMainImg').src = imgData.url;
+        document.getElementById('detailLightboxLabel').textContent = imgData.label;
+
+        const thumbs = document.querySelectorAll('#detailLightboxThumbStrip .product-gallery-thumb');
+        thumbs.forEach((t, i) => {
+            if (i === detailActiveIdx) {
+                t.classList.add('active');
+            } else {
+                t.classList.remove('active');
+            }
+        });
+    }
+
+    function prevDetailLightboxImg() {
+        setDetailLightboxIndex(detailActiveIdx - 1);
+    }
+
+    function nextDetailLightboxImg() {
+        setDetailLightboxIndex(detailActiveIdx + 1);
+    }
+
+    function closeDetailLightbox() {
+        document.getElementById('detailLightboxModal').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeDetailLightbox();
+        if (e.key === 'ArrowLeft') prevDetailLightboxImg();
+        if (e.key === 'ArrowRight') nextDetailLightboxImg();
+    });
+
+    document.getElementById('detailLightboxModal').addEventListener('click', (e) => {
+        if (e.target.id === 'detailLightboxModal') {
+            closeDetailLightbox();
+        }
+    });
+</script>
+@endpush
+

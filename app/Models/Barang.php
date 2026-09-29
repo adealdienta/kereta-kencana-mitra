@@ -107,4 +107,41 @@ class Barang extends Model
         }
         return asset('assets/img/logo-resmi.png');
     }
+
+    /**
+     * Galeri 4 Foto Produk (Referensi Showcase Wismilak)
+     * Kemasan Utama, Slop 10 Bungkus, Kemasan Terbuka / Batang, Detail Presisi
+     */
+    public function getGalleryImagesAttribute(): array
+    {
+        $slug = $this->slug;
+        $map = [
+            'sembada-12' => [
+                ['url' => asset('assets/img/produk/gallery/sembada-1.jpg'), 'label' => 'Bungkus Utama', 'badge' => 'Bungkus'],
+                ['url' => asset('assets/img/produk/gallery/sembada-2.jpg'), 'label' => 'Kemasan Slop (10 Bungkus)', 'badge' => 'Slop'],
+                ['url' => asset('assets/img/produk/gallery/sembada-3.jpg'), 'label' => 'Kemasan Terbuka & Batang', 'badge' => 'Isi Batang'],
+                ['url' => asset('assets/img/produk/gallery/sembada-4.jpg'), 'label' => 'Perspektif & Sudut Presisi', 'badge' => 'Detail'],
+            ],
+            'kereta-kencana-12' => [
+                ['url' => asset('assets/img/produk/gallery/kereta-kencana-1.jpg'), 'label' => 'Bungkus Utama', 'badge' => 'Bungkus'],
+                ['url' => asset('assets/img/produk/gallery/kereta-kencana-2.jpg'), 'label' => 'Kemasan Slop (10 Bungkus)', 'badge' => 'Slop'],
+                ['url' => asset('assets/img/produk/gallery/kereta-kencana-3.jpg'), 'label' => 'Kemasan Terbuka & Batang Emas', 'badge' => 'Isi Batang'],
+                ['url' => asset('assets/img/produk/gallery/kereta-kencana-4.jpg'), 'label' => 'Batang Rokok & Kemasan', 'badge' => 'Detail'],
+            ],
+            'sembada-cethe-12' => [
+                ['url' => asset('assets/img/produk/gallery/sembada-cethe-1.jpg'), 'label' => 'Bungkus Utama', 'badge' => 'Bungkus'],
+                ['url' => asset('assets/img/produk/gallery/sembada-cethe-2.jpg'), 'label' => 'Kemasan Slop (10 Bungkus)', 'badge' => 'Slop'],
+                ['url' => asset('assets/img/produk/gallery/sembada-cethe-3.jpg'), 'label' => 'Kemasan Terbuka & Cethe', 'badge' => 'Isi Batang'],
+                ['url' => asset('assets/img/produk/gallery/sembada-cethe-4.jpg'), 'label' => 'Batang Cethe Beraroma', 'badge' => 'Detail'],
+            ],
+        ];
+
+        if (isset($map[$slug])) {
+            return $map[$slug];
+        }
+
+        return [
+            ['url' => $this->image_url, 'label' => $this->nama, 'badge' => 'Utama']
+        ];
+    }
 }

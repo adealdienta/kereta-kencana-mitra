@@ -4,31 +4,87 @@
 
 @section('content')
 <!-- Hero Section -->
-<section class="hero-section" style="background: radial-gradient(circle at 80% 35%, rgba(197, 160, 89, 0.12), transparent 55%), #0d1012; position: relative; overflow: hidden; padding: 40px 0;">
+<section class="hero-section" id="heroSection" style="position: relative; overflow: hidden; padding: 60px 0; min-height: 80vh; display: flex; align-items: center; background-color: #0d1012;">
+    <!-- Large Background Slider (Auto-Slide / Ken-Burns Fade) -->
+    @php
+        $heroSlides = [
+            [
+                'img' => asset('assets/img/produk/gallery/kereta-kencana-1.jpg'),
+                'title' => 'KERETA KENCANA 12 SKT',
+                'sub' => 'Sigaret Kretek Tangan kemasan merah khas Blitar berpita cukai resmi.'
+            ],
+            [
+                'img' => asset('assets/img/produk/gallery/sembada-1.jpg'),
+                'title' => 'SEMBADA 12 SKT',
+                'sub' => 'Kemasan putih elegan dengan karakter tembakau pegunungan Jawa pilihan.'
+            ],
+            [
+                'img' => asset('assets/img/produk/gallery/sembada-cethe-1.jpg'),
+                'title' => 'SEMBADA CETHE 12 SKT',
+                'sub' => 'Sensasi aroma cethe istimewa tradisi tembakau Jawa Timur.'
+            ],
+            // Catatan: Tambahkan foto pabrik langsung atau varian rokok baru di sini nantinya:
+            // [
+            //     'img' => asset('images/pabrik-1.jpg'),
+            //     'title' => 'PABRIK PONGGOK BLITAR',
+            //     'sub' => 'Fasilitas produksi terstandarisasi dan berizin cukai resmi.'
+            // ],
+        ];
+    @endphp
+
+    <div class="hero-slider-container" id="heroBgSlider">
+        @foreach($heroSlides as $i => $slide)
+            <div class="hero-slide {{ $i === 0 ? 'active' : '' }}" style="background-image: url('{{ $slide['img'] }}');">
+                <div class="hero-slide-overlay"></div>
+            </div>
+        @endforeach
+    </div>
+
+    <!-- Navigation Arrows -->
+    <button type="button" class="hero-slider-nav prev" onclick="prevHeroSlide()" aria-label="Slide Sebelumnya">
+        <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <button type="button" class="hero-slider-nav next" onclick="nextHeroSlide()" aria-label="Slide Selanjutnya">
+        <i class="fa-solid fa-chevron-right"></i>
+    </button>
+
+    <!-- Slide Indicator Dots -->
+    <div class="hero-slider-dots">
+        @foreach($heroSlides as $i => $slide)
+            <button type="button" class="hero-slider-dot {{ $i === 0 ? 'active' : '' }}" onclick="goToHeroSlide({{ $i }})" aria-label="Slide {{ $i + 1 }}"></button>
+        @endforeach
+    </div>
+
     <div class="container" style="position: relative; z-index: 2;">
         <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 40px; align-items: center;" class="grid-2col">
-            <div class="hero-content" style="padding: 40px 0;">
-                <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(197, 160, 89, 0.12); border: 1px solid rgba(197, 160, 89, 0.3); padding: 6px 14px; border-radius: 20px; margin-bottom: 16px;">
+            <div class="hero-content" style="padding: 20px 0;">
+                <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(197, 160, 89, 0.15); border: 1px solid rgba(197, 160, 89, 0.35); padding: 6px 14px; border-radius: 20px; margin-bottom: 16px; backdrop-filter: blur(4px);">
                     <i class="fa-solid fa-stamp" style="color: var(--gold); font-size: 13px;"></i>
                     <span style="color: var(--gold); font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">PABRIK RESMI BERIZIN CUKAI &bull; PONGGOK, KAB. BLITAR</span>
                 </div>
                 <h1 class="hero-slogan" style="margin-top: 0; font-size: 3rem; line-height: 1.2;">DEDIKASI MUTU KRETEK BLITAR UNTUK MITRA DISTRIBUSI</h1>
-                <p class="hero-subheadline" style="font-size: 1.05rem; line-height: 1.8; color: var(--text-light); margin-bottom: 26px;">
+                <p class="hero-subheadline" style="font-size: 1.05rem; line-height: 1.8; color: #e2e8f0; margin-bottom: 26px; text-shadow: 0 2px 6px rgba(0,0,0,0.6);">
                     PR. KERETA KENCANA memproduksi 3 varian Sigaret Kretek Tangan (SKT) 12 batang berpita cukai resmi negara: <strong>SEMBADA</strong>, <strong>KERETA KENCANA</strong>, dan <strong>SEMBADA CETHE</strong> dengan perpaduan tembakau pegunungan Jawa pilihan dan cengkeh bermutu tinggi.
                 </p>
                 <div class="hero-buttons" style="display: flex; gap: 14px; flex-wrap: wrap;">
                     <a href="{{ route('pesanan.form') }}" class="btn btn-gold btn-lg">
                         <i class="fa-solid fa-cart-shopping"></i> Order Sekarang (Mulai 1 Slop)
                     </a>
-                    <a href="{{ route('katalog.index') }}" class="btn btn-secondary btn-lg" style="background: rgba(255,255,255,0.06); border: 1px solid var(--charcoal-border); color: #fff;">
-                        <i class="fa-solid fa-boxes-stacked"></i> Lihat 3 Produk Resmi
+                    <a href="{{ route('katalog.index') }}" class="btn btn-secondary btn-lg" style="background: rgba(255,255,255,0.08); border: 1px solid var(--charcoal-border); color: #fff; backdrop-filter: blur(4px);">
+                        <i class="fa-solid fa-boxes-stacked"></i> Lihat Katalog Produk
                     </a>
                 </div>
             </div>
 
-            <!-- Gambar 3 Produk Rokok Disatukan -->
+            <!-- Official Logo Showcase (Murni Gambar Logo Tanpa Bingkai) -->
             <div style="text-align: center;">
-                <img src="{{ asset('assets/img/produk/trio-produk-kereta-kencana.jpg') }}" alt="3 Varian Sigaret Kretek PR. Kereta Kencana (Sembada, Kereta Kencana, Sembada Cethe)" style="width: 100%; max-width: 480px; height: auto; border-radius: 10px; box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5); object-fit: contain;">
+                <img src="{{ asset('assets/img/logo-resmi.png') }}" alt="Logo Resmi PR. Kereta Kencana Blitar" style="max-height: 250px; width: auto; object-fit: contain; filter: drop-shadow(0 10px 24px rgba(0,0,0,0.7)); margin: 0 auto;">
+                <div style="font-family: var(--font-serif); color: #ffffff; font-size: 22px; font-weight: 800; margin-top: 16px; letter-spacing: 1px; text-shadow: 0 2px 8px rgba(0,0,0,0.8);">
+                    PR. KERETA KENCANA
+                </div>
+                <div style="color: var(--gold); font-size: 13px; font-weight: 600; margin-top: 4px; text-transform: uppercase; letter-spacing: 1.5px;">
+                    Pabrik Sigaret Kretek &bull; Ponggok, Blitar
+                </div>
             </div>
         </div>
     </div>
@@ -174,3 +230,73 @@
     </div>
 </section>
 @endsection
+
+@push('scripts')
+<script>
+    // Hero Large Background Auto-Slider
+    let heroCurrentSlide = 0;
+    const heroSlides = document.querySelectorAll('#heroBgSlider .hero-slide');
+    const heroDots = document.querySelectorAll('.hero-slider-dot');
+    let heroSliderTimer = null;
+
+    function showHeroSlide(index) {
+        if (!heroSlides.length) return;
+        if (index >= heroSlides.length) index = 0;
+        if (index < 0) index = heroSlides.length - 1;
+        
+        heroCurrentSlide = index;
+
+        heroSlides.forEach((slide, i) => {
+            if (i === heroCurrentSlide) {
+                slide.classList.add('active');
+            } else {
+                slide.classList.remove('active');
+            }
+        });
+
+        heroDots.forEach((dot, i) => {
+            if (i === heroCurrentSlide) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+            }
+        });
+    }
+
+    function nextHeroSlide() {
+        showHeroSlide(heroCurrentSlide + 1);
+        resetHeroSliderTimer();
+    }
+
+    function prevHeroSlide() {
+        showHeroSlide(heroCurrentSlide - 1);
+        resetHeroSliderTimer();
+    }
+
+    function goToHeroSlide(index) {
+        showHeroSlide(index);
+        resetHeroSliderTimer();
+    }
+
+    function resetHeroSliderTimer() {
+        clearInterval(heroSliderTimer);
+        heroSliderTimer = setInterval(() => {
+            showHeroSlide(heroCurrentSlide + 1);
+        }, 5000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (heroSlides.length > 1) {
+            resetHeroSliderTimer();
+
+            // Pause on hover
+            const heroSec = document.getElementById('heroSection');
+            if (heroSec) {
+                heroSec.addEventListener('mouseenter', () => clearInterval(heroSliderTimer));
+                heroSec.addEventListener('mouseleave', () => resetHeroSliderTimer());
+            }
+        }
+    });
+</script>
+@endpush
+
