@@ -141,8 +141,8 @@
         </div>
 
         <!-- Main Lightbox Display -->
-        <div style="position: relative; background: #ffffff; height: 420px; display: flex; align-items: center; justify-content: center; padding: 20px; overflow: hidden;">
-            <img id="lightboxMainImg" src="" alt="Pratinjau Foto" style="max-height: 100%; max-width: 100%; width: auto; height: auto; object-fit: contain; transition: transform 0.25s ease;">
+        <div style="position: relative; background: radial-gradient(circle at center, rgba(255, 255, 255, 0.06) 0%, rgba(0, 0, 0, 0.55) 80%), #0c1013; height: 420px; display: flex; align-items: center; justify-content: center; padding: 24px; overflow: hidden;">
+            <img id="lightboxMainImg" src="" alt="Pratinjau Foto" style="max-height: 100%; max-width: 100%; width: auto; height: auto; object-fit: contain; filter: drop-shadow(0 16px 28px rgba(0,0,0,0.75)); transition: transform 0.25s ease;">
             
             <!-- Arrow Prev & Next -->
             <button type="button" onclick="prevLightboxImg()" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 50%; background: rgba(19, 23, 27, 0.8); border: 1px solid rgba(197, 160, 89, 0.5); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer;">
