@@ -10,29 +10,25 @@
         $heroSlides = [
             [
                 'img' => asset('assets/img/produk/trio-produk-kereta-kencana.jpg'),
-                'title' => 'PR. KERETA KENCANA',
-                'sub' => 'Tiga kreasi rokok kretek khas Blitar berpita cukai resmi.'
+                'title' => '3 Varian Sigaret Kretek Tangan PR. Kereta Kencana',
             ],
             [
                 'img' => asset('assets/img/produk/gallery/kereta-kencana-1.jpg'),
                 'title' => 'KERETA KENCANA 12 SKT',
-                'sub' => 'Sigaret Kretek Tangan kemasan merah khas Blitar berpita cukai resmi.'
             ],
             [
                 'img' => asset('assets/img/produk/gallery/sembada-1.jpg'),
                 'title' => 'SEMBADA 12 SKT',
-                'sub' => 'Kemasan putih elegan dengan karakter tembakau pegunungan Jawa pilihan.'
             ],
             [
                 'img' => asset('assets/img/produk/gallery/sembada-cethe-1.jpg'),
                 'title' => 'SEMBADA CETHE 12 SKT',
-                'sub' => 'Sensasi aroma cethe istimewa tradisi tembakau Jawa Timur.'
             ],
-            [
-                'img' => asset('assets/img/hero-pabrik.jpg'),
-                'title' => 'PABRIK PONGGOK BLITAR',
-                'sub' => 'Fasilitas produksi terstandarisasi dan berizin cukai resmi.'
-            ],
+            // Catatan: Tambahkan foto pabrik langsung atau varian rokok baru di sini nantinya:
+            // [
+            //     'img' => asset('images/pabrik-1.jpg'),
+            //     'title' => 'PABRIK PONGGOK BLITAR',
+            // ],
         ];
     @endphp
 
@@ -60,28 +56,29 @@
     </div>
 
     <div class="container" style="position: relative; z-index: 2;">
-        <div class="hero-content" style="max-width: 840px; padding: 40px 0;">
-            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(197, 160, 89, 0.18); border: 1px solid rgba(197, 160, 89, 0.4); padding: 6px 16px; border-radius: 20px; margin-bottom: 20px; backdrop-filter: blur(8px); box-shadow: 0 4px 12px rgba(0,0,0,0.4);">
+        <div class="hero-content-clean" style="max-width: 840px; padding: 50px 0;">
+            <!-- Tag Atas -->
+            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(13, 16, 18, 0.78); border: 1px solid rgba(197, 160, 89, 0.55); padding: 7px 18px; border-radius: 30px; margin-bottom: 22px; backdrop-filter: blur(8px); box-shadow: 0 4px 16px rgba(0,0,0,0.5);">
                 <i class="fa-solid fa-stamp" style="color: var(--gold); font-size: 13px;"></i>
-                <span style="color: var(--gold-light); font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">PABRIK RESMI BERIZIN CUKAI &bull; PONGGOK, KAB. BLITAR</span>
+                <span style="color: var(--gold); font-size: 12.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">PABRIK RESMI BERIZIN CUKAI &bull; PONGGOK, KAB. BLITAR</span>
             </div>
-            
-            <h1 class="hero-slogan" style="font-family: var(--font-serif); font-size: clamp(2.3rem, 5.2vw, 3.6rem); font-weight: 800; line-height: 1.22; margin-top: 0; margin-bottom: 20px; letter-spacing: 0.5px; text-shadow: 0 4px 20px rgba(0, 0, 0, 0.95); color: #ffffff;">
-                WARISAN LINTINGAN TRADISIONAL <br>
-                <span style="background: linear-gradient(135deg, #dfba73 0%, #c5a059 50%, #f3e5ab 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.8));">
-                    HINGGA INDUSTRI MODERN
-                </span>
+
+            <!-- Judul Utama -->
+            <h1 class="hero-slogan" style="margin-top: 0; font-size: 3.25rem; line-height: 1.18; font-weight: 900; color: #ffffff; text-shadow: 0 4px 18px rgba(0,0,0,0.9); letter-spacing: 0.5px; margin-bottom: 22px;">
+                DEDIKASI MUTU KRETEK BLITAR UNTUK MITRA DISTRIBUSI
             </h1>
 
-            <p class="hero-subheadline" style="font-size: 1.1rem; line-height: 1.8; color: #f1f5f9; margin-bottom: 30px; text-shadow: 0 2px 10px rgba(0,0,0,0.85); max-width: 740px;">
-                PR. KERETA KENCANA memproduksi 3 varian Sigaret Kretek Tangan (SKT) 12 batang berpita cukai resmi negara: <strong>SEMBADA</strong>, <strong>KERETA KENCANA</strong>, dan <strong>SEMBADA CETHE</strong> dengan perpaduan tembakau pegunungan Jawa pilihan dan cengkeh bermutu tinggi.
+            <!-- Deskripsi -->
+            <p class="hero-subheadline" style="font-size: 1.15rem; line-height: 1.85; color: #f8fafc; margin-bottom: 34px; max-width: 780px; text-shadow: 0 2px 14px rgba(0,0,0,0.95); font-weight: 400;">
+                PR. KERETA KENCANA memproduksi 3 varian Sigaret Kretek Tangan (SKT) 12 batang berpita cukai resmi negara: SEMBADA, KERETA KENCANA, dan SEMBADA CETHE dengan perpaduan tembakau pegunungan Jawa pilihan dan cengkeh bermutu tinggi.
             </p>
-            
+
+            <!-- Tombol Aksi -->
             <div class="hero-buttons" style="display: flex; gap: 16px; flex-wrap: wrap;">
-                <a href="{{ route('pesanan.form') }}" class="btn btn-gold btn-lg" style="box-shadow: 0 6px 20px rgba(197, 160, 89, 0.4);">
+                <a href="{{ route('pesanan.form') }}" class="btn btn-gold btn-lg" style="box-shadow: 0 8px 24px rgba(197, 160, 89, 0.35); font-weight: 700; padding: 14px 28px;">
                     <i class="fa-solid fa-cart-shopping"></i> Order Sekarang (Mulai 1 Slop)
                 </a>
-                <a href="{{ route('katalog.index') }}" class="btn btn-secondary btn-lg" style="background: rgba(13, 16, 18, 0.65); border: 1px solid rgba(197, 160, 89, 0.4); color: #fff; backdrop-filter: blur(8px); box-shadow: 0 4px 16px rgba(0,0,0,0.5);">
+                <a href="{{ route('katalog.index') }}" class="btn btn-secondary btn-lg" style="background: rgba(13, 16, 18, 0.72); border: 1px solid rgba(255, 255, 255, 0.25); color: #fff; backdrop-filter: blur(8px); padding: 14px 26px;">
                     <i class="fa-solid fa-boxes-stacked"></i> Lihat Katalog Produk
                 </a>
             </div>

@@ -53,7 +53,7 @@
 
 html {
   scroll-behavior: smooth;
-  overflow-x: hidden;
+  overflow-x: clip;
   width: 100%;
   max-width: 100%;
 }
@@ -63,10 +63,9 @@ body {
   background-color: var(--charcoal-900);
   color: var(--text-light);
   line-height: 1.6;
-  padding-top: 80px; /* Ruang untuk Header Fixed Desktop */
   padding-bottom: 70px; /* Ruang untuk Peringatan Kesehatan Bottom Bar */
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  overflow-x: clip;
   width: 100%;
   max-width: 100%;
   position: relative;
@@ -241,22 +240,18 @@ iframe {
 }
 
 /* =========================================================
-   NAVBAR & HEADER (Sticky / Fixed Top)
+   NAVBAR & HEADER
    ========================================================= */
 .site-header {
-  background-color: #0d1012;
-  background-color: rgba(13, 16, 18, 0.98);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(197, 160, 89, 0.25);
-  position: fixed;
+  background-color: rgba(13, 16, 18, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--charcoal-border);
+  position: -webkit-sticky;
+  position: sticky;
   top: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
   z-index: 1000;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
 }
 
 .header-inner {
@@ -1125,11 +1120,8 @@ iframe {
     grid-template-columns: 1fr 1fr;
   }
   .site-header {
-    position: fixed;
+    position: sticky;
     top: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
   }
   .main-nav {
     display: none;
@@ -1211,7 +1203,6 @@ iframe {
 @media (max-width: 576px) {
   /* Mencegah layout terpotong di perangkat Android */
   body {
-    padding-top: 64px; /* Ruang untuk Header Fixed Mobile */
     padding-bottom: 85px; /* Ruang lebih aman untuk warning bar */
   }
   
@@ -1438,8 +1429,8 @@ iframe {
 .hero-slide-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(9, 12, 14, 0.78) 0%, rgba(13, 16, 18, 0.45) 55%, rgba(13, 16, 18, 0.18) 100%),
-              linear-gradient(180deg, rgba(9, 12, 14, 0.35) 0%, transparent 40%, rgba(9, 12, 14, 0.55) 100%);
+  background: linear-gradient(90deg, rgba(10, 13, 15, 0.76) 0%, rgba(10, 13, 15, 0.42) 50%, rgba(10, 13, 15, 0.12) 100%),
+              linear-gradient(180deg, rgba(10, 13, 15, 0.25) 0%, transparent 40%, rgba(10, 13, 15, 0.5) 100%);
 }
 
 .hero-slider-dots {
