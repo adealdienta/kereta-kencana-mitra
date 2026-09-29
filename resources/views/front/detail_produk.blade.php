@@ -14,9 +14,9 @@
         <div class="grid-2col" style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px; background: var(--bg-card); border: 1px solid var(--charcoal-border); border-radius: var(--radius-lg); padding: 32px;">
             <!-- Gambar Produk & Galeri 4 Foto (Wismilak Reference) -->
             <div>
-                <div style="position: relative; background: radial-gradient(circle at center, rgba(255,255,255,0.06) 0%, rgba(13, 16, 18, 0.6) 80%), #13171b; border-radius: var(--radius); border: 1px solid var(--charcoal-border); padding: 24px; display: flex; align-items: center; justify-content: center; min-height: 380px; box-shadow: var(--shadow-md);">
+                <div style="position: relative; background: #ffffff; border-radius: var(--radius); border: 1px solid var(--charcoal-border); padding: 24px; display: flex; align-items: center; justify-content: center; min-height: 380px; box-shadow: var(--shadow-md);">
                     <img id="detailMainImg" src="{{ $produk->gallery_images[0]['url'] ?? $produk->image_url }}" alt="{{ $produk->nama }}" 
-                         style="max-width: 100%; max-height: 340px; width: auto; height: auto; object-fit: contain; cursor: zoom-in; filter: drop-shadow(0 15px 25px rgba(0,0,0,0.65)); transition: opacity 0.25s ease;"
+                         style="max-width: 100%; max-height: 340px; width: auto; height: auto; object-fit: contain; cursor: zoom-in; transition: opacity 0.25s ease;"
                          onclick="openDetailLightbox()">
                     
                     <span class="view-label-badge" id="detailViewBadge">
@@ -154,8 +154,8 @@
         </div>
 
         <!-- Main Lightbox Display -->
-        <div style="position: relative; background: radial-gradient(circle at center, rgba(255, 255, 255, 0.06) 0%, rgba(0, 0, 0, 0.55) 80%), #0c1013; height: 440px; display: flex; align-items: center; justify-content: center; padding: 24px; overflow: hidden;">
-            <img id="detailLightboxMainImg" src="" alt="Pratinjau Foto" style="max-height: 100%; max-width: 100%; width: auto; height: auto; object-fit: contain; filter: drop-shadow(0 16px 28px rgba(0,0,0,0.75)); transition: transform 0.25s ease;">
+        <div style="position: relative; background: #ffffff; height: 440px; display: flex; align-items: center; justify-content: center; padding: 20px; overflow: hidden;">
+            <img id="detailLightboxMainImg" src="" alt="Pratinjau Foto" style="max-height: 100%; max-width: 100%; width: auto; height: auto; object-fit: contain; transition: transform 0.25s ease;">
             
             <!-- Arrow Prev & Next -->
             <button type="button" onclick="prevDetailLightboxImg()" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 50%; background: rgba(19, 23, 27, 0.8); border: 1px solid rgba(197, 160, 89, 0.5); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer;">

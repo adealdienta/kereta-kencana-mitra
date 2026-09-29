@@ -63,6 +63,7 @@ body {
   background-color: var(--charcoal-900);
   color: var(--text-light);
   line-height: 1.6;
+  padding-top: 80px; /* Ruang untuk Header Fixed Desktop */
   padding-bottom: 70px; /* Ruang untuk Peringatan Kesehatan Bottom Bar */
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
@@ -240,15 +241,22 @@ iframe {
 }
 
 /* =========================================================
-   NAVBAR & HEADER
+   NAVBAR & HEADER (Sticky / Fixed Top)
    ========================================================= */
 .site-header {
-  background-color: rgba(13, 16, 18, 0.95);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--charcoal-border);
-  position: sticky;
+  background-color: #0d1012;
+  background-color: rgba(13, 16, 18, 0.98);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(197, 160, 89, 0.25);
+  position: fixed;
   top: 0;
-  z-index: 999;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .header-inner {
@@ -662,12 +670,12 @@ iframe {
 .product-img-wrapper {
   position: relative;
   width: 100%;
-  height: 220px;
-  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.06) 0%, rgba(13, 16, 18, 0.6) 80%), #13171b;
+  height: 210px;
+  background-color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 14px;
+  padding: 16px;
   overflow: hidden;
   border-bottom: 1px solid var(--charcoal-border);
 }
@@ -678,13 +686,11 @@ iframe {
   width: auto;
   height: auto;
   object-fit: contain;
-  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.65));
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .product-card:hover .product-img {
-  transform: scale(1.06) translateY(-4px);
-  filter: drop-shadow(0 16px 24px rgba(197, 160, 89, 0.3));
+  transform: scale(1.06);
 }
 
 .category-tag {
@@ -1119,8 +1125,11 @@ iframe {
     grid-template-columns: 1fr 1fr;
   }
   .site-header {
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
   }
   .main-nav {
     display: none;
@@ -1202,6 +1211,7 @@ iframe {
 @media (max-width: 576px) {
   /* Mencegah layout terpotong di perangkat Android */
   body {
+    padding-top: 64px; /* Ruang untuk Header Fixed Mobile */
     padding-bottom: 85px; /* Ruang lebih aman untuk warning bar */
   }
   
@@ -1428,8 +1438,8 @@ iframe {
 .hero-slide-overlay {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 75% 35%, rgba(13, 16, 18, 0.65) 0%, rgba(13, 16, 18, 0.92) 80%),
-              linear-gradient(90deg, rgba(9, 12, 14, 0.96) 0%, rgba(13, 16, 18, 0.88) 55%, rgba(13, 16, 18, 0.72) 100%);
+  background: linear-gradient(90deg, rgba(9, 12, 14, 0.78) 0%, rgba(13, 16, 18, 0.45) 55%, rgba(13, 16, 18, 0.18) 100%),
+              linear-gradient(180deg, rgba(9, 12, 14, 0.35) 0%, transparent 40%, rgba(9, 12, 14, 0.55) 100%);
 }
 
 .hero-slider-dots {
@@ -1505,9 +1515,9 @@ iframe {
   flex: 1;
   min-width: 42px;
   height: 42px;
-  padding: 3px;
-  background: #111518;
-  border: 1px solid var(--charcoal-border);
+  padding: 2px;
+  background: #ffffff;
+  border: 2px solid transparent;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1518,20 +1528,17 @@ iframe {
 .product-gallery-thumb:hover {
   border-color: rgba(197, 160, 89, 0.6);
   transform: translateY(-2px);
-  background: #161c22;
 }
 
 .product-gallery-thumb.active {
   border-color: var(--gold);
   box-shadow: 0 0 8px rgba(197, 160, 89, 0.4);
-  background: #1a2026;
 }
 
 .product-gallery-thumb img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 }
 
 .view-label-badge {
