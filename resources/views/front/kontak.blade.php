@@ -4,7 +4,7 @@
 
 @section('content')
 <!-- Header Banner -->
-<section class="page-header" style="background: linear-gradient(rgba(13, 16, 18, 0.85), rgba(13, 16, 18, 0.95)), url('{{ asset('assets/img/hero-pabrik.jpg') }}') center/cover no-repeat; padding: 60px 0;">
+<section class="page-header" style="background: radial-gradient(ellipse at top, rgba(197, 160, 89, 0.12) 0%, transparent 60%), linear-gradient(180deg, #0d1012 0%, #15191d 100%); border-bottom: 1px solid rgba(197, 160, 89, 0.2); padding: 60px 0;">
     <div class="container text-center">
         <span class="header-badge">HUBUNGI KAMI</span>
         <h1 class="page-title">KONTAK RESMI & LOKASI PABRIK</h1>

@@ -97,8 +97,13 @@ class Barang extends Model
 
     public function getImageUrlAttribute(): string
     {
-        if ($this->gambar && !str_contains($this->gambar, 'hero-pabrik') && !str_contains($this->gambar, 'gudang-distribusi') && file_exists(public_path('storage/' . $this->gambar))) {
-            return asset('storage/' . $this->gambar);
+        if ($this->gambar) {
+            if (file_exists(public_path($this->gambar))) {
+                return asset($this->gambar);
+            }
+            if (file_exists(public_path('storage/' . $this->gambar))) {
+                return asset('storage/' . $this->gambar);
+            }
         }
         return asset('assets/img/logo-resmi.png');
     }

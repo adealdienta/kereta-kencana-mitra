@@ -4,11 +4,11 @@
 
 @section('content')
 <!-- Header Banner -->
-<section class="page-header" style="background: linear-gradient(rgba(13, 16, 18, 0.85), rgba(13, 16, 18, 0.95)), url('{{ asset('assets/img/hero-pabrik.jpg') }}') center/cover no-repeat; padding: 60px 0;">
+<section class="page-header" style="background: radial-gradient(ellipse at top, rgba(197, 160, 89, 0.12) 0%, transparent 60%), linear-gradient(180deg, #0d1012 0%, #15191d 100%); border-bottom: 1px solid rgba(197, 160, 89, 0.2); padding: 60px 0;">
     <div class="container text-center">
-        <span class="header-badge">KATALOG PRODUK B2B</span>
+        <span class="header-badge">KATALOG PRODUK RESMI</span>
         <h1 class="page-title">VARIAN SIGARET KRETEK RESMI</h1>
-        <p class="page-subtitle">Pilihan Sigaret Kretek Tangan (SKT) Resmi Pabrik: Lini DWIPANTARA, SEMBADA, dan KERETA KENCANA</p>
+        <p class="page-subtitle">3 Varian Sigaret Kretek Tangan (SKT) 12 Batang Resmi Pabrik PR. KERETA KENCANA Blitar</p>
     </div>
 </section>
 

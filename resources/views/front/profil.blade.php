@@ -4,7 +4,7 @@
 
 @section('content')
 <!-- Header Banner -->
-<section class="page-header" style="background: linear-gradient(rgba(13, 16, 18, 0.85), rgba(13, 16, 18, 0.95)), url('{{ asset('assets/img/hero-pabrik.jpg') }}') center/cover no-repeat; padding: 70px 0;">
+<section class="page-header" style="background: radial-gradient(ellipse at top, rgba(197, 160, 89, 0.12) 0%, transparent 60%), linear-gradient(180deg, #0d1012 0%, #15191d 100%); border-bottom: 1px solid rgba(197, 160, 89, 0.2); padding: 70px 0;">
     <div class="container text-center">
         <span class="header-badge">COMPANY PROFILE & LEGALITAS</span>
         <h1 class="page-title">PR. KERETA KENCANA BLITAR</h1>
@@ -28,7 +28,12 @@
                 </p>
             </div>
             <div>
-                <img src="{{ asset('assets/img/produksi-skt.jpg') }}" alt="Produksi Pabrik Kereta Kencana" style="width: 100%; border-radius: var(--radius-lg); border: 1px solid var(--charcoal-border); box-shadow: var(--shadow-md);">
+                <div style="background: linear-gradient(135deg, #13171b 0%, #1c2228 100%); border: 1px solid rgba(197, 160, 89, 0.35); border-radius: var(--radius-lg); padding: 40px 30px; text-align: center; box-shadow: var(--shadow-md); position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: radial-gradient(circle, rgba(197,160,89,0.15) 0%, transparent 70%);"></div>
+                    <img src="{{ asset('assets/img/logo-resmi.png') }}" alt="PR. Kereta Kencana Blitar" style="max-height: 200px; width: auto; object-fit: contain; margin-bottom: 20px; filter: drop-shadow(0 6px 16px rgba(0,0,0,0.6));">
+                    <h4 style="font-family: var(--font-serif); color: var(--gold); margin-bottom: 6px; font-size: 1.2rem; letter-spacing: 0.5px;">PR. KERETA KENCANA</h4>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0; text-transform: uppercase; letter-spacing: 1px;">Kecamatan Ponggok &bull; Kabupaten Blitar &bull; Jawa Timur</p>
+                </div>
             </div>
         </div>
     </div>

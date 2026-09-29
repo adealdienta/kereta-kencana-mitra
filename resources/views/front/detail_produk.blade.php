@@ -14,9 +14,9 @@
         <div class="grid-2col" style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px; background: var(--bg-card); border: 1px solid var(--charcoal-border); border-radius: var(--radius-lg); padding: 32px;">
             <!-- Gambar Produk -->
             <div>
-                <div style="background: #ffffff; border-radius: var(--radius); border: 1px solid var(--charcoal-border); padding: 24px; display: flex; align-items: center; justify-content: center; min-height: 260px; box-shadow: var(--shadow-md);">
+                <div style="background: #ffffff; border-radius: var(--radius); border: 1px solid var(--charcoal-border); padding: 24px; display: flex; align-items: center; justify-content: center; min-height: 380px; box-shadow: var(--shadow-md);">
                     <img src="{{ $produk->image_url }}" alt="{{ $produk->nama }}" 
-                         style="max-width: 100%; max-height: 220px; width: auto; height: auto; object-fit: contain;">
+                         style="max-width: 100%; max-height: 340px; width: auto; height: auto; object-fit: contain;">
                 </div>
                 <div style="margin-top: 16px; display: flex; gap: 10px;">
                     <span class="category-tag category-{{ strtolower($produk->kategori->slug) }}" style="position: static;">

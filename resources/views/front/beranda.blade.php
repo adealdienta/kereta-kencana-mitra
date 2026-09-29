@@ -3,27 +3,49 @@
 @section('title', 'PR. KERETA KENCANA - Pabrik Sigaret Kretek Blitar')
 
 @section('content')
-<!-- Hero Section (Persis Desain Asli) -->
-<section class="hero-section">
-    <img src="{{ asset('assets/img/hero-pabrik.jpg') }}" alt="Pabrik Rokok Kereta Kencana" class="hero-bg">
-    <div class="hero-overlay"></div>
-    <div class="container">
-        <div class="hero-content">
-            <span class="eyebrow"><i class="fa-solid fa-stamp"></i> PABRIK RESMI BERIZIN CUKAI &bull; PONGGOK, KAB. BLITAR</span>
-            <h1 class="hero-slogan">DEDIKASI MUTU KRETEK BLITAR UNTUK MITRA DISTRIBUSI</h1>
-            <p class="hero-subheadline">
-                PR. KERETA KENCANA memproduksi Sigaret Kretek Mesin (SKM) dan Sigaret Kretek Tangan (SKT) bercukai resmi dengan perpaduan tembakau pegunungan Jawa pilihan dan cengkeh Zanzibar beraroma mantap.
-            </p>
-            <div class="hero-buttons">
-                <a href="{{ route('pesanan.form') }}" class="btn btn-gold btn-lg">
-                    <i class="fa-solid fa-cart-shopping"></i> Order Sekarang
-                </a>
+<!-- Hero Section -->
+<section class="hero-section" style="background: radial-gradient(circle at 80% 35%, rgba(197, 160, 89, 0.12), transparent 55%), #0d1012; position: relative; overflow: hidden; padding: 40px 0;">
+    <div class="container" style="position: relative; z-index: 2;">
+        <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 40px; align-items: center;" class="grid-2col">
+            <div class="hero-content" style="padding: 40px 0;">
+                <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(197, 160, 89, 0.12); border: 1px solid rgba(197, 160, 89, 0.3); padding: 6px 14px; border-radius: 20px; margin-bottom: 16px;">
+                    <i class="fa-solid fa-stamp" style="color: var(--gold); font-size: 13px;"></i>
+                    <span style="color: var(--gold); font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">PABRIK RESMI BERIZIN CUKAI &bull; PONGGOK, KAB. BLITAR</span>
+                </div>
+                <h1 class="hero-slogan" style="margin-top: 0; font-size: 3rem; line-height: 1.2;">DEDIKASI MUTU KRETEK BLITAR UNTUK MITRA DISTRIBUSI</h1>
+                <p class="hero-subheadline" style="font-size: 1.05rem; line-height: 1.8; color: var(--text-light); margin-bottom: 26px;">
+                    PR. KERETA KENCANA memproduksi 3 varian Sigaret Kretek Tangan (SKT) 12 batang berpita cukai resmi negara: <strong>SEMBADA</strong>, <strong>KERETA KENCANA</strong>, dan <strong>SEMBADA CETHE</strong> dengan perpaduan tembakau pegunungan Jawa pilihan dan cengkeh bermutu tinggi.
+                </p>
+                <div class="hero-buttons" style="display: flex; gap: 14px; flex-wrap: wrap;">
+                    <a href="{{ route('pesanan.form') }}" class="btn btn-gold btn-lg">
+                        <i class="fa-solid fa-cart-shopping"></i> Order Sekarang (Mulai 1 Slop)
+                    </a>
+                    <a href="{{ route('katalog.index') }}" class="btn btn-secondary btn-lg" style="background: rgba(255,255,255,0.06); border: 1px solid var(--charcoal-border); color: #fff;">
+                        <i class="fa-solid fa-boxes-stacked"></i> Lihat 3 Produk Resmi
+                    </a>
+                </div>
+            </div>
+
+            <!-- Official Logo Showcase on Hero -->
+            <div style="text-align: center;">
+                <div style="background: rgba(22, 27, 31, 0.85); border: 1px solid rgba(197, 160, 89, 0.35); border-radius: 16px; padding: 36px 28px; box-shadow: 0 16px 40px rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: inline-block; width: 100%; max-width: 420px;">
+                    <img src="{{ asset('assets/img/logo-resmi.png') }}" alt="Logo Resmi PR. Kereta Kencana" style="max-height: 220px; width: auto; margin: 0 auto; object-fit: contain; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.5));">
+                    <div style="font-family: var(--font-serif); color: #ffffff; font-size: 20px; font-weight: 800; margin-top: 18px; letter-spacing: 1px;">
+                        PR. KERETA KENCANA
+                    </div>
+                    <div style="color: var(--gold); font-size: 13px; font-weight: 600; margin-top: 4px;">
+                        Pabrik Sigaret Kretek Ponggok &bull; Blitar
+                    </div>
+                    <div style="color: var(--text-muted); font-size: 11.5px; margin-top: 6px;">
+                        <i class="fa-solid fa-circle-check" style="color: var(--success);"></i> NPPBKC: 0821.1.2.XXXXX (Bea Cukai Blitar)
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Tentang Singkat & Lencana Legalitas (Persis Desain Asli) -->
+<!-- Tentang Singkat & Lencana Legalitas -->
 <section class="section-about">
     <div class="container">
         <div class="about-grid">
@@ -36,7 +58,7 @@
                     </p>
                 </div>
                 <p>
-                    Beroperasi di Dusun Subontoro, Desa Kebonduren, Kecamatan Ponggok, Kabupaten Blitar, Jawa Timur, <strong>PR. KERETA KENCANA</strong> dipimpin oleh Bapak Komari Yaman. Kami melayani pengadaan pasokan distributor besar, agen grosir, hingga toko dan warung dengan fleksibilitas order mulai dari <strong>1 slop</strong> hingga kemasan Bal dan karton pengiriman terpadu.
+                    Beroperasi di Dusun Subontoro, Desa Kebonduren, Kecamatan Ponggok, Kabupaten Blitar, Jawa Timur, <strong>PR. KERETA KENCANA</strong> dipimpin oleh Bapak Komari Yaman. Kami memproduksi 3 produk unggulan kretek tangan 12 batang (SEMBADA, KERETA KENCANA, SEMBADA CETHE) dan melayani pengadaan pasokan distributor besar, agen grosir, hingga toko dan warung dengan fleksibilitas order mulai dari <strong>1 slop</strong> hingga kemasan Bal dan karton pengiriman terpadu.
                 </p>
                 <div style="margin-top: 24px;">
                     <a href="{{ route('profil') }}" class="btn btn-sm btn-outline-gold">
@@ -82,13 +104,13 @@
     </div>
 </section>
 
-<!-- Produk Unggulan SKM & SKT (Persis Desain Asli) -->
+<!-- Produk Unggulan SKT Resmi -->
 <section class="section-py" id="produk">
     <div class="container">
         <div class="section-header-center">
-            <span class="eyebrow">PRODUK RESMI PABRIK</span>
-            <h2 class="section-title">KOLEKSI PRODUK KRETEK RESMI PABRIK</h2>
-            <p class="section-subtitle">Pilihan Sigaret Kretek Tangan (SKT) unggulan Blitar berpita cukai resmi: Lini DWIPANTARA, SEMBADA, dan KERETA KENCANA. Melayani pemesanan mulai dari 1 slop hingga paket grosir bal.</p>
+            <span class="eyebrow"><i class="fa-solid fa-boxes-stacked"></i> PRODUK RESMI PABRIK</span>
+            <h2 class="section-title">3 KOLEKSI SIGARET KRETEK TANGAN RESMI</h2>
+            <p class="section-subtitle">Pilihan Sigaret Kretek Tangan (SKT) 12 batang unggulan Blitar berpita cukai resmi: <strong>SEMBADA</strong>, <strong>KERETA KENCANA</strong>, dan <strong>SEMBADA CETHE</strong>. Melayani pemesanan mulai dari 1 slop (eceran toko) hingga paket grosir bal distributor.</p>
         </div>
 
         <div class="products-grid">
