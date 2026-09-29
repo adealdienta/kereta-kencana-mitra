@@ -26,20 +26,9 @@
                 </div>
             </div>
 
-            <!-- Official Logo Showcase on Hero -->
+            <!-- Gambar 3 Produk Rokok Disatukan -->
             <div style="text-align: center;">
-                <div style="background: rgba(22, 27, 31, 0.85); border: 1px solid rgba(197, 160, 89, 0.35); border-radius: 16px; padding: 36px 28px; box-shadow: 0 16px 40px rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: inline-block; width: 100%; max-width: 420px;">
-                    <img src="{{ asset('assets/img/logo-resmi.png') }}" alt="Logo Resmi PR. Kereta Kencana" style="max-height: 220px; width: auto; margin: 0 auto; object-fit: contain; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.5));">
-                    <div style="font-family: var(--font-serif); color: #ffffff; font-size: 20px; font-weight: 800; margin-top: 18px; letter-spacing: 1px;">
-                        PR. KERETA KENCANA
-                    </div>
-                    <div style="color: var(--gold); font-size: 13px; font-weight: 600; margin-top: 4px;">
-                        Pabrik Sigaret Kretek Ponggok &bull; Blitar
-                    </div>
-                    <div style="color: var(--text-muted); font-size: 11.5px; margin-top: 6px;">
-                        <i class="fa-solid fa-circle-check" style="color: var(--success);"></i> NPPBKC: 0821.1.2.XXXXX (Bea Cukai Blitar)
-                    </div>
-                </div>
+                <img src="{{ asset('assets/img/produk/trio-produk-kereta-kencana.jpg') }}" alt="3 Varian Sigaret Kretek PR. Kereta Kencana (Sembada, Kereta Kencana, Sembada Cethe)" style="width: 100%; max-width: 480px; height: auto; border-radius: 10px; box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5); object-fit: contain;">
             </div>
         </div>
     </div>
