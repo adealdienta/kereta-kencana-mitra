@@ -154,4 +154,27 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
   });
+
+  // 6. Cinematic Smooth Scroll Reveal Observer
+  const reveals = document.querySelectorAll('.scroll-reveal');
+  if (reveals.length > 0) {
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-revealed');
+            obs.unobserve(entry.target);
+          }
+        });
+      }, {
+        root: null,
+        rootMargin: '0px 0px -40px 0px',
+        threshold: 0.10
+      });
+
+      reveals.forEach(el => observer.observe(el));
+    } else {
+      reveals.forEach(el => el.classList.add('is-revealed'));
+    }
+  }
 });

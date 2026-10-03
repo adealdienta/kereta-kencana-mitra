@@ -13,7 +13,6 @@ class DatabaseSeeder extends Seeder
             KategoriSeeder::class,
             BarangSeeder::class,
             LegalitasSeeder::class,
-            TransaksiSeeder::class,
         ]);
     }
 }

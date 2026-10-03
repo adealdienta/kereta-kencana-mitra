@@ -1,50 +1,81 @@
 /* =========================================================
-   TEMA RESMI PR. KERETA KENCANA (PABRIK ROKOK BLITAR)
-   Palet: Deep Charcoal, Tobacco Dark & Regal Gold
-   Sesuai Guidelines UI/UX Maskulin, Eksklusif & Mobile-First
+   PR. KERETA KENCANA (PABRIK SIGARET KRETEK BLITAR)
+   Desain: HYBRID THEME (Elegan di Atas, Terang & Ramah Semua Layar)
+   Inspirasi: B2B E-Commerce Bersih (RELX, IQOS, & Mobile First)
    ========================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  --charcoal-900: #0d1012;
-  --charcoal-800: #121619;
-  --charcoal-700: #1a1f23;
-  --charcoal-600: #22292e;
-  --charcoal-border: #2e373f;
+  /* Area Atas & Bawah (Eksklusif Tembakau) */
+  --header-bg: #16130f;
+  --header-border: #2e261f;
+  --hero-bg: #16130f;
+  --footer-bg: #16130f;
+  --footer-border: #2e261f;
+
+  /* Area Konten Utama (Krem Pasir Tembakau Hangat, Anti-Silau) */
+  --bg-body: #f2ece1;           /* Krem pasir hangat lembut, menyerap cahaya */
+  --bg-surface: #fffdfa;        /* Putih gading lembut untuk kartu & panel */
+  --bg-surface-subtle: #eae3d5; /* Kontras hangat untuk latar seksi selingan */
+  --bg-surface-hover: #f7f1e7;
+
+  /* Garis & Batas (Tegas & Berbobot, Tidak Tenggelam) */
+  --border-light: #cfc2af;      /* Garis batas tembakau tegas 1.5px */
+  --border-subtle: #ded4c3;
+  --border-dark: #3d3428;
+
+  /* Teks Konten (Kontras Tinggi & Sangat Terbaca) */
+  --text-dark: #1c1917;         /* Hitam arang espresso, tajam & tegas */
+  --text-medium: #44403c;       /* Abu gelap untuk paragraf */
+  --text-muted: #78716c;        /* Abu sedang untuk label/keterangan */
   
-  --gold: #c5a059;
-  --gold-hover: #b38e45;
-  --gold-bright: #d4af37;
-  --gold-light: #f4e9cd;
-  --copper: #c87a3e;
+  /* Teks Khusus di Atas Latar Gelap (Header, Hero, Footer) */
+  --text-on-dark: #fbf9f5;
+  --text-muted-on-dark: #a8a29e;
 
-  --bg-dark: #121619;
-  --bg-card: #1a1f23;
-  --bg-card-hover: #20262c;
-  --bg-light: #f6f4ee;
-  
-  --text-white: #ffffff;
-  --text-light: #e5e7eb;
-  --text-muted: #94a3b8;
-  --text-dark: #1e293b;
+  /* Aksen Emas Antik & Tradisi */
+  --gold: #b38b3f;
+  --gold-hover: #9c752e;
+  --gold-bright: #c8a45e;
+  --gold-light: #fef9ee;
+  --copper: #b86b36;
 
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
+  /* Status Sistem */
+  --success: #059669;
+  --warning: #d97706;
+  --danger: #dc2626;
 
+  /* Tipografi */
   --font-serif: 'Cinzel', Georgia, serif;
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  
+
+  /* Sudut & Radius */
   --radius-sm: 4px;
   --radius: 8px;
   --radius-lg: 12px;
-  
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.6);
+
+  /* Bayangan Berbobot Hangat (Elevasi Fisik Nyata) */
+  --shadow-sm: 0 2px 6px rgba(38, 28, 18, 0.07);
+  --shadow-md: 0 6px 20px rgba(38, 28, 18, 0.10);
+  --shadow-lg: 0 14px 34px rgba(38, 28, 18, 0.14);
+
+  /* Fallback & Backward Compatibility Tokens */
+  --charcoal-900: #16130f;
+  --charcoal-800: #1e1914;
+  --charcoal-700: #2a231c;
+  --charcoal-600: #383027;
+  --charcoal-border: var(--border-light);
+  --bg-card: var(--bg-surface);
+  --bg-card-hover: var(--bg-surface-hover);
+  --bg-dark: #16130f;
+  --text-white: #ffffff;
+  --text-light: var(--text-dark);
 }
 
+/* =========================================================
+   RESET GLOBAL & STRUKTUR DASAR
+   ========================================================= */
 * {
   margin: 0;
   padding: 0;
@@ -60,10 +91,10 @@ html {
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--charcoal-900);
-  color: var(--text-light);
+  background-color: var(--bg-body);
+  color: var(--text-dark);
   line-height: 1.6;
-  padding-bottom: 70px; /* Ruang untuk Peringatan Kesehatan Bottom Bar */
+  padding-bottom: 0; /* Ruang bar peringatan ditangani langsung oleh site-footer */
   -webkit-font-smoothing: antialiased;
   overflow-x: clip;
   width: 100%;
@@ -74,7 +105,7 @@ body {
 a {
   color: inherit;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, opacity 0.2s ease;
 }
 
 img, video {
@@ -89,6 +120,62 @@ iframe {
   display: block;
 }
 
+/* =========================================================
+   CINEMATIC SMOOTH SCROLL & REVEAL ANIMATION SYSTEM
+   ========================================================= */
+.scroll-reveal {
+  opacity: 0;
+  will-change: transform, opacity;
+  transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.85s ease;
+}
+
+.reveal-up {
+  transform: translateY(28px);
+}
+
+.reveal-zoom {
+  transform: scale(0.96) translateY(20px);
+}
+
+.reveal-fade {
+  transform: none;
+}
+
+/* Status Aktif saat Elemen Muncul di Layar */
+.scroll-reveal.is-revealed {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+/* Staggered Delay untuk Grid Kartu Berurutan */
+.reveal-delay-1 { transition-delay: 0.08s; }
+.reveal-delay-2 { transition-delay: 0.16s; }
+.reveal-delay-3 { transition-delay: 0.24s; }
+.reveal-delay-4 { transition-delay: 0.32s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* Portal Auth Card (Login & Register - Batas Tepi Tegas) */
+.auth-card {
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-light);
+  border-top: 4px solid var(--gold);
+  border-radius: var(--radius-lg);
+  padding: 36px 30px;
+  box-shadow: var(--shadow-lg);
+  color: var(--text-dark);
+  position: relative;
+}
+
+/* =========================================================
+   TATA LETAK & UTILITAS UMUM
+   ========================================================= */
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -97,16 +184,23 @@ iframe {
 }
 
 .section-py {
-  padding: 80px 0;
+  padding: 70px 0;
 }
 
 .bg-darker {
-  background-color: #0b0e10;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: var(--bg-surface-subtle);
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
 }
 
-/* Typography Utilities */
+.grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: center;
+}
+
+/* Tipografi Utilitas */
 .font-serif { font-family: var(--font-serif); }
 .text-gold { color: var(--gold); }
 .text-muted { color: var(--text-muted); }
@@ -114,8 +208,8 @@ iframe {
 
 .eyebrow {
   display: inline-block;
-  font-size: 0.78rem;
-  letter-spacing: 2.5px;
+  font-size: 0.76rem;
+  letter-spacing: 2px;
   text-transform: uppercase;
   font-weight: 700;
   color: var(--gold);
@@ -124,32 +218,120 @@ iframe {
 
 .section-title {
   font-family: var(--font-serif);
-  font-size: 2.3rem;
+  font-size: clamp(1.75rem, 3.2vw, 2.2rem);
   font-weight: 800;
-  color: #ffffff;
-  line-height: 1.2;
-  margin-bottom: 16px;
+  color: var(--text-dark);
+  line-height: 1.25;
+  margin-bottom: 12px;
+}
+
+.section-subtitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 .section-desc {
-  font-size: 1.05rem;
-  color: var(--text-muted);
+  font-size: 1rem;
+  color: var(--text-medium);
+  line-height: 1.7;
   max-width: 680px;
 }
 
-/* Buttons & Interactive States */
+.section-header {
+  margin-bottom: 32px;
+}
+
+.section-header-center {
+  text-align: center;
+  max-width: 760px;
+  margin: 0 auto 44px;
+}
+
+.section-header-center .section-title {
+  margin-bottom: 12px;
+}
+
+.section-header-center .section-subtitle {
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1.7;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+}
+
+.section-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.gold-divider {
+  width: 60px;
+  height: 3px;
+  background-color: var(--gold);
+  margin: 14px auto 22px;
+  border-radius: 2px;
+}
+
+/* Banner Atas Sub-Halaman (Profil, Katalog, Kontak, Pesan) */
+.page-header {
+  background: radial-gradient(ellipse at top, rgba(179, 139, 63, 0.15) 0%, transparent 65%), linear-gradient(180deg, #16130f 0%, #1e1914 100%);
+  border-bottom: 2px solid var(--gold);
+  padding: 60px 0;
+  color: var(--text-on-dark);
+}
+
+.page-title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.9rem, 3.8vw, 2.5rem);
+  font-weight: 800;
+  color: var(--text-on-dark);
+  margin-bottom: 8px;
+}
+
+.page-subtitle {
+  color: var(--text-muted-on-dark);
+  font-size: 1.02rem;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.header-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--gold-bright);
+  background: rgba(179, 139, 63, 0.15);
+  border: 1px solid rgba(179, 139, 63, 0.35);
+  padding: 5px 14px;
+  border-radius: 20px;
+  margin-bottom: 14px;
+}
+
+/* =========================================================
+   TOMBOL & INTERAKSI MINIMALIS (USER-FRIENDLY)
+   ========================================================= */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 13px 26px;
+  padding: 12px 24px;
   font-size: 0.95rem;
   font-weight: 700;
   border-radius: var(--radius);
   border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
   font-family: var(--font-sans);
   letter-spacing: 0.3px;
   position: relative;
@@ -158,17 +340,16 @@ iframe {
 }
 
 .btn:active {
-  transform: scale(0.96) translateY(1px) !important;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5) !important;
+  transform: scale(0.98);
 }
 
 .btn:focus-visible {
-  outline: 2px solid var(--gold-bright);
+  outline: 2px solid var(--gold);
   outline-offset: 3px;
 }
 
 .btn.is-loading {
-  opacity: 0.85;
+  opacity: 0.75;
   pointer-events: none;
   cursor: wait;
 }
@@ -178,7 +359,7 @@ iframe {
   border-radius: 50%;
   transform: scale(0);
   animation: rippleAnimation 0.6s ease-out;
-  background-color: rgba(255, 255, 255, 0.35);
+  background-color: rgba(255, 255, 255, 0.25);
   pointer-events: none;
 }
 
@@ -189,45 +370,9 @@ iframe {
   }
 }
 
-.btn-gold {
-  background: linear-gradient(135deg, var(--gold), #9e7930);
-  color: #0d1012;
-  border-color: var(--gold);
-  box-shadow: 0 4px 14px rgba(197, 160, 89, 0.28);
-}
-.btn-gold:hover {
-  background: linear-gradient(135deg, #d4af37, #b38e45);
-  color: #000;
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(197, 160, 89, 0.5);
-  border-color: #ffe082;
-}
-
-.btn-wa {
-  background: #25D366;
-  color: #ffffff;
-  border-color: #25D366;
-  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.25);
-}
-.btn-wa:hover {
-  background: #20ba5a;
-  color: #ffffff;
-  transform: translateY(-3px);
-  box-shadow: 0 8px 22px rgba(37, 211, 102, 0.45);
-}
-
-.btn-outline-gold {
-  background: transparent;
-  color: var(--gold-light);
-  border-color: var(--gold);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-.btn-outline-gold:hover {
-  background: rgba(197, 160, 89, 0.18);
-  color: #ffffff;
-  border-color: var(--gold-bright);
-  transform: translateY(-3px);
-  box-shadow: 0 6px 18px rgba(197, 160, 89, 0.3);
+.btn-lg {
+  padding: 14px 28px;
+  font-size: 1rem;
 }
 
 .btn-sm {
@@ -239,19 +384,83 @@ iframe {
   width: 100%;
 }
 
+.btn-gold {
+  background: var(--gold);
+  color: #ffffff;
+  border-color: var(--gold);
+  box-shadow: 0 2px 6px rgba(179, 139, 63, 0.25);
+}
+.btn-gold:hover {
+  background: var(--gold-hover);
+  border-color: var(--gold-hover);
+  color: #ffffff;
+}
+
+.btn-secondary {
+  background: var(--bg-surface);
+  color: var(--text-dark);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+}
+.btn-secondary:hover {
+  background: var(--bg-surface-subtle);
+  border-color: var(--gold);
+  color: var(--gold-hover);
+}
+
+.btn-wa {
+  background: #25D366;
+  color: #ffffff;
+  border-color: #25D366;
+  box-shadow: 0 2px 6px rgba(37, 211, 102, 0.25);
+}
+.btn-wa:hover {
+  background: #1fa851;
+  border-color: #1fa851;
+  color: #ffffff;
+}
+
+.btn-outline-gold {
+  background: transparent;
+  color: var(--gold-hover);
+  border-color: var(--gold);
+}
+.btn-outline-gold:hover {
+  background: rgba(179, 139, 63, 0.1);
+  color: var(--gold-hover);
+  border-color: var(--gold-hover);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--text-medium);
+  border: 1px solid var(--border-light);
+}
+.btn-outline:hover {
+  background: var(--bg-surface-subtle);
+  color: var(--text-dark);
+  border-color: var(--text-muted);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #ffffff;
+  border-color: var(--danger);
+}
+.btn-danger:hover {
+  background: #b91c1c;
+  border-color: #b91c1c;
+}
+
 /* =========================================================
-   NAVBAR & HEADER
+   NAVBAR & HEADER (GELAP BERWIBAWA, NORMAL POSITION)
    ========================================================= */
 .site-header {
-  background-color: rgba(13, 16, 18, 0.96);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--charcoal-border);
-  position: -webkit-sticky;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+  background-color: var(--header-bg);
+  border-bottom: 1px solid var(--header-border);
+  position: relative;
+  z-index: 100;
+  color: var(--text-on-dark);
 }
 
 .header-inner {
@@ -266,11 +475,6 @@ iframe {
   align-items: center;
   gap: 14px;
   text-decoration: none;
-  transition: transform 0.25s ease;
-}
-
-.logo-brand:hover {
-  transform: translateY(-1px);
 }
 
 .logo-img-brand {
@@ -282,21 +486,14 @@ iframe {
   border: 1px solid var(--gold);
   border-radius: 6px;
   padding: 3px;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
-}
-
-.logo-brand:hover .logo-img-brand {
-  transform: scale(1.06);
-  box-shadow: 0 4px 16px rgba(197, 160, 89, 0.5);
-  border-color: #ffe082;
+  box-shadow: var(--shadow-sm);
 }
 
 .logo-symbol {
   width: 44px;
   height: 44px;
-  background: linear-gradient(135deg, var(--gold), #8c6722);
-  color: #0d1012;
+  background: var(--gold);
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -304,8 +501,11 @@ iframe {
   font-weight: 900;
   font-size: 1.4rem;
   border-radius: var(--radius-sm);
-  border: 1px solid #ffe082;
-  box-shadow: 0 2px 8px rgba(197, 160, 89, 0.3);
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
 }
 
 .logo-title {
@@ -313,16 +513,16 @@ iframe {
   font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: 1.2px;
-  color: #ffffff;
+  color: var(--text-on-dark);
   line-height: 1.15;
 }
 
 .logo-sub {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   letter-spacing: 2px;
-  color: var(--gold);
+  color: var(--gold-bright);
   text-transform: uppercase;
-  font-weight: 600;
+  margin-top: 2px;
 }
 
 .main-nav {
@@ -331,87 +531,55 @@ iframe {
   gap: 24px;
 }
 
-.nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-left: 8px;
-}
-
 .nav-link {
-  color: #cbd5e1;
+  color: var(--text-on-dark);
   font-size: 0.92rem;
-  font-weight: 600;
+  font-weight: 500;
   padding: 6px 0;
   position: relative;
 }
 
-.nav-link:hover, .nav-link.active {
-  color: var(--gold);
+.nav-link:hover {
+  color: var(--gold-bright);
 }
 
-.nav-link.active::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background-color: var(--gold);
+.nav-link.active {
+  color: var(--gold-bright);
+  font-weight: 700;
 }
 
-/* Navigation Dropdown Menu */
-.nav-dropdown {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
-
-.nav-dropdown-menu {
-  display: none;
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  min-width: 260px;
-  background-color: #121619;
-  border: 1px solid var(--charcoal-border);
-  border-top: 2px solid var(--gold);
-  border-radius: 8px;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7);
-  padding: 8px 0;
-  z-index: 1050;
-}
-
-.nav-dropdown:hover .nav-dropdown-menu {
-  display: block;
-}
-
-.dropdown-item-link {
+.nav-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
-  color: #e2e8f0;
-  text-decoration: none;
-  transition: all 0.2s ease;
+  gap: 8px;
 }
 
-.dropdown-item-link:hover {
-  background-color: rgba(197, 160, 89, 0.12);
-  color: var(--gold);
+.site-header .btn-outline {
+  color: var(--text-on-dark);
+  border-color: rgba(255, 255, 255, 0.25);
 }
-
-.dropdown-item-link .icon-box {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  background: rgba(197, 160, 89, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--gold);
-  font-size: 13px;
-  flex-shrink: 0;
+.site-header .btn-outline:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.45);
+}
+.site-header .btn-outline-gold {
+  color: var(--gold-bright);
+  border-color: var(--gold-bright);
+}
+.site-header .btn-outline-gold:hover {
+  background: var(--gold);
+  color: #ffffff;
+  border-color: var(--gold);
+}
+.site-header .btn-secondary {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.site-header .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
 }
 
 .mobile-toggle {
@@ -424,72 +592,189 @@ iframe {
 }
 
 /* =========================================================
-   HERO SECTION
+   HERO SECTION (FOTO TERANG & SLIDER HALUS)
    ========================================================= */
 .hero-section {
   position: relative;
-  background-color: var(--charcoal-900);
-  min-height: 85vh;
+  background-color: var(--hero-bg);
+  min-height: 80vh;
   display: flex;
   align-items: center;
   overflow: hidden;
-  border-bottom: 2px solid var(--gold);
+  border-bottom: 3px solid var(--gold);
+  padding: 60px 0;
+  color: var(--text-on-dark);
 }
 
-.hero-bg {
+.hero-slider-container {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  opacity: 0.28;
-  filter: brightness(0.65) contrast(1.1);
+  overflow: hidden;
+  z-index: 0;
 }
 
-.hero-overlay {
+.hero-slide {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(13, 16, 18, 0.4) 0%, rgba(13, 16, 18, 0.95) 100%);
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center center;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+  pointer-events: none;
 }
 
-.hero-content {
-  position: relative;
-  z-index: 2;
-  max-width: 820px;
-  padding: 80px 0;
+.hero-slide.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Lapisan overlay dibuat lebih terang agar foto rokok & pabrik terlihat tajam di semua layar */
+.hero-slide-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(22, 19, 15, 0.72) 0%, rgba(22, 19, 15, 0.35) 55%, rgba(22, 19, 15, 0.1) 100%),
+              linear-gradient(180deg, rgba(22, 19, 15, 0.25) 0%, transparent 40%, rgba(22, 19, 15, 0.5) 100%);
+}
+
+.hero-content-clean {
+  max-width: 800px;
+  padding: 48px 0;
 }
 
 .hero-slogan {
-  font-family: var(--font-serif);
-  font-size: 3.4rem;
-  font-weight: 900;
-  line-height: 1.15;
+  margin-top: 0;
+  font-size: clamp(2rem, 4vw, 2.85rem);
+  line-height: 1.22;
+  font-weight: 800;
   color: #ffffff;
-  margin: 14px 0 20px;
-  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
+  letter-spacing: 0.5px;
+  margin-bottom: 20px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
 }
 
 .hero-subheadline {
-  font-size: 1.15rem;
-  color: #cbd5e1;
-  line-height: 1.7;
-  margin-bottom: 36px;
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: #f3ede2;
+  margin-bottom: 32px;
   max-width: 720px;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
 }
 
 .hero-buttons {
   display: flex;
-  gap: 16px;
+  gap: 14px;
   flex-wrap: wrap;
 }
 
+.hero-slider-dots {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+.hero-slider-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  padding: 0;
+}
+
+.hero-slider-dot.active {
+  width: 26px;
+  border-radius: 5px;
+  background: var(--gold-bright);
+  border-color: var(--gold-bright);
+}
+
+.hero-slider-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(22, 19, 15, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.hero-slider-nav:hover {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #ffffff;
+}
+
+.hero-slider-nav.prev { left: 20px; }
+.hero-slider-nav.next { right: 20px; }
+
 /* =========================================================
-   TENTANG SINGKAT & LENCANA LEGALITAS (ABOUT SECTION)
+   ORNAMEN TRADISIONAL JAWA (LEVEL SEDANG)
+   ========================================================= */
+.batik-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 36px auto;
+  max-width: 860px;
+  padding: 0 20px;
+}
+
+.batik-divider-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-light) 40%, var(--gold) 100%);
+  opacity: 0.8;
+}
+
+.batik-divider-line.right {
+  background: linear-gradient(90deg, var(--gold) 0%, var(--border-light) 60%, transparent 100%);
+}
+
+.batik-divider-symbol {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--gold);
+  font-size: 13px;
+  letter-spacing: 2px;
+  font-weight: 700;
+}
+
+.batik-divider-symbol svg {
+  width: 22px;
+  height: 22px;
+  fill: var(--gold);
+  opacity: 0.95;
+}
+
+/* =========================================================
+   SEKILAS PABRIK & LENCANA LEGALITAS (BERSIH & TERANG)
    ========================================================= */
 .section-about {
-  padding: 90px 0;
-  background-color: var(--charcoal-800);
-  border-bottom: 1px solid var(--charcoal-border);
+  padding: 60px 0;
+  background-color: var(--bg-surface-subtle);
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .about-grid {
@@ -501,20 +786,26 @@ iframe {
 
 .about-text p {
   font-size: 1rem;
-  color: var(--text-muted);
+  color: var(--text-medium);
   line-height: 1.8;
   margin-bottom: 20px;
 }
 
 .about-highlight-box {
-  background-color: var(--charcoal-700);
-  border-left: 3px solid var(--gold);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-left: 4px solid var(--gold);
   padding: 20px 24px;
   border-radius: 0 var(--radius) var(--radius) 0;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
 }
 
-/* Lencana Legalitas / Kepatuhan Usaha (Badges) */
+.about-highlight-box p {
+  color: var(--text-dark) !important;
+  font-weight: 600;
+}
+
 .legal-badges-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -523,121 +814,50 @@ iframe {
 }
 
 .badge-card {
-  background: var(--charcoal-700);
-  border: 1px solid var(--charcoal-border);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius);
   padding: 16px 18px;
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  transition: border-color 0.2s;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .badge-card:hover {
   border-color: var(--gold);
+  box-shadow: var(--shadow-md);
 }
 
 .badge-icon {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 6px;
-  background: rgba(197, 160, 89, 0.15);
+  background: rgba(179, 139, 63, 0.12);
   color: var(--gold);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   flex-shrink: 0;
 }
 
 .badge-title {
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-dark);
   margin-bottom: 2px;
 }
 
 .badge-sub {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
 }
 
 /* =========================================================
-   KATALOG PRODUK & GRID
+   KATALOG PRODUK & GRID KARTU (PUTIH BERSIH ALA B2B)
    ========================================================= */
-.section-products {
-  padding: 90px 0;
-  background-color: var(--charcoal-900);
-}
-
-.search-filter-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin: 36px 0;
-  padding: 20px;
-  background: var(--charcoal-800);
-  border: 1px solid var(--charcoal-border);
-  border-radius: var(--radius-lg);
-}
-
-.search-box {
-  flex: 1;
-  min-width: 260px;
-  position: relative;
-}
-
-.search-input {
-  width: 100%;
-  padding: 12px 18px 12px 42px;
-  background: var(--charcoal-700);
-  border: 1px solid var(--charcoal-border);
-  border-radius: var(--radius);
-  color: #fff;
-  font-family: inherit;
-  font-size: 0.95rem;
-}
-.search-input:focus {
-  outline: none;
-  border-color: var(--gold);
-}
-
-.search-icon {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-muted);
-  font-size: 1.1rem;
-}
-
-.filter-tabs {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.filter-btn {
-  padding: 10px 20px;
-  background: var(--charcoal-700);
-  border: 1px solid var(--charcoal-border);
-  color: var(--text-light);
-  border-radius: var(--radius);
-  font-weight: 600;
-  font-size: 0.88rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.filter-btn.active, .filter-btn:hover {
-  background: var(--gold);
-  color: #0d1012;
-  border-color: var(--gold);
-}
-
-/* Product Card & Grid System (Aligned & Equal Height) */
 .products-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
@@ -646,46 +866,46 @@ iframe {
 }
 
 .product-card {
-  background: var(--bg-card);
-  border: 1px solid var(--charcoal-border);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   height: 100%;
-  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
 .product-card:hover {
-  transform: translateY(-4px);
   border-color: var(--gold);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-md);
 }
 
 .product-img-wrapper {
   position: relative;
   width: 100%;
-  height: 210px;
+  height: 220px;
   background-color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
   overflow: hidden;
-  border-bottom: 1px solid var(--charcoal-border);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
-.product-img-wrapper .product-img {
+.product-img {
   max-width: 100%;
   max-height: 100%;
   width: auto;
   height: auto;
   object-fit: contain;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.3s ease;
 }
 
 .product-card:hover .product-img {
-  transform: scale(1.06);
+  transform: scale(1.03);
 }
 
 .category-tag {
@@ -699,9 +919,9 @@ iframe {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   z-index: 2;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
-.category-tag.category-skm { background: #0369a1; color: #ffffff; }
+.category-tag.category-skm { background: #0284c7; color: #ffffff; }
 .category-tag.category-skt { background: #b45309; color: #ffffff; }
 
 .stock-tag {
@@ -712,15 +932,15 @@ iframe {
   font-weight: 700;
   padding: 4px 10px;
   border-radius: 4px;
-  background: rgba(13, 16, 18, 0.88);
-  backdrop-filter: blur(4px);
-  color: #10b981;
-  border: 1px solid rgba(16, 185, 129, 0.4);
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
   z-index: 2;
 }
 .stock-tag.stock-pre-order {
-  color: #f59e0b;
-  border-color: rgba(245, 158, 11, 0.4);
+  background: #fffbeb;
+  color: #d97706;
+  border-color: #fde68a;
 }
 
 .product-info {
@@ -741,9 +961,9 @@ iframe {
 
 .product-title {
   font-family: var(--font-serif);
-  font-size: 1.25rem;
+  font-size: 1.28rem;
   font-weight: 800;
-  color: #ffffff;
+  color: var(--text-dark);
   margin-bottom: 6px;
   line-height: 1.3;
 }
@@ -751,15 +971,15 @@ iframe {
 .product-title a {
   color: inherit;
   text-decoration: none;
-  transition: color 0.2s;
+  transition: color 0.2s ease;
 }
 .product-title a:hover {
   color: var(--gold);
 }
 
 .product-profile {
-  font-size: 0.84rem;
-  color: var(--gold-light);
+  font-size: 0.85rem;
+  color: var(--text-medium);
   margin-bottom: 12px;
   display: flex;
   align-items: center;
@@ -767,30 +987,19 @@ iframe {
 }
 
 .product-desc {
-  font-size: 0.84rem;
-  color: var(--text-muted);
+  font-size: 0.88rem;
+  color: var(--text-medium);
   line-height: 1.6;
-  margin-bottom: 16px;
-}
-
-.product-specs-mini {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  font-size: 0.76rem;
-  color: var(--text-muted);
-  margin-bottom: 18px;
-  background: var(--charcoal-700);
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
+  margin-bottom: 14px;
 }
 
 .specs-mini {
-  background: var(--charcoal-700);
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius);
   padding: 12px 14px;
-  font-size: 0.8rem;
-  margin-bottom: 20px;
+  font-size: 0.82rem;
+  margin-bottom: 18px;
 }
 
 .spec-mini-row {
@@ -799,21 +1008,26 @@ iframe {
   margin-bottom: 4px;
 }
 .spec-mini-row:last-child { margin-bottom: 0; }
+.spec-mini-row strong { color: var(--text-dark); }
+.spec-mini-row .text-muted { color: var(--text-muted); }
 
-.product-price-row {
-  margin-top: auto;
-  padding-top: 16px;
-  border-top: 1px solid var(--charcoal-border);
+.product-specs-mini {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.78rem;
+  color: var(--text-medium);
+  margin-bottom: 16px;
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-light);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
 }
 
 .price-order-box {
   margin-top: auto;
   padding-top: 16px;
-  border-top: 1px solid var(--charcoal-border);
+  border-top: 1px solid var(--border-light);
 }
 
 .price-label {
@@ -827,9 +1041,231 @@ iframe {
 .price-main {
   font-size: 1.45rem;
   font-weight: 900;
-  color: var(--gold);
+  color: var(--gold-hover);
   margin-bottom: 4px;
   line-height: 1.2;
+}
+
+.product-price-row {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.price-val {
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================================================
+   GALERI THUMBNAIL SELECTOR (KATALOG & DETAIL PRODUK)
+   ========================================================= */
+.product-gallery-selector {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #fdfbf7;
+  border-top: 1px solid var(--border-light);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.product-gallery-thumb {
+  flex: 1;
+  min-width: 42px;
+  height: 42px;
+  padding: 2px;
+  background: #ffffff;
+  border: 2px solid var(--border-light);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.product-gallery-thumb:hover {
+  border-color: var(--gold);
+}
+
+.product-gallery-thumb.active {
+  border-color: var(--gold);
+}
+
+.product-gallery-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.view-label-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background: rgba(22, 19, 15, 0.85);
+  color: #ffffff;
+  border: 1px solid rgba(179, 139, 63, 0.4);
+  font-size: 0.72rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  pointer-events: none;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  z-index: 3;
+}
+
+.btn-open-gallery-zoom {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(22, 19, 15, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  cursor: pointer;
+  z-index: 3;
+  transition: all 0.2s ease;
+}
+
+.btn-open-gallery-zoom:hover {
+  background: var(--gold);
+  color: #ffffff;
+  border-color: var(--gold);
+}
+
+/* =========================================================
+   FORMULIR & FILTER PENCARIAN (BERSIH & USER-FRIENDLY)
+   ========================================================= */
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--text-dark);
+}
+
+.form-control {
+  width: 100%;
+  padding: 11px 14px;
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  color: var(--text-dark);
+  font-family: inherit;
+  font-size: 0.95rem;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(179, 139, 63, 0.15);
+}
+
+.form-row-order {
+  display: grid;
+  grid-template-columns: 1.2fr 1.8fr;
+  gap: 12px;
+}
+
+.search-filter-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 30px 0;
+  padding: 18px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.search-box {
+  flex: 1;
+  min-width: 260px;
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  padding: 11px 18px 11px 42px;
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  color: var(--text-dark);
+  font-family: inherit;
+  font-size: 0.95rem;
+  box-shadow: var(--shadow-sm);
+}
+.search-input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(179, 139, 63, 0.15);
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 10px 20px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  color: var(--text-medium);
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.filter-btn.active, .filter-btn:hover {
+  background: var(--gold);
+  color: #ffffff;
+  border-color: var(--gold);
+}
+
+.katalog-filter-bar {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 30px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  box-shadow: var(--shadow-sm);
 }
 
 /* =========================================================
@@ -838,8 +1274,8 @@ iframe {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(8, 10, 12, 0.88);
-  backdrop-filter: blur(6px);
+  background: rgba(22, 19, 15, 0.75);
+  backdrop-filter: blur(4px);
   z-index: 9999;
   display: none;
   align-items: center;
@@ -848,16 +1284,18 @@ iframe {
 }
 
 .modal-content {
-  background: var(--charcoal-800);
-  border: 1px solid var(--gold);
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-top: 4px solid var(--gold);
   border-radius: var(--radius-lg);
   max-width: 520px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+  box-shadow: var(--shadow-lg);
   padding: 32px 28px;
   position: relative;
+  color: var(--text-dark);
 }
 
 .modal-close {
@@ -870,9 +1308,10 @@ iframe {
   font-size: 1.6rem;
   cursor: pointer;
   line-height: 1;
+  transition: color 0.2s ease;
 }
 .modal-close:hover {
-  color: #fff;
+  color: var(--text-dark);
 }
 
 .modal-header {
@@ -881,58 +1320,21 @@ iframe {
 
 .modal-title {
   font-family: var(--font-serif);
-  font-size: 1.5rem;
-  color: #ffffff;
+  font-size: 1.45rem;
+  color: var(--text-dark);
   font-weight: 800;
 }
 
 .modal-subtitle {
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   color: var(--text-muted);
   margin-top: 4px;
 }
 
-.form-group {
-  margin-bottom: 18px;
-}
-
-.form-label {
-  display: block;
-  font-size: 0.85rem;
-  font-weight: 700;
-  margin-bottom: 6px;
-  color: #cbd5e1;
-}
-
-.form-control {
-  width: 100%;
-  padding: 11px 14px;
-  background: var(--charcoal-700);
-  border: 1px solid var(--charcoal-border);
-  border-radius: var(--radius);
-  color: #ffffff;
-  font-family: inherit;
-  font-size: 0.95rem;
-  transition: border-color 0.2s;
-}
-
-.form-control:focus {
-  outline: none;
-  border-color: var(--gold);
-  box-shadow: 0 0 0 2px rgba(197, 160, 89, 0.2);
-}
-
-.form-row-order {
-  display: grid;
-  grid-template-columns: 1.2fr 1.8fr;
-  gap: 12px;
-}
-
-/* Helper Callout & Section Header */
 .legal-verify-callout {
   margin-top: 18px;
   padding: 14px 16px;
-  background: rgba(197, 160, 89, 0.1);
+  background: #fffdfa;
   border: 1px dashed var(--gold);
   border-radius: var(--radius);
   display: flex;
@@ -942,24 +1344,15 @@ iframe {
   gap: 12px;
 }
 
-.section-header-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
 /* =========================================================
-   AGE GATE MODAL (18+ VERIFIKASI REGULASI TEMBAKAU)
+   AGE GATE MODAL (VERIFIKASI 21+)
    ========================================================= */
 .age-gate-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(5, 7, 9, 0.94);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(22, 19, 15, 0.88);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 10000;
   display: flex;
   align-items: center;
@@ -968,22 +1361,23 @@ iframe {
 }
 
 .age-gate-modal {
-  background: var(--charcoal-800);
+  background: #ffffff;
   border: 2px solid var(--gold);
   border-radius: var(--radius-lg);
   max-width: 440px;
   width: 100%;
   padding: 32px 24px;
   text-align: center;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
   position: relative;
+  color: var(--text-dark);
 }
 
 .age-badge {
   width: 56px;
   height: 56px;
   margin: 0 auto 16px;
-  background: linear-gradient(135deg, #ef4444, #991b1b);
+  background: #dc2626;
   color: #ffffff;
   font-family: var(--font-serif);
   font-size: 1.45rem;
@@ -992,27 +1386,26 @@ iframe {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  border: 2px solid #fca5a5;
-  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+  border: 2px solid #fecaca;
 }
 
 .age-gate-title {
   font-family: var(--font-serif);
-  font-size: 1.5rem;
+  font-size: 1.45rem;
   font-weight: 800;
-  color: #ffffff;
+  color: var(--text-dark);
   margin-bottom: 12px;
 }
 
 .age-gate-text {
-  font-size: 0.88rem;
-  color: var(--text-muted);
+  font-size: 0.9rem;
+  color: var(--text-medium);
   line-height: 1.6;
   margin-bottom: 24px;
 }
 
 .age-gate-text strong {
-  color: var(--gold-light);
+  color: var(--text-dark);
 }
 
 .age-gate-actions {
@@ -1021,41 +1414,31 @@ iframe {
   gap: 10px;
 }
 
-.btn-outline {
-  background: transparent;
-  color: var(--text-muted);
-  border: 1px solid var(--charcoal-border);
-}
-.btn-outline:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #fff;
-  border-color: #64748b;
-}
-
 /* =========================================================
-   FOOTER & MAPS EMBED
+   FOOTER (GELAP BERWIBAWA & MAPS)
    ========================================================= */
 .site-footer {
-  background-color: var(--charcoal-900);
-  border-top: 2px solid var(--gold);
-  padding: 70px 0 30px;
+  background-color: var(--footer-bg);
+  border-top: 3px solid var(--gold);
+  padding: 65px 0 80px; /* 80px ruang lapang agar tidak bertumpuk dengan bar peringatan fixed */
+  color: var(--text-on-dark);
 }
 
 .footer-top-grid {
   display: grid;
   grid-template-columns: 1.4fr 0.9fr 1.1fr;
   gap: 40px;
-  margin-bottom: 50px;
+  margin-bottom: 45px;
 }
 
 .footer-map-frame {
   border-radius: var(--radius);
   overflow: hidden;
-  border: 1px solid var(--charcoal-border);
-  height: 300px;
+  border: 1px solid var(--footer-border);
+  height: 280px;
   box-shadow: var(--shadow-sm);
   position: relative;
-  background-color: var(--charcoal-800);
+  background-color: #1e1914;
 }
 
 .footer-map-frame iframe {
@@ -1067,14 +1450,55 @@ iframe {
 }
 
 .footer-bottom {
-  border-top: 1px solid var(--charcoal-border);
+  border-top: 1px solid var(--footer-border);
   padding-top: 24px;
   text-align: center;
   font-size: 0.82rem;
-  color: var(--text-muted);
+  color: #a8a29e;
 }
 
-/* Permanent Health Warning Bottom Bar */
+/* Navigasi Footer Kontras Tinggi */
+.footer-nav-link {
+  color: #ded4c3 !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.2s ease, transform 0.2s ease;
+  font-size: 0.92rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.footer-nav-link:hover {
+  color: var(--gold-bright) !important;
+  transform: translateX(4px);
+}
+
+/* Lencana Legalitas Khusus di Footer (Elegan & Menyatu Harmonis) */
+.site-footer .badge-card {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid #3d3428 !important;
+  box-shadow: none !important;
+  padding: 12px 14px;
+}
+
+.site-footer .badge-card:hover {
+  border-color: var(--gold) !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+}
+
+.site-footer .badge-title {
+  color: #ffffff !important;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.site-footer .badge-sub {
+  color: #a8a29e !important;
+  font-size: 0.78rem;
+}
+
+/* Bar Peringatan Kesehatan Permanen */
 .health-warning-bar {
   position: fixed;
   bottom: 0;
@@ -1093,6 +1517,51 @@ iframe {
   align-items: center;
   justify-content: center;
   gap: 10px;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.6);
+}
+
+/* =========================================================
+   KOMPONEN DOKUMENTASI & FOTO PABRIK (MODULAR SLOTS)
+   Siap menerima foto proses produksi / gedung jika tersedia
+   ========================================================= */
+.photo-frame-modern {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1.5px solid var(--border-light);
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+}
+
+.photo-frame-modern:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--gold);
+}
+
+.photo-frame-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s ease;
+}
+
+.photo-frame-modern:hover .photo-frame-img {
+  transform: scale(1.05);
+}
+
+.photo-frame-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 16px;
+  background: linear-gradient(to top, rgba(14, 12, 10, 0.88), rgba(14, 12, 10, 0));
+  color: #fbf9f5;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .warning-pill {
@@ -1105,12 +1574,11 @@ iframe {
 }
 
 /* =========================================================
-   RESPONSIVE & MOBILE-FIRST OPTIMIZATION (ANDROID & MOBILE)
+   RESPONSIVE (MOBILE-FIRST SYSTEM)
    ========================================================= */
-
 @media (max-width: 900px) {
   .hero-slogan {
-    font-size: clamp(2rem, 5vw, 2.6rem);
+    font-size: clamp(1.9rem, 4.8vw, 2.5rem);
   }
   .about-grid, .footer-top-grid {
     grid-template-columns: 1fr;
@@ -1120,8 +1588,7 @@ iframe {
     grid-template-columns: 1fr 1fr;
   }
   .site-header {
-    position: sticky;
-    top: 0;
+    position: relative;
   }
   .main-nav {
     display: none;
@@ -1129,12 +1596,12 @@ iframe {
     top: 100%;
     left: 0;
     width: 100%;
-    background-color: var(--charcoal-800);
+    background-color: var(--header-bg);
     flex-direction: column;
     padding: 20px;
     border-bottom: 2px solid var(--gold);
     gap: 14px;
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
     z-index: 1000;
   }
   .main-nav.active {
@@ -1172,14 +1639,18 @@ iframe {
   .container {
     padding: 0 16px;
   }
-  .section-about, .section-products {
-    padding: 60px 0;
+  .section-about, .section-py {
+    padding: 48px 0;
   }
   .section-title {
-    font-size: 1.85rem;
+    font-size: 1.8rem;
   }
   .legal-badges-grid {
     grid-template-columns: 1fr;
+  }
+  .grid-2col {
+    grid-template-columns: 1fr;
+    gap: 28px;
   }
   .hero-buttons {
     flex-direction: column;
@@ -1198,14 +1669,21 @@ iframe {
     width: 100%;
     text-align: center;
   }
+  .batik-divider {
+    margin: 24px auto;
+    gap: 10px;
+  }
+  .batik-divider-symbol {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+  }
+  .batik-divider-symbol svg {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 @media (max-width: 576px) {
-  /* Mencegah layout terpotong di perangkat Android */
-  body {
-    padding-bottom: 85px; /* Ruang lebih aman untuk warning bar */
-  }
-  
   .header-inner {
     height: 64px;
   }
@@ -1240,12 +1718,12 @@ iframe {
     padding: 40px 0 45px;
   }
 
-  .hero-content {
+  .hero-content-clean {
     padding: 20px 0;
   }
 
   .hero-slogan {
-    font-size: clamp(1.65rem, 6.5vw, 2.15rem);
+    font-size: clamp(1.6rem, 6.2vw, 2.1rem);
     line-height: 1.2;
     margin: 10px 0 14px;
     word-break: break-word;
@@ -1262,25 +1740,9 @@ iframe {
     gap: 18px;
   }
 
-  .product-header-box {
-    padding: 20px 16px 14px;
-  }
-
-  .card-prod-title {
-    font-size: 1.25rem;
-  }
-
-  .product-body {
-    padding: 16px;
-  }
-
   .specs-mini {
     padding: 10px 12px;
     font-size: 0.78rem;
-  }
-
-  .spec-mini-row {
-    gap: 8px;
   }
 
   .price-main {
@@ -1296,10 +1758,9 @@ iframe {
     overflow-wrap: anywhere;
   }
 
-  /* WhatsApp Modal Responsiveness */
   .modal-overlay {
     padding: 10px;
-    align-items: flex-end; /* Drawer bottom sheet feel on phone */
+    align-items: flex-end;
   }
 
   .modal-content {
@@ -1328,7 +1789,6 @@ iframe {
     gap: 0;
   }
 
-  /* Age Gate Modal on mobile */
   .age-gate-modal {
     padding: 24px 18px;
     max-width: 95%;
@@ -1342,7 +1802,6 @@ iframe {
     font-size: 0.82rem;
   }
 
-  /* Fixed Health Warning Bar */
   .health-warning-bar {
     font-size: 0.68rem;
     padding: 6px 10px;
@@ -1356,7 +1815,6 @@ iframe {
     flex-shrink: 0;
   }
 
-  /* Footer & Maps */
   .site-footer {
     padding: 45px 0 20px;
   }
@@ -1372,7 +1830,6 @@ iframe {
 }
 
 @media (max-width: 360px) {
-  /* Ekstra sempit (Android kecil / layar zoom besar) */
   .container {
     padding: 0 12px;
   }
@@ -1384,192 +1841,4 @@ iframe {
   .hero-slogan {
     font-size: 1.55rem;
   }
-
-  .section-title {
-    font-size: 1.5rem;
-  }
-
-  .btn {
-    padding: 11px 18px;
-    font-size: 0.88rem;
-  }
 }
-
-/* ============================================================
-   HERO LARGE BACKGROUND SLIDER (Auto-Slide / Ken-Burns Fade)
-   ============================================================ */
-.hero-slider-container {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  z-index: 1;
-}
-
-.hero-slide {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: center center;
-  opacity: 0;
-  transform: scale(1.05);
-  transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), transform 6s cubic-bezier(0.1, 0.9, 0.2, 1);
-  pointer-events: none;
-}
-
-.hero-slide.active {
-  opacity: 1;
-  transform: scale(1);
-  pointer-events: auto;
-}
-
-.hero-slide-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, rgba(10, 13, 15, 0.76) 0%, rgba(10, 13, 15, 0.42) 50%, rgba(10, 13, 15, 0.12) 100%),
-              linear-gradient(180deg, rgba(10, 13, 15, 0.25) 0%, transparent 40%, rgba(10, 13, 15, 0.5) 100%);
-}
-
-.hero-slider-dots {
-  position: absolute;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 10px;
-  z-index: 10;
-}
-
-.hero-slider-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.35);
-  border: 1px solid rgba(197, 160, 89, 0.5);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  padding: 0;
-}
-
-.hero-slider-dot.active {
-  width: 32px;
-  border-radius: 6px;
-  background: var(--gold);
-  border-color: var(--gold-light);
-  box-shadow: 0 0 10px rgba(197, 160, 89, 0.5);
-}
-
-.hero-slider-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: rgba(19, 23, 27, 0.75);
-  border: 1px solid rgba(197, 160, 89, 0.4);
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 10;
-  transition: all 0.25s ease;
-}
-
-.hero-slider-nav:hover {
-  background: var(--gold);
-  color: #000000;
-  transform: translateY(-50%) scale(1.08);
-}
-
-.hero-slider-nav.prev { left: 20px; }
-.hero-slider-nav.next { right: 20px; }
-
-/* ============================================================
-   KATALOG & DETAIL PRODUCT GALLERY (Inspirasi Wismilak)
-   ============================================================ */
-.product-gallery-selector {
-  display: flex;
-  gap: 6px;
-  padding: 8px 12px;
-  background: #101417;
-  border-top: 1px solid var(--charcoal-border);
-  overflow-x: auto;
-  scrollbar-width: thin;
-}
-
-.product-gallery-thumb {
-  flex: 1;
-  min-width: 42px;
-  height: 42px;
-  padding: 2px;
-  background: #ffffff;
-  border: 2px solid transparent;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.product-gallery-thumb:hover {
-  border-color: rgba(197, 160, 89, 0.6);
-  transform: translateY(-2px);
-}
-
-.product-gallery-thumb.active {
-  border-color: var(--gold);
-  box-shadow: 0 0 8px rgba(197, 160, 89, 0.4);
-}
-
-.product-gallery-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.view-label-badge {
-  position: absolute;
-  bottom: 8px;
-  left: 8px;
-  background: rgba(13, 16, 18, 0.88);
-  color: var(--gold);
-  border: 1px solid rgba(197, 160, 89, 0.35);
-  font-size: 0.72rem;
-  padding: 3px 8px;
-  border-radius: 4px;
-  pointer-events: none;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  z-index: 3;
-}
-
-.btn-open-gallery-zoom {
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-  background: rgba(13, 16, 18, 0.8);
-  border: 1px solid var(--charcoal-border);
-  color: #fff;
-  border-radius: 4px;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  cursor: pointer;
-  z-index: 3;
-  transition: all 0.2s;
-}
-
-.btn-open-gallery-zoom:hover {
-  background: var(--gold);
-  color: #000;
-  border-color: var(--gold);
-}
-

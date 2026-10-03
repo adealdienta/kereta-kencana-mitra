@@ -42,6 +42,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pesan', [PemesananController::class, 'form'])->name('pesanan.form');
     Route::post('/pesan', [PemesananController::class, 'store'])->name('pesanan.store');
     Route::get('/pesanan-saya', [PemesananController::class, 'pelacakan'])->name('pesanan.saya');
+    Route::put('/profil-mitra', [AuthController::class, 'updateProfileMitra'])->name('mitra.profile.update');
     Route::post('/pesanan/{id}/konfirmasi-terima', [PemesananController::class, 'konfirmasiTerima'])->name('pesanan.konfirmasi');
     Route::post('/pesanan/{id}/batal', [PemesananController::class, 'batalkanPesanan'])->name('pesanan.batal');
 });
@@ -54,6 +55,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/profil', [AuthController::class, 'profile'])->name('profile');
     Route::put('/profil', [AuthController::class, 'updateProfile'])->name('profile.update');
+
+    // Daftar Mitra Toko (Dapat diakses oleh Staf/Admin Gudang, Super Admin, Owner)
+    Route::get('/mitra', [UserController::class, 'mitraIndex'])->name('mitra.index');
 
     // Transaksi Offline / Kasir Langsung di Pabrik
     Route::get('/transaksis/offline', [TransaksiController::class, 'createOffline'])->name('transaksis.offline');
@@ -85,6 +89,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
         Route::put('/users/{id}', [UserController::class, 'update'])->name('users.update');
         Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
+        Route::put('/mitra/{id}/reset-password', [UserController::class, 'resetPasswordMitra'])->name('mitra.reset_password');
 
         Route::get('/logs', [ActivityLogController::class, 'index'])->name('logs.index');
     });

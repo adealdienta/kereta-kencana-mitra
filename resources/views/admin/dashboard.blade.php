@@ -143,12 +143,14 @@
                 <i class="fa-solid fa-clock-rotate-left"></i> Log Aktivitas Terakhir
             </h3>
             <ul style="list-style: none; padding: 0; font-size: 12px; color: #475569;">
-                @foreach($aktivitasTerbaru as $act)
+                @forelse($aktivitasTerbaru as $act)
                     <li style="padding: 6px 0; border-bottom: 1px solid #f1f5f9;">
                         <strong>{{ $act->user_nama }}</strong>: {{ $act->action }}
                         <div style="color: #94a3b8; font-size: 11px;">{{ $act->created_at->diffForHumans() }}</div>
                     </li>
-                @endforeach
+                @empty
+                    <li style="padding: 10px 0; color: #94a3b8; text-align: center;">Belum ada riwayat aktivitas.</li>
+                @endforelse
             </ul>
         </div>
     </div>

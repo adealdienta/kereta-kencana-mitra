@@ -32,17 +32,7 @@ class UserSeeder extends Seeder
             ]
         );
 
-        // 3. Role Staff Operasional
-        User::updateOrCreate(
-            ['email' => 'staff@keretakencana.com'],
-            [
-                'name' => 'Staf Operasional Pabrik',
-                'password' => $defaultPassword,
-                'role' => 'staff',
-            ]
-        );
-
-        // 4. Akun Admin Demo (Kompatibilitas Login Lama)
+        // 3. Role Admin (Admin Gudang & Pemesanan)
         User::updateOrCreate(
             ['email' => 'admin@keretakencana.com'],
             [

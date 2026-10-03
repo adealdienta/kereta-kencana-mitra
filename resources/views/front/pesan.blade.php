@@ -4,7 +4,7 @@
 
 @section('content')
 <!-- Header Banner -->
-<section class="page-header" style="background: radial-gradient(ellipse at top, rgba(197, 160, 89, 0.12) 0%, transparent 60%), linear-gradient(180deg, #0d1012 0%, #15191d 100%); border-bottom: 1px solid rgba(197, 160, 89, 0.2); padding: 60px 0;">
+<section class="page-header">
     <div class="container text-center">
         <span class="header-badge">LAYANAN PEMESANAN RESMI PABRIK</span>
         <h1 class="page-title">FORMULIR PEMESANAN ROKOK</h1>
@@ -14,16 +14,16 @@
 
 <section class="section-py">
     <div class="container" style="max-width: 900px;">
-        <div style="background: var(--bg-card); border: 1px solid var(--charcoal-border); border-radius: var(--radius-lg); padding: 36px; box-shadow: var(--shadow-lg);">
+        <div class="scroll-reveal reveal-zoom" style="background: var(--bg-surface); border: 1.5px solid var(--border-light); border-top: 4px solid var(--gold); border-radius: var(--radius-lg); padding: 36px; box-shadow: var(--shadow-lg);">
             
             @if($isLocked)
                 <!-- Banner Kunci Pemesanan (Order Lock) -->
-                <div style="background: rgba(239, 68, 68, 0.12); border: 2px solid #ef4444; border-radius: var(--radius-lg); padding: 26px; margin-bottom: 28px; text-align: center;">
-                    <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(239, 68, 68, 0.2); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 14px;">
+                <div style="background: rgba(239, 68, 68, 0.08); border: 1.5px solid var(--danger); border-radius: var(--radius-lg); padding: 26px; margin-bottom: 28px; text-align: center;">
+                    <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(239, 68, 68, 0.15); color: var(--danger); display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 14px;">
                         <i class="fa-solid fa-lock"></i>
                     </div>
-                    <h3 style="color: #ffffff; font-size: 20px; margin-bottom: 8px;">Pemesanan Baru Terkunci Sementara</h3>
-                    <p style="color: #cbd5e1; font-size: 14px; max-width: 620px; margin: 0 auto 18px; line-height: 1.6;">
+                    <h3 style="color: var(--danger); font-size: 20px; margin-bottom: 8px; font-weight: 800;">Pemesanan Baru Terkunci Sementara</h3>
+                    <p style="color: var(--text-dark); font-size: 14px; max-width: 620px; margin: 0 auto 18px; line-height: 1.6;">
                         Toko Anda masih memiliki pesanan aktif <strong>{{ $lockedOrder->kode_transaksi }}</strong> ({{ $lockedOrder->ringkasan_item }}) yang sedang berstatus <strong>Sedang Dikirim</strong>.
                         <br><br>
                         Sesuai standar operasional PR. KERETA KENCANA, mohon lakukan <strong>Konfirmasi Penerimaan Barang & Unggah Foto Bukti</strong> pada menu <em>Pesanan Saya</em> saat barang tiba di toko untuk membuka kembali hak pemesanan baru.
@@ -35,13 +35,13 @@
             @endif
 
             <!-- Banner Akun Mitra Aktif -->
-            <div style="background: rgba(212,175,55,0.06); border: 1px solid rgba(212,175,55,0.25); border-radius: 8px; padding: 14px 18px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+            <div style="background: var(--bg-surface-subtle); border: 1.5px solid var(--border-light); border-radius: 8px; padding: 14px 18px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(212,175,55,0.2); color: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(179, 139, 63, 0.15); color: var(--gold-hover); display: flex; align-items: center; justify-content: center; font-size: 18px;">
                         <i class="fa-solid fa-store"></i>
                     </div>
                     <div>
-                        <div style="color: #ffffff; font-weight: 700; font-size: 14px;">
+                        <div style="color: var(--text-dark); font-weight: 700; font-size: 14px;">
                             {{ $user->nama_toko ?: $user->name }}
                         </div>
                         <div style="color: var(--text-muted); font-size: 12px;">
@@ -57,8 +57,8 @@
             <form action="{{ route('pesanan.store') }}" method="POST" id="formOrder">
                 @csrf
 
-                <div style="border-bottom: 1px solid var(--charcoal-border); padding-bottom: 18px; margin-bottom: 24px;">
-                    <h3 style="color: var(--gold); font-size: 18px; margin-bottom: 6px;">
+                <div style="border-bottom: 1.5px solid var(--border-light); padding-bottom: 18px; margin-bottom: 24px;">
+                    <h3 style="color: var(--gold-hover); font-size: 18px; margin-bottom: 6px; font-weight: 800;">
                         <i class="fa-solid fa-boxes-stacked"></i> 1. Pilihan Varian Produk & Satuan Pemesanan
                     </h3>
                     <p style="color: var(--text-muted); font-size: 13px; margin: 0; line-height: 1.5;">
@@ -82,25 +82,25 @@
                             $oldSatuan = old('items.'.$p->id.'.satuan', 'Slop');
                         @endphp
                         <div class="product-item-card" id="card_prod_{{ $p->id }}" 
-                             style="background: #121619; border: 1px solid {{ ($isPreselected || $oldQty > 0) ? 'var(--gold)' : 'var(--charcoal-border)' }}; border-radius: 10px; padding: 18px; transition: all 0.2s ease;">
+                             style="background: var(--bg-surface); border: 1px solid {{ ($isPreselected || $oldQty > 0) ? 'var(--gold)' : 'var(--border-light)' }}; border-radius: 10px; padding: 18px; box-shadow: var(--shadow-sm); transition: all 0.2s ease;">
                             
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px;">
                                 <!-- Info Produk -->
                                 <div style="flex: 1 1 260px; min-width: 240px;">
                                     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
-                                        <h4 style="color: #ffffff; font-size: 16px; margin: 0; font-weight: 700;">
+                                        <h4 style="color: var(--text-dark); font-size: 16px; margin: 0; font-weight: 700;">
                                             {{ $p->nama }}
                                         </h4>
-                                        <span style="background: rgba(212, 175, 55, 0.15); color: var(--gold); border: 1px solid rgba(212, 175, 55, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600;">
+                                        <span style="background: rgba(179, 139, 63, 0.12); color: var(--gold-hover); border: 1px solid rgba(179, 139, 63, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600;">
                                             {{ $p->kategori->nama_kategori }}
                                         </span>
                                     </div>
                                     <div style="font-size: 12.5px; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 4px;">
-                                        <span><strong style="color: var(--text-light);">Per Slop:</strong> {{ $p->formatted_harga_slop }}</span>
+                                        <span><strong style="color: var(--text-dark);">Per Slop:</strong> {{ $p->formatted_harga_slop }}</span>
                                         <span>&bull;</span>
-                                        <span><strong style="color: var(--text-light);">Per Bal:</strong> {{ $p->formatted_harga }}</span>
+                                        <span><strong style="color: var(--text-dark);">Per Bal:</strong> {{ $p->formatted_harga }}</span>
                                     </div>
-                                    <div style="font-size: 11.5px; color: #10b981;">
+                                    <div style="font-size: 11.5px; color: #059669; font-weight: 600;">
                                         <i class="fa-solid fa-circle-check"></i> Stok Pabrik: <strong>{{ $p->stok }} Bal</strong> (Tersedia)
                                     </div>
                                 </div>
@@ -108,7 +108,7 @@
                                 <!-- Kontrol Satuan & Jumlah -->
                                 <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: flex-end;">
                                     <!-- Satuan Toggle Pill -->
-                                    <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--charcoal-border); border-radius: 8px; padding: 4px; display: inline-flex; gap: 4px;">
+                                    <div style="background: var(--bg-surface-subtle); border: 1px solid var(--border-light); border-radius: 8px; padding: 4px; display: inline-flex; gap: 4px;">
                                         <label style="cursor: pointer; margin: 0; padding: 6px 12px; border-radius: 6px; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: 0.2s;" 
                                                id="label_satuan_{{ $p->id }}_slop"
                                                class="satuan-toggle-label {{ $oldSatuan === 'Slop' ? 'active-satuan' : '' }}">
@@ -132,21 +132,21 @@
                                     <!-- Stepper Kuantitas -->
                                     <div style="display: flex; align-items: center; gap: 6px;">
                                         <button type="button" class="btn-qty-minus" data-id="{{ $p->id }}" {{ $isLocked ? 'disabled' : '' }}
-                                                style="width: 34px; height: 36px; background: rgba(255,255,255,0.06); border: 1px solid var(--charcoal-border); color: #fff; border-radius: 6px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                                style="width: 34px; height: 36px; background: var(--bg-surface-subtle); border: 1px solid var(--border-light); color: var(--text-dark); border-radius: 6px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                                             <i class="fa-solid fa-minus"></i>
                                         </button>
                                         <input type="number" name="items[{{ $p->id }}][jumlah]" id="input_qty_{{ $p->id }}" 
-                                               min="0" max="{{ $p->stok * ($p->slop_per_bal ?: 20) }}" value="{{ $oldQty }}" 
-                                               class="item-qty-input" data-id="{{ $p->id }}"
-                                               data-harga-slop="{{ $p->harga_per_slop }}"
-                                               data-harga-bal="{{ $p->harga_per_bal }}"
-                                               data-slop-per-bal="{{ $p->slop_per_bal ?: 20 }}"
-                                               data-bungkus-per-slop="{{ $p->bungkus_per_slop ?: 10 }}"
-                                               data-nama="{{ $p->nama }}"
-                                               {{ $isLocked ? 'disabled' : '' }}
-                                               style="width: 65px; height: 36px; text-align: center; background: #0c0f12; border: 1px solid var(--charcoal-border); color: #fff; border-radius: 6px; font-size: 15px; font-weight: 700;">
+                                                min="0" max="{{ $p->stok * ($p->slop_per_bal ?: 20) }}" value="{{ $oldQty }}" 
+                                                class="item-qty-input" data-id="{{ $p->id }}"
+                                                data-harga-slop="{{ $p->harga_per_slop }}"
+                                                data-harga-bal="{{ $p->harga_per_bal }}"
+                                                data-slop-per-bal="{{ $p->slop_per_bal ?: 20 }}"
+                                                data-bungkus-per-slop="{{ $p->bungkus_per_slop ?: 10 }}"
+                                                data-nama="{{ $p->nama }}"
+                                                {{ $isLocked ? 'disabled' : '' }}
+                                                style="width: 65px; height: 36px; text-align: center; background: #ffffff; border: 1px solid var(--border-light); color: var(--text-dark); border-radius: 6px; font-size: 15px; font-weight: 700;">
                                         <button type="button" class="btn-qty-plus" data-id="{{ $p->id }}" {{ $isLocked ? 'disabled' : '' }}
-                                                style="width: 34px; height: 36px; background: rgba(255,255,255,0.06); border: 1px solid var(--charcoal-border); color: #fff; border-radius: 6px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                                style="width: 34px; height: 36px; background: var(--bg-surface-subtle); border: 1px solid var(--border-light); color: var(--text-dark); border-radius: 6px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                                             <i class="fa-solid fa-plus"></i>
                                         </button>
                                     </div>
@@ -154,7 +154,7 @@
                                     <!-- Subtotal Baris -->
                                     <div style="min-width: 130px; text-align: right;">
                                         <span style="font-size: 11px; color: var(--text-muted); display: block;">Subtotal:</span>
-                                        <strong id="display_subtotal_{{ $p->id }}" style="font-size: 14.5px; color: var(--gold); display: block;">
+                                        <strong id="display_subtotal_{{ $p->id }}" style="font-size: 15px; color: var(--gold-hover); display: block;">
                                             Rp 0
                                         </strong>
                                     </div>
@@ -165,13 +165,13 @@
                 </div>
 
                 <!-- Estimasi Total Kalkulasi Realtime Multi-Item -->
-                <div style="background: rgba(212, 175, 55, 0.06); border: 1px dashed var(--gold); border-radius: 10px; padding: 22px; margin-bottom: 30px;">
+                <div style="background: var(--bg-surface-subtle); border: 1px dashed var(--gold); border-radius: 10px; padding: 22px; margin-bottom: 30px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
                         <div>
                             <span style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px;">
                                 Ringkasan Seluruh Pesanan:
                             </span>
-                            <div id="summaryItemsList" style="font-size: 13.5px; color: #ffffff; font-weight: 600; line-height: 1.5;">
+                            <div id="summaryItemsList" style="font-size: 14px; color: var(--text-dark); font-weight: 600; line-height: 1.5;">
                                 Belum ada produk yang dipilih (Kuantitas 0)
                             </div>
                             <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;" id="summaryTotalBungkus">
@@ -180,13 +180,13 @@
                         </div>
                         <div style="text-align: right;">
                             <span style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 2px;">TOTAL PEMESANAN:</span>
-                            <strong id="calcGrandTotal" style="font-size: 26px; color: var(--gold); font-weight: 800;">Rp 0</strong>
+                            <strong id="calcGrandTotal" style="font-size: 26px; color: var(--gold-hover); font-weight: 800;">Rp 0</strong>
                         </div>
                     </div>
                 </div>
 
-                <div style="border-bottom: 1px solid var(--charcoal-border); padding-bottom: 20px; margin-bottom: 24px;">
-                    <h3 style="color: var(--gold); font-size: 18px; margin-bottom: 6px;">
+                <div style="border-bottom: 1px solid var(--border-light); padding-bottom: 20px; margin-bottom: 24px;">
+                    <h3 style="color: var(--gold-hover); font-size: 18px; margin-bottom: 6px;">
                         <i class="fa-solid fa-address-card"></i> 2. Identitas Pemesan / Toko Mitra
                     </h3>
                     <p style="color: var(--text-muted); font-size: 13px;">Data resmi mitra untuk surat jalan, nota fisik, & konfirmasi pengiriman armada (terisi otomatis dari akun Anda).</p>
@@ -194,28 +194,28 @@
 
                 <div class="grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                     <div class="form-group">
-                        <label style="display: block; color: var(--text-light); font-size: 14px; margin-bottom: 6px;">Nama Toko / Warung / Mitra Distributor <span style="color: var(--danger);">*</span></label>
+                        <label style="display: block; color: var(--text-dark); font-weight: 600; font-size: 14px; margin-bottom: 6px;">Nama Toko / Warung / Mitra Distributor <span style="color: var(--danger);">*</span></label>
                         <input type="text" name="nama_mitra" class="form-control" required value="{{ old('nama_mitra', $user->nama_toko ?: $user->name) }}" placeholder="Contoh: Toko Berkah Mandiri / Kios Barokah" {{ $isLocked ? 'disabled' : '' }}
-                               style="width: 100%; padding: 12px; background: #121619; border: 1px solid var(--charcoal-border); color: #fff; border-radius: 6px;">
+                               style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid var(--border-light); color: var(--text-dark); border-radius: 6px;">
                     </div>
 
                     <div class="form-group">
-                        <label style="display: block; color: var(--text-light); font-size: 14px; margin-bottom: 6px;">Nomor WhatsApp Aktif <span style="color: var(--danger);">*</span></label>
+                        <label style="display: block; color: var(--text-dark); font-weight: 600; font-size: 14px; margin-bottom: 6px;">Nomor WhatsApp Aktif <span style="color: var(--danger);">*</span></label>
                         <input type="tel" name="telepon" class="form-control" required value="{{ old('telepon', $user->telepon) }}" placeholder="08xxxxxxxxxx" {{ $isLocked ? 'disabled' : '' }}
-                               style="width: 100%; padding: 12px; background: #121619; border: 1px solid var(--charcoal-border); color: #fff; border-radius: 6px;">
+                               style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid var(--border-light); color: var(--text-dark); border-radius: 6px;">
                     </div>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 20px;">
-                    <label style="display: block; color: var(--text-light); font-size: 14px; margin-bottom: 6px;">Alamat Lengkap Tujuan Pengiriman <span style="color: var(--danger);">*</span></label>
+                    <label style="display: block; color: var(--text-dark); font-weight: 600; font-size: 14px; margin-bottom: 6px;">Alamat Lengkap Tujuan Pengiriman <span style="color: var(--danger);">*</span></label>
                     <textarea name="alamat" class="form-control" rows="3" required placeholder="Alamat pengiriman toko/rumah, nama jalan, RT/RW, desa/kelurahan, kecamatan, kabupaten/kota..." {{ $isLocked ? 'disabled' : '' }}
-                              style="width: 100%; padding: 12px; background: #121619; border: 1px solid var(--charcoal-border); color: #fff; border-radius: 6px;">{{ old('alamat', $user->alamat) }}</textarea>
+                              style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid var(--border-light); color: var(--text-dark); border-radius: 6px;">{{ old('alamat', $user->alamat) }}</textarea>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 30px;">
-                    <label style="display: block; color: var(--text-light); font-size: 14px; margin-bottom: 6px;">Catatan Khusus Pengiriman (Opsional)</label>
+                    <label style="display: block; color: var(--text-dark); font-weight: 600; font-size: 14px; margin-bottom: 6px;">Catatan Khusus Pengiriman (Opsional)</label>
                     <textarea name="catatan" class="form-control" rows="2" placeholder="Contoh: Kirim via kargo langganan, titip bus/travel, atau ambil sendiri di gudang pabrik Ponggok..." {{ $isLocked ? 'disabled' : '' }}
-                              style="width: 100%; padding: 12px; background: #121619; border: 1px solid var(--charcoal-border); color: #fff; border-radius: 6px;">{{ old('catatan') }}</textarea>
+                              style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid var(--border-light); color: var(--text-dark); border-radius: 6px;">{{ old('catatan') }}</textarea>
                 </div>
 
                 @if($isLocked)
@@ -236,14 +236,14 @@
 <style>
 .active-satuan {
     background: var(--gold) !important;
-    color: #0c0f12 !important;
+    color: #ffffff !important;
 }
 .satuan-toggle-label:not(.active-satuan) {
-    color: var(--text-muted);
+    color: var(--text-medium);
 }
 .satuan-toggle-label:not(.active-satuan):hover {
-    color: #ffffff;
-    background: rgba(255,255,255,0.06);
+    color: var(--text-dark);
+    background: rgba(0, 0, 0, 0.05);
 }
 </style>
 @endpush
@@ -308,8 +308,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     card.style.borderColor = 'var(--gold)';
                     card.style.background = 'rgba(212, 175, 55, 0.05)';
                 } else {
-                    card.style.borderColor = 'var(--charcoal-border)';
-                    card.style.background = '#121619';
+                    card.style.borderColor = 'var(--border-light)';
+                    card.style.background = 'var(--bg-surface)';
                 }
             }
 

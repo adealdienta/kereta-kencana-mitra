@@ -147,4 +147,50 @@ class AuthController extends Controller
 
         return back()->with('success', 'Profil berhasil diperbarui.');
     }
+
+    /**
+     * Memperbarui profil toko & kata sandi mandiri oleh mitra yang sedang login
+     * (BKPM Acara 15 - 16 Update Data Pengguna)
+     */
+    public function updateProfileMitra(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user->isPelanggan()) {
+            abort(403, 'Aksi hanya diperuntukkan bagi akun mitra toko.');
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+            'nama_toko' => ['required', 'string', 'max:150'],
+            'telepon' => ['required', 'string', 'max:30'],
+            'alamat' => ['required', 'string', 'max:500'],
+            'email' => ['required', 'email', 'unique:users,email,' . $user->id],
+            'password' => ['nullable', 'min:6'],
+        ], [
+            'name.required' => 'Nama pemilik wajib diisi.',
+            'nama_toko.required' => 'Nama toko wajib diisi.',
+            'telepon.required' => 'Nomor WhatsApp wajib diisi.',
+            'alamat.required' => 'Alamat pengiriman toko wajib diisi.',
+            'email.required' => 'Alamat email wajib diisi.',
+            'email.unique' => 'Email ini sudah digunakan oleh akun lain.',
+            'password.min' => 'Kata sandi baru minimal 6 karakter.',
+        ]);
+
+        $user->name = $validated['name'];
+        $user->nama_toko = $validated['nama_toko'];
+        $user->telepon = $validated['telepon'];
+        $user->alamat = $validated['alamat'];
+        $user->email = $validated['email'];
+
+        if (!empty($validated['password'])) {
+            $user->password = Hash::make($validated['password']);
+        }
+
+        $user->save();
+
+        ActivityLogger::log('Update Profil Mitra', "Mitra {$user->nama_toko} ({$user->name}) memperbarui profil akun / kata sandi");
+
+        return back()->with('success', 'Profil toko dan data akun Anda berhasil diperbarui.');
+    }
 }

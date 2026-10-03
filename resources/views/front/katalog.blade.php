@@ -4,7 +4,7 @@
 
 @section('content')
 <!-- Header Banner -->
-<section class="page-header" style="background: radial-gradient(ellipse at top, rgba(197, 160, 89, 0.12) 0%, transparent 60%), linear-gradient(180deg, #0d1012 0%, #15191d 100%); border-bottom: 1px solid rgba(197, 160, 89, 0.2); padding: 60px 0;">
+<section class="page-header">
     <div class="container text-center">
         <span class="header-badge">KATALOG PRODUK RESMI</span>
         <h1 class="page-title">VARIAN SIGARET KRETEK RESMI</h1>
@@ -15,8 +15,8 @@
 <section class="section-py">
     <div class="container">
         <!-- Filter & Search Bar (BKPM Acara 23) -->
-        <div class="katalog-filter-bar" style="background: var(--bg-card); border: 1px solid var(--charcoal-border); border-radius: var(--radius); padding: 16px; margin-bottom: 30px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
-            <div class="filter-categories" style="display: flex; gap: 8px;">
+        <div class="katalog-filter-bar scroll-reveal reveal-up" style="background: var(--bg-surface); border: 1.5px solid var(--border-light); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 30px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; box-shadow: var(--shadow-sm);">
+            <div class="filter-categories" style="display: flex; gap: 8px; flex-wrap: wrap;">
                 <a href="{{ route('katalog.index') }}" class="btn btn-sm {{ !request('kategori') ? 'btn-gold' : 'btn-secondary' }}">
                     Semua Varian
                 </a>
@@ -33,7 +33,7 @@
                     <input type="hidden" name="kategori" value="{{ request('kategori') }}">
                 @endif
                 <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari varian atau rasa..." 
-                       style="padding: 8px 14px; background: #121619; border: 1px solid var(--charcoal-border); color: #fff; border-radius: 6px; font-size: 14px;">
+                       style="padding: 8px 14px; background: #ffffff; border: 1px solid var(--border-light); color: var(--text-dark); border-radius: 6px; font-size: 14px;">
                 <button type="submit" class="btn btn-gold btn-sm"><i class="fa-solid fa-magnifying-glass"></i> Cari</button>
             </form>
         </div>
@@ -42,7 +42,7 @@
         @if($produks->count() > 0)
             <div class="products-grid">
                 @foreach($produks as $p)
-                    <div class="product-card">
+                    <div class="product-card scroll-reveal reveal-zoom reveal-delay-{{ ($loop->index % 3) + 1 }}">
                         <!-- Main Product Image Wrapper with Label & Zoom Button -->
                         <div class="product-img-wrapper" style="position: relative;">
                             <img src="{{ $p->gallery_images[0]['url'] ?? $p->image_url }}" alt="{{ $p->nama }}" class="product-img" id="prod-main-img-{{ $p->id }}" style="transition: opacity 0.25s ease;">
@@ -115,9 +115,9 @@
                 {{ $produks->links() }}
             </div>
         @else
-            <div style="text-align: center; padding: 60px 20px; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px dashed var(--charcoal-border);">
+            <div style="text-align: center; padding: 60px 20px; background: var(--bg-surface); border-radius: var(--radius-lg); border: 1px dashed var(--border-light); box-shadow: var(--shadow-sm);">
                 <i class="fa-solid fa-box-open" style="font-size: 48px; color: var(--gold); margin-bottom: 16px;"></i>
-                <h3 style="color: var(--text-light); margin-bottom: 8px;">Tidak Ada Produk Ditemukan</h3>
+                <h3 style="color: var(--text-dark); margin-bottom: 8px;">Tidak Ada Produk Ditemukan</h3>
                 <p style="color: var(--text-muted); margin-bottom: 20px;">Silakan atur ulang kata kunci pencarian atau pilih kategori lain.</p>
                 <a href="{{ route('katalog.index') }}" class="btn btn-gold btn-sm">Lihat Seluruh Katalog</a>
             </div>
@@ -127,15 +127,15 @@
 
 <!-- Modal Galeri Lightbox (4 Foto Produk Resolusi Penuh) -->
 <div id="productLightboxModal" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(5, 7, 9, 0.92); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px;">
-    <div style="position: relative; max-width: 760px; width: 100%; background: #13171b; border: 1px solid rgba(197, 160, 89, 0.4); border-radius: 14px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.8);">
+    <div style="position: relative; max-width: 760px; width: 100%; background: var(--charcoal-800); border: 1px solid var(--gold); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow-lg);">
         
         <!-- Header Modal -->
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--charcoal-border); background: #0e1215;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--charcoal-border); background: var(--charcoal-900);">
             <div>
-                <h4 id="lightboxTitle" style="color: #ffffff; font-family: var(--font-serif); margin: 0; font-size: 1.15rem;">Galeri Produk</h4>
+                <h4 id="lightboxTitle" style="color: var(--text-white); font-family: var(--font-serif); margin: 0; font-size: 1.15rem;">Galeri Produk</h4>
                 <span id="lightboxLabel" style="color: var(--gold); font-size: 0.82rem; font-weight: 600;">Bungkus Utama</span>
             </div>
-            <button type="button" onclick="closeProductLightbox()" style="background: none; border: none; color: #94a3b8; font-size: 26px; cursor: pointer; line-height: 1; padding: 0;" aria-label="Tutup Galeri">
+            <button type="button" onclick="closeProductLightbox()" style="background: none; border: none; color: var(--text-muted); font-size: 26px; cursor: pointer; line-height: 1; padding: 0;" aria-label="Tutup Galeri">
                 &times;
             </button>
         </div>
@@ -145,16 +145,16 @@
             <img id="lightboxMainImg" src="" alt="Pratinjau Foto" style="max-height: 100%; max-width: 100%; width: auto; height: auto; object-fit: contain; transition: transform 0.25s ease;">
             
             <!-- Arrow Prev & Next -->
-            <button type="button" onclick="prevLightboxImg()" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 50%; background: rgba(19, 23, 27, 0.8); border: 1px solid rgba(197, 160, 89, 0.5); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+            <button type="button" onclick="prevLightboxImg()" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 50%; background: rgba(14, 12, 10, 0.85); border: 1px solid var(--gold); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer;">
                 <i class="fa-solid fa-chevron-left"></i>
             </button>
-            <button type="button" onclick="nextLightboxImg()" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 50%; background: rgba(19, 23, 27, 0.8); border: 1px solid rgba(197, 160, 89, 0.5); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+            <button type="button" onclick="nextLightboxImg()" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 50%; background: rgba(14, 12, 10, 0.85); border: 1px solid var(--gold); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer;">
                 <i class="fa-solid fa-chevron-right"></i>
             </button>
         </div>
 
         <!-- Lightbox Thumbnails Strip -->
-        <div id="lightboxThumbStrip" style="display: flex; gap: 8px; padding: 12px 20px; background: #0e1215; border-top: 1px solid var(--charcoal-border); justify-content: center; overflow-x: auto;">
+        <div id="lightboxThumbStrip" style="display: flex; gap: 8px; padding: 12px 20px; background: var(--charcoal-900); border-top: 1px solid var(--charcoal-border); justify-content: center; overflow-x: auto;">
             <!-- Rendered dynamically -->
         </div>
     </div>

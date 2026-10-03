@@ -48,6 +48,9 @@
             <a href="{{ route('admin.transaksis.index') }}" class="sidebar-link {{ request()->routeIs('admin.transaksis.*') ? 'active' : '' }}">
                 <i class="fa-solid fa-cart-flatbed"></i> Pesanan Distributor
             </a>
+            <a href="{{ route('admin.mitra.index') }}" class="sidebar-link {{ request()->routeIs('admin.mitra.*') ? 'active' : '' }}">
+                <i class="fa-solid fa-store"></i> Daftar Mitra Toko
+            </a>
 
             <div class="nav-section-title">KATALOG & INVENTARIS</div>
             <a href="{{ route('admin.barangs.index') }}" class="sidebar-link {{ request()->routeIs('admin.barangs.*') ? 'active' : '' }}">

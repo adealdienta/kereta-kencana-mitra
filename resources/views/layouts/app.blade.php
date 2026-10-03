@@ -82,7 +82,7 @@
                         </a>
                     @else
                         @if(Auth::user()->isPelanggan())
-                            <span style="font-size: 12px; color: var(--text-light); display: inline-flex; align-items: center; gap: 6px; background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.3); padding: 5px 10px; border-radius: 6px;">
+                            <span style="font-size: 12px; color: var(--text-light); display: inline-flex; align-items: center; gap: 6px; background: rgba(200, 164, 94, 0.1); border: 1px solid rgba(200, 164, 94, 0.3); padding: 5px 10px; border-radius: 6px;">
                                 <i class="fa-solid fa-store" style="color: var(--gold);"></i> {{ Str::limit(Auth::user()->nama_toko ?: Auth::user()->name, 16) }}
                             </span>
                             <form action="{{ route('logout') }}" method="POST" style="display: inline;">
@@ -148,7 +148,7 @@
                             <div class="logo-sub">PABRIK SIGARET KRETEK BLITAR</div>
                         </div>
                     </div>
-                    <p style="color: var(--text-muted); font-size: 0.92rem; line-height: 1.7; margin-bottom: 20px;">
+                    <p style="color: #cbd5e1; font-size: 0.92rem; line-height: 1.7; margin-bottom: 20px;">
                         Pabrik rokok resmi berizin cukai di Blitar, Jawa Timur. Menghadirkan kretek berkualitas tinggi dengan perpaduan tembakau pegunungan pilihan dan cengkeh nusantara, melayani mitra toko, warung, hingga distributor bal partai besar.
                     </p>
                     <div class="legal-badges-grid" style="margin-top: 0;">
@@ -172,33 +172,33 @@
                 <!-- Kolom 2: Navigasi Cepat -->
                 <div>
                     <div class="eyebrow" style="margin-bottom: 14px;"><i class="fa-solid fa-compass"></i> NAVIGASI SITUS</div>
-                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; font-size: 0.92rem;">
-                        <li><a href="{{ route('beranda') }}" style="color: var(--text-light); display: inline-flex; align-items: center; gap: 8px;"><i class="fa-solid fa-chevron-right" style="font-size: 10px; color: var(--gold);"></i> Beranda Utama</a></li>
-                        <li><a href="{{ route('profil') }}" style="color: var(--text-light); display: inline-flex; align-items: center; gap: 8px;"><i class="fa-solid fa-chevron-right" style="font-size: 10px; color: var(--gold);"></i> Profil & Legalitas Pabrik</a></li>
-                        <li><a href="{{ route('katalog.index') }}" style="color: var(--text-light); display: inline-flex; align-items: center; gap: 8px;"><i class="fa-solid fa-chevron-right" style="font-size: 10px; color: var(--gold);"></i> Katalog Produk Rokok</a></li>
-                        <li><a href="{{ route('pesanan.form') }}" style="color: var(--text-light); display: inline-flex; align-items: center; gap: 8px;"><i class="fa-solid fa-chevron-right" style="font-size: 10px; color: var(--gold);"></i> Formulir Order (Slop / Bal)</a></li>
-                        <li><a href="{{ route('kontak') }}" style="color: var(--text-light); display: inline-flex; align-items: center; gap: 8px;"><i class="fa-solid fa-chevron-right" style="font-size: 10px; color: var(--gold);"></i> Kontak & Titik Lokasi Pabrik</a></li>
-                        <li><a href="{{ route('login') }}" style="color: var(--gold); display: inline-flex; align-items: center; gap: 8px; font-weight: 600;"><i class="fa-solid fa-shield-halved" style="font-size: 11px;"></i> Portal Staf Internal</a></li>
+                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; font-size: 0.92rem;">
+                        <li><a href="{{ route('beranda') }}" class="footer-nav-link"><i class="fa-solid fa-chevron-right" style="font-size: 10px; color: var(--gold);"></i> Beranda Utama</a></li>
+                        <li><a href="{{ route('profil') }}" class="footer-nav-link"><i class="fa-solid fa-chevron-right" style="font-size: 10px; color: var(--gold);"></i> Profil & Legalitas Pabrik</a></li>
+                        <li><a href="{{ route('katalog.index') }}" class="footer-nav-link"><i class="fa-solid fa-chevron-right" style="font-size: 10px; color: var(--gold);"></i> Katalog Produk Rokok</a></li>
+                        <li><a href="{{ route('pesanan.form') }}" class="footer-nav-link"><i class="fa-solid fa-chevron-right" style="font-size: 10px; color: var(--gold);"></i> Formulir Order (Slop / Bal)</a></li>
+                        <li><a href="{{ route('kontak') }}" class="footer-nav-link"><i class="fa-solid fa-chevron-right" style="font-size: 10px; color: var(--gold);"></i> Kontak & Titik Lokasi Pabrik</a></li>
+                        <li><a href="{{ route('login') }}" class="footer-nav-link" style="color: var(--gold-bright) !important; font-weight: 700;"><i class="fa-solid fa-shield-halved" style="font-size: 11px;"></i> Portal Staf Internal</a></li>
                     </ul>
                 </div>
 
                 <!-- Kolom 3: Kantor & Jam Kerja Operasional -->
                 <div>
                     <div class="eyebrow" style="margin-bottom: 14px;"><i class="fa-solid fa-building"></i> KANTOR & OPERASIONAL</div>
-                    <div style="background: var(--bg-card); border: 1px solid var(--charcoal-border); border-radius: var(--radius); padding: 18px; margin-bottom: 14px;">
+                    <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid #3d3428; border-radius: var(--radius); padding: 18px; margin-bottom: 14px;">
                         <p style="color: #ffffff; font-size: 0.9rem; font-weight: 600; margin-bottom: 6px;">
                             <i class="fa-solid fa-location-dot" style="color: var(--gold); margin-right: 4px;"></i> PR. KERETA KENCANA
                         </p>
-                        <p style="color: var(--text-muted); font-size: 0.83rem; line-height: 1.6; margin-bottom: 12px;">
+                        <p style="color: #a8a29e; font-size: 0.83rem; line-height: 1.6; margin-bottom: 12px;">
                             Dusun Subontoro, Desa Kebonduren, Kecamatan Ponggok, Kabupaten Blitar, Jawa Timur 66153
                         </p>
-                        <div style="border-top: 1px dashed var(--charcoal-border); padding-top: 10px; font-size: 0.82rem; color: var(--text-light);">
+                        <div style="border-top: 1px dashed #3d3428; padding-top: 10px; font-size: 0.82rem; color: #f5f0e8;">
                             <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                                <span class="text-muted">Senin - Sabtu:</span>
+                                <span style="color: #a8a29e;">Senin - Sabtu:</span>
                                 <strong>08:00 - 16:00 WIB</strong>
                             </div>
                             <div style="display: flex; justify-content: space-between;">
-                                <span class="text-muted">Minggu / Libur:</span>
+                                <span style="color: #a8a29e;">Minggu / Libur:</span>
                                 <span style="color: var(--gold);">Libur Produksi</span>
                             </div>
                         </div>

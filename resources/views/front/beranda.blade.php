@@ -4,7 +4,7 @@
 
 @section('content')
 <!-- Hero Section -->
-<section class="hero-section" id="heroSection" style="position: relative; overflow: hidden; padding: 60px 0; min-height: 80vh; display: flex; align-items: center; background-color: #0d1012;">
+<section class="hero-section" id="heroSection" style="position: relative; overflow: hidden; padding: 60px 0; min-height: 80vh; display: flex; align-items: center; background-color: #0e0c0a;">
     <!-- Large Background Slider (Auto-Slide / Ken-Burns Fade) -->
     @php
         $heroSlides = [
@@ -24,12 +24,15 @@
                 'img' => asset('assets/img/produk/gallery/sembada-cethe-1.jpg'),
                 'title' => 'SEMBADA CETHE 12 SKT',
             ],
-            // Catatan: Tambahkan foto pabrik langsung atau varian rokok baru di sini nantinya:
-            // [
-            //     'img' => asset('images/pabrik-1.jpg'),
-            //     'title' => 'PABRIK PONGGOK BLITAR',
-            // ],
         ];
+
+        // Slot Modular: Deteksi otomatis foto fasilitas pabrik / lini produksi jika file asli sudah diunggah
+        if (file_exists(public_path('assets/img/produksi-pabrik-asli.jpg'))) {
+            $heroSlides[] = [
+                'img' => asset('assets/img/produksi-pabrik-asli.jpg'),
+                'title' => 'Lini Produksi PR. KERETA KENCANA Ponggok',
+            ];
+        }
     @endphp
 
     <div class="hero-slider-container" id="heroBgSlider">
@@ -56,29 +59,31 @@
     </div>
 
     <div class="container" style="position: relative; z-index: 2;">
-        <div class="hero-content-clean" style="max-width: 840px; padding: 50px 0;">
-            <!-- Tag Atas -->
-            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(13, 16, 18, 0.78); border: 1px solid rgba(197, 160, 89, 0.55); padding: 7px 18px; border-radius: 30px; margin-bottom: 22px; backdrop-filter: blur(8px); box-shadow: 0 4px 16px rgba(0,0,0,0.5);">
-                <i class="fa-solid fa-stamp" style="color: var(--gold); font-size: 13px;"></i>
-                <span style="color: var(--gold); font-size: 12.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">PABRIK RESMI BERIZIN CUKAI &bull; PONGGOK, KAB. BLITAR</span>
+        <div class="hero-content-clean scroll-reveal reveal-zoom" style="max-width: 800px; padding: 48px 0;">
+            <!-- Badge Atas -->
+            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(22, 19, 15, 0.85); border: 1px solid var(--charcoal-border); padding: 6px 16px; border-radius: 20px; margin-bottom: 22px;">
+                <span style="color: var(--gold); font-size: 11px;">✦</span>
+                <span style="color: var(--gold-light); font-size: 11.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">PABRIK RESMI BERIZIN CUKAI &bull; PONGGOK, KAB. BLITAR</span>
+                <span style="color: var(--gold); font-size: 11px;">✦</span>
             </div>
 
-            <!-- Judul Utama -->
-            <h1 class="hero-slogan" style="margin-top: 0; font-size: 3.25rem; line-height: 1.18; font-weight: 900; color: #ffffff; text-shadow: 0 4px 18px rgba(0,0,0,0.9); letter-spacing: 0.5px; margin-bottom: 22px;">
-                DEDIKASI MUTU KRETEK BLITAR UNTUK MITRA DISTRIBUSI
+            <!-- Slogan Utama -->
+            <h1 class="hero-slogan" style="margin-top: 0; font-size: clamp(2rem, 4vw, 2.85rem); line-height: 1.22; font-weight: 800; color: #ffffff; letter-spacing: 0.5px; margin-bottom: 20px;">
+                WARISAN LINTINGAN TRADISIONAL <br>
+                <span style="color: var(--gold);">HINGGA INDUSTRI MODERN</span>
             </h1>
 
-            <!-- Deskripsi -->
-            <p class="hero-subheadline" style="font-size: 1.15rem; line-height: 1.85; color: #f8fafc; margin-bottom: 34px; max-width: 780px; text-shadow: 0 2px 14px rgba(0,0,0,0.95); font-weight: 400;">
-                PR. KERETA KENCANA memproduksi 3 varian Sigaret Kretek Tangan (SKT) 12 batang berpita cukai resmi negara: SEMBADA, KERETA KENCANA, dan SEMBADA CETHE dengan perpaduan tembakau pegunungan Jawa pilihan dan cengkeh bermutu tinggi.
+            <!-- Deskripsi Singkat Fokus Bisnis / Jual Beli -->
+            <p class="hero-subheadline" style="font-size: 1.05rem; line-height: 1.75; color: var(--text-light); margin-bottom: 32px; max-width: 720px;">
+                PR. KERETA KENCANA memproduksi 3 varian Sigaret Kretek Tangan (SKT) 12 batang berpita cukai resmi negara. Menyediakan pasokan langsung pabrik untuk mitra distributor grosir, agen, hingga toko dengan kemudahan order mulai dari 1 slop hingga kemasan bal.
             </p>
 
             <!-- Tombol Aksi -->
-            <div class="hero-buttons" style="display: flex; gap: 16px; flex-wrap: wrap;">
-                <a href="{{ route('pesanan.form') }}" class="btn btn-gold btn-lg" style="box-shadow: 0 8px 24px rgba(197, 160, 89, 0.35); font-weight: 700; padding: 14px 28px;">
+            <div class="hero-buttons" style="display: flex; gap: 14px; flex-wrap: wrap;">
+                <a href="{{ route('pesanan.form') }}" class="btn btn-gold btn-lg">
                     <i class="fa-solid fa-cart-shopping"></i> Order Sekarang (Mulai 1 Slop)
                 </a>
-                <a href="{{ route('katalog.index') }}" class="btn btn-secondary btn-lg" style="background: rgba(13, 16, 18, 0.72); border: 1px solid rgba(255, 255, 255, 0.25); color: #fff; backdrop-filter: blur(8px); padding: 14px 26px;">
+                <a href="{{ route('katalog.index') }}" class="btn btn-secondary btn-lg">
                     <i class="fa-solid fa-boxes-stacked"></i> Lihat Katalog Produk
                 </a>
             </div>
@@ -86,20 +91,31 @@
     </div>
 </section>
 
+<!-- Ornamen Pembatas Batik Jawa -->
+<div class="batik-divider" aria-hidden="true">
+    <span class="batik-divider-line"></span>
+    <span class="batik-divider-symbol">
+        <svg viewBox="0 0 24 24"><path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9L12 2Z"/></svg>
+        <span>KRETEK BLITAR</span>
+        <svg viewBox="0 0 24 24"><path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9L12 2Z"/></svg>
+    </span>
+    <span class="batik-divider-line right"></span>
+</div>
+
 <!-- Tentang Singkat & Lencana Legalitas -->
 <section class="section-about">
     <div class="container">
         <div class="about-grid">
-            <div class="about-text">
-                <span class="eyebrow">SEKILAS PERUSAHAAN</span>
-                <h2 class="section-title">WARISAN LINTINGAN HINGGA MODERNITAS PRODUKSI</h2>
+            <div class="about-text scroll-reveal reveal-up">
+                <span class="eyebrow">SEKILAS PABRIK KRETEK</span>
+                <h2 class="section-title" style="font-size: clamp(1.6rem, 2.8vw, 2.1rem); margin-bottom: 14px;">TRADISI LINTINGAN BLITAR BERIZIN RESMI CUKAI</h2>
                 <div class="about-highlight-box">
-                    <p style="margin-bottom: 0; color: #ffffff; font-weight: 600; font-size: 1.05rem;">
+                    <p style="margin-bottom: 0; color: var(--text-dark); font-weight: 600; font-size: 1rem; line-height: 1.6;">
                         "Menjaga kemurnian cita rasa kretek warisan nusantara dengan kepatuhan penuh terhadap regulasi pita cukai negara."
                     </p>
                 </div>
                 <p>
-                    Beroperasi di Dusun Subontoro, Desa Kebonduren, Kecamatan Ponggok, Kabupaten Blitar, Jawa Timur, <strong>PR. KERETA KENCANA</strong> dipimpin oleh Bapak Komari Yaman. Kami memproduksi 3 produk unggulan kretek tangan 12 batang (SEMBADA, KERETA KENCANA, SEMBADA CETHE) dan melayani pengadaan pasokan distributor besar, agen grosir, hingga toko dan warung dengan fleksibilitas order mulai dari <strong>1 slop</strong> hingga kemasan Bal dan karton pengiriman terpadu.
+                    Beroperasi di Dusun Subontoro, Desa Kebonduren, Kecamatan Ponggok, Kabupaten Blitar, Jawa Timur, <strong>PR. KERETA KENCANA</strong> dipimpin oleh Bapak Komari Yaman. Kami memproduksi 3 produk kretek tangan 12 batang (SEMBADA, KERETA KENCANA, SEMBADA CETHE) dan melayani pengadaan pasokan distributor besar, agen grosir, hingga toko dan warung dengan fleksibilitas order mulai dari <strong>1 slop</strong> hingga kemasan Bal.
                 </p>
                 <div style="margin-top: 24px;">
                     <a href="{{ route('profil') }}" class="btn btn-sm btn-outline-gold">
@@ -108,7 +124,7 @@
                 </div>
             </div>
 
-            <div>
+            <div class="scroll-reveal reveal-zoom reveal-delay-2">
                 <span class="eyebrow">KEPATUHAN REGULASI & PERIZINAN</span>
                 <div class="legal-badges-grid">
                     <div class="badge-card">
@@ -140,23 +156,44 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Slot Modular Foto Gedung/Fasilitas Pabrik (Otomatis aktif bila file pabrik-beranda.jpg diunggah) -->
+                @if(file_exists(public_path('assets/img/pabrik-beranda.jpg')))
+                    <div class="photo-frame-modern" style="margin-top: 16px; border-radius: var(--radius); height: 160px;">
+                        <img src="{{ asset('assets/img/pabrik-beranda.jpg') }}" alt="Gedung Pabrik PR. Kereta Kencana" class="photo-frame-img">
+                        <div class="photo-frame-caption">
+                            <i class="fa-solid fa-industry" style="color: var(--gold);"></i> Gedung & Fasilitas Pabrik Ponggok
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
 </section>
 
+<!-- Ornamen Pembatas Batik Jawa -->
+<div class="batik-divider" aria-hidden="true">
+    <span class="batik-divider-line"></span>
+    <span class="batik-divider-symbol">
+        <svg viewBox="0 0 24 24"><path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9L12 2Z"/></svg>
+        <span>PRODUK RESMI</span>
+        <svg viewBox="0 0 24 24"><path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9L12 2Z"/></svg>
+    </span>
+    <span class="batik-divider-line right"></span>
+</div>
+
 <!-- Produk Unggulan SKT Resmi -->
-<section class="section-py" id="produk">
+<section class="section-py" id="produk" style="padding: 50px 0 80px;">
     <div class="container">
-        <div class="section-header-center">
-            <span class="eyebrow"><i class="fa-solid fa-boxes-stacked"></i> PRODUK RESMI PABRIK</span>
-            <h2 class="section-title">3 KOLEKSI SIGARET KRETEK TANGAN RESMI</h2>
-            <p class="section-subtitle">Pilihan Sigaret Kretek Tangan (SKT) 12 batang unggulan Blitar berpita cukai resmi: <strong>SEMBADA</strong>, <strong>KERETA KENCANA</strong>, dan <strong>SEMBADA CETHE</strong>. Melayani pemesanan mulai dari 1 slop (eceran toko) hingga paket grosir bal distributor.</p>
+        <div class="section-header-center scroll-reveal reveal-up">
+            <span class="eyebrow"><i class="fa-solid fa-boxes-stacked"></i> KATALOG RESMI B2B</span>
+            <h2 class="section-title" style="font-size: clamp(1.6rem, 2.8vw, 2.2rem);">3 KOLEKSI SIGARET KRETEK TANGAN RESMI</h2>
+            <p class="section-subtitle">Pilihan Sigaret Kretek Tangan (SKT) 12 batang berpita cukai resmi negara: <strong>SEMBADA</strong>, <strong>KERETA KENCANA</strong>, dan <strong>SEMBADA CETHE</strong>. Pemesanan langsung pabrik mulai dari 1 slop (eceran toko) hingga kemasan bal grosir.</p>
         </div>
 
         <div class="products-grid">
             @foreach($produks as $p)
-                <div class="product-card">
+                <div class="product-card scroll-reveal reveal-zoom reveal-delay-{{ ($loop->index % 3) + 1 }}">
                     <div class="product-img-wrapper">
                         <img src="{{ $p->image_url }}" alt="{{ $p->nama }}" class="product-img">
                         <span class="category-tag category-{{ strtolower($p->kategori->slug) }}">
@@ -201,7 +238,7 @@
                                 {{ $p->formatted_harga_slop }} <span style="font-size: 13px; font-weight: normal; color: var(--text-muted);">/ Slop</span>
                             </div>
                             <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
-                                Grosir Bal (20 Slop): <strong style="color: #fff;">{{ $p->formatted_harga }}</strong>
+                                Grosir Bal (20 Slop): <strong style="color: var(--text-dark);">{{ $p->formatted_harga }}</strong>
                             </div>
 
                             <div style="display: flex; flex-direction: column; gap: 8px;">
