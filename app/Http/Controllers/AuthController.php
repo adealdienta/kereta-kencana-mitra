@@ -5,8 +5,14 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use App\Models\User;
 use App\Helpers\ActivityLogger;
+use App\Mail\ResetPasswordMail;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -192,5 +198,120 @@ class AuthController extends Controller
         ActivityLogger::log('Update Profil Mitra', "Mitra {$user->nama_toko} ({$user->name}) memperbarui profil akun / kata sandi");
 
         return back()->with('success', 'Profil toko dan data akun Anda berhasil diperbarui.');
+    }
+
+    /**
+     * Tampilkan formulir permintaan atur ulang kata sandi mandiri
+     */
+    public function showForgotPassword()
+    {
+        if (Auth::check()) {
+            return redirect()->route(Auth::user()->isPelanggan() ? 'pesanan.saya' : 'admin.dashboard');
+        }
+        return view('auth.forgot-password');
+    }
+
+    /**
+     * Kirim email tautan atur ulang kata sandi ke email terdaftar mitra
+     */
+    public function sendResetLinkEmail(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ], [
+            'email.required' => 'Alamat email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return back()->with('error', 'Alamat email tidak terdaftar dalam sistem mitra kami. Silakan periksa kembali atau hubungi pengelola.');
+        }
+
+        // Generate token aman dan OTP 6 digit
+        $token = Str::random(64);
+        $otpCode = str_pad((string)random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $user->email],
+            [
+                'token' => Hash::make($token),
+                'created_at' => now(),
+            ]
+        );
+
+        $resetUrl = route('password.reset', [
+            'token' => $token,
+            'email' => $user->email,
+        ]);
+
+        try {
+            Mail::to($user->email)->send(new ResetPasswordMail($user, $token, $resetUrl, $otpCode));
+        } catch (\Exception $e) {
+            Log::error('Gagal mengirim email reset: ' . $e->getMessage());
+            return back()->with('error', 'Gagal mengirim email verifikasi. Pastikan konfigurasi mail server aktif.');
+        }
+
+        ActivityLogger::log('Permintaan Reset Sandi', "Mitra '{$user->name}' ({$user->email}) meminta tautan reset kata sandi");
+
+        return back()->with('success', 'Tautan pengaturan ulang kata sandi telah berhasil dikirimkan ke email Anda. Silakan periksa kotak masuk (inbox) atau folder spam.');
+    }
+
+    /**
+     * Tampilkan formulir atur ulang kata sandi baru
+     */
+    public function showResetPassword($token, Request $request)
+    {
+        $email = $request->query('email');
+        return view('auth.reset-password', compact('token', 'email'));
+    }
+
+    /**
+     * Proses pembaruan kata sandi baru dengan verifikasi token
+     */
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => ['required', 'string'],
+            'email' => ['required', 'email'],
+            'password' => ['required', 'min:6', 'confirmed'],
+        ], [
+            'token.required' => 'Token reset tidak valid atau tidak ditemukan.',
+            'email.required' => 'Alamat email wajib diisi.',
+            'password.required' => 'Kata sandi baru wajib diisi.',
+            'password.min' => 'Kata sandi minimal 6 karakter.',
+            'password.confirmed' => 'Konfirmasi kata sandi baru tidak cocok.',
+        ]);
+
+        $record = DB::table('password_reset_tokens')->where('email', $request->email)->first();
+
+        if (!$record) {
+            return back()->withErrors(['email' => 'Permintaan atur ulang kata sandi tidak ditemukan atau sudah kedaluwarsa.']);
+        }
+
+        if (!Hash::check($request->token, $record->token)) {
+            return back()->withErrors(['token' => 'Token atur ulang kata sandi tidak valid atau telah usang.']);
+        }
+
+        $createdAt = Carbon::parse($record->created_at);
+        if ($createdAt->addMinutes(60)->isPast()) {
+            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+            return back()->withErrors(['token' => 'Tautan atur ulang kata sandi telah kedaluwarsa (lebih dari 60 menit). Silakan ajukan permohonan baru.']);
+        }
+
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            return back()->withErrors(['email' => 'Pengguna tidak ditemukan.']);
+        }
+
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+        ActivityLogger::log('Sandi Diperbarui', "Pengguna {$user->name} ({$user->email}) berhasil mereset kata sandi secara mandiri");
+
+        return redirect()->route('login')->with('success', 'Kata sandi Anda berhasil diperbarui! Silakan masuk dengan kata sandi baru Anda.');
     }
 }

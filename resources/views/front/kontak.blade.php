@@ -14,10 +14,10 @@
 
 <section class="section-py">
     <div class="container">
-        <div class="grid-2col" style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px;">
+        <div class="grid-2col" style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px; align-items: stretch;">
             <!-- Info Kontak -->
-            <div class="scroll-reveal reveal-up">
-                <div style="background: var(--bg-surface); border: 1.5px solid var(--border-light); border-radius: var(--radius-lg); padding: 30px; margin-bottom: 24px; box-shadow: var(--shadow-sm);">
+            <div class="scroll-reveal reveal-up" style="display: flex;">
+                <div style="background: var(--bg-surface); border: 1.5px solid var(--border-light); border-radius: var(--radius-lg); padding: 30px; box-shadow: var(--shadow-sm); width: 100%; display: flex; flex-direction: column;">
                     <h3 style="color: var(--gold-hover); font-size: 20px; margin-bottom: 16px; font-weight: 800;">
                         <i class="fa-solid fa-building-circle-check"></i> Kantor & Gudang Pabrik
                     </h3>
@@ -37,13 +37,13 @@
                         </p>
                     </div>
 
-                    <div style="margin-bottom: 16px;">
+                    <div style="margin-bottom: 20px;">
                         <strong style="color: var(--text-dark); display: block; margin-bottom: 4px;">Jam Buka Operasional Gudang:</strong>
                         <p style="color: var(--text-medium);">Senin - Sabtu: 08.00 - 16.00 WIB<br>(Hari Minggu & Libur Nasional Tutup)</p>
                     </div>
 
-                    <div style="margin-top: 20px;">
-                        <a href="https://maps.app.goo.gl/3fxK2wXZoiRLs2sg8" target="_blank" class="btn btn-gold btn-sm" style="width: 100%; text-align: center; justify-content: center;">
+                    <div style="margin-top: auto; padding-top: 16px; border-top: 1px dashed var(--border-light);">
+                        <a href="https://maps.app.goo.gl/3fxK2wXZoiRLs2sg8" target="_blank" class="btn btn-gold btn-sm" style="width: 100%; text-align: center; justify-content: center; padding: 12px;">
                             <i class="fa-solid fa-diamond-turn-right"></i> Buka Rute Google Maps Pabrik
                         </a>
                     </div>
@@ -51,8 +51,8 @@
             </div>
 
             <!-- Form Pesan Kemitraan -->
-            <div class="scroll-reveal reveal-zoom reveal-delay-1">
-                <div style="background: var(--bg-surface); border: 1.5px solid var(--border-light); border-radius: var(--radius-lg); padding: 30px; box-shadow: var(--shadow-sm);">
+            <div class="scroll-reveal reveal-zoom reveal-delay-1" style="display: flex;">
+                <div style="background: var(--bg-surface); border: 1.5px solid var(--border-light); border-radius: var(--radius-lg); padding: 30px; box-shadow: var(--shadow-sm); width: 100%; display: flex; flex-direction: column;">
                     <h3 style="color: var(--gold-hover); font-size: 20px; margin-bottom: 8px; font-weight: 800;">
                         <i class="fa-solid fa-envelope-open-text"></i> Kirim Permohonan Kemitraan
                     </h3>
@@ -95,14 +95,14 @@
                     <span class="eyebrow"><i class="fa-solid fa-map-location-dot"></i> PETA SATELIT & NAVIGASI PABRIK</span>
                     <h3 style="color: var(--text-dark); font-family: var(--font-serif); font-size: 1.35rem; margin: 0; font-weight: 800;">Titik Lokasi Pabrik di Ponggok, Blitar</h3>
                 </div>
-                <a href="https://www.oogle.com/maps/dir/?api=1&destination=-8.0231433,112.1001202" target="_blank" class="btn btn-sm btn-gold">
+                <a href="https://www.google.com/maps/dir/?api=1&destination=-8.0231433,112.1001202" target="_blank" class="btn btn-sm btn-gold">
                     <i class="fa-solid fa-diamond-turn-right"></i> Petunjuk Arah Google Maps
                 </a>
             </div>
 
             <div style="border-radius: var(--radius-lg); overflow: hidden; border: 1.5px solid var(--border-light); box-shadow: var(--shadow-md);">
                 <iframe 
-                    src="https://www.oogle.com/maps?q=-8.0231433,112.1001202&hl=id&z=15&output=embed" 
+                    src="https://www.google.com/maps?q=-8.0231433,112.1001202&hl=id&z=15&output=embed" 
                     width="100%" 
                     height="420" 
                     style="border:0; display: block;" 

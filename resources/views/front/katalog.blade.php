@@ -43,9 +43,11 @@
             <div class="products-grid">
                 @foreach($produks as $p)
                     <div class="product-card scroll-reveal reveal-zoom reveal-delay-{{ ($loop->index % 3) + 1 }}">
-                        <!-- Main Product Image Wrapper with Label & Zoom Button -->
-                        <div class="product-img-wrapper" style="position: relative;">
-                            <img src="{{ $p->gallery_images[0]['url'] ?? $p->image_url }}" alt="{{ $p->nama }}" class="product-img" id="prod-main-img-{{ $p->id }}" style="transition: opacity 0.25s ease;">
+                        <!-- Main Product Image Wrapper (1 Foto Mewakili 1 Produk) -->
+                        <div class="product-img-wrapper" style="position: relative; display: flex; align-items: center; justify-content: center;">
+                            <a href="{{ route('produk.detail', $p->slug) }}" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; text-decoration: none;">
+                                <img src="{{ $p->image_url }}" alt="{{ $p->nama }}" class="product-img" id="prod-main-img-{{ $p->id }}" style="margin: 0 auto; display: block; object-fit: contain;">
+                            </a>
                             
                             <span class="category-tag category-{{ strtolower($p->kategori->slug) }}">
                                 {{ $p->kategori->nama_kategori }}
@@ -53,32 +55,7 @@
                             <span class="stock-tag stock-{{ Str::slug($p->status_stok) }}">
                                 {{ $p->status_stok }}
                             </span>
-
-                            <span class="view-label-badge" id="prod-label-{{ $p->id }}">
-                                <i class="fa-solid fa-camera"></i> {{ $p->gallery_images[0]['badge'] ?? 'Bungkus' }}
-                            </span>
-
-                            <button type="button" class="btn-open-gallery-zoom" onclick="openProductLightbox('{{ $p->id }}')" title="Buka Galeri Foto (4 Foto Asli)">
-                                <i class="fa-solid fa-expand"></i>
-                            </button>
                         </div>
-
-                        <!-- 4 Thumbnails Selector (Inspirasi Wismilak) -->
-                        @if(count($p->gallery_images) > 1)
-                            <div class="product-gallery-selector">
-                                @foreach($p->gallery_images as $idx => $img)
-                                    <button type="button" 
-                                            class="product-gallery-thumb {{ $idx === 0 ? 'active' : '' }}" 
-                                            data-prod-id="{{ $p->id }}"
-                                            data-img-url="{{ $img['url'] }}"
-                                            data-img-badge="{{ $img['badge'] }}"
-                                            onclick="switchProductCardImage('{{ $p->id }}', '{{ $img['url'] }}', '{{ $img['badge'] }}', this)" 
-                                            title="{{ $img['label'] }} (Klik untuk pratinjau)">
-                                        <img src="{{ $img['url'] }}" alt="{{ $img['label'] }}">
-                                    </button>
-                                @endforeach
-                            </div>
-                        @endif
 
                         <div class="product-info">
                             <div class="product-code">{{ $p->kode_barang }}</div>
@@ -125,156 +102,5 @@
     </div>
 </section>
 
-<!-- Modal Galeri Lightbox (4 Foto Produk Resolusi Penuh) -->
-<div id="productLightboxModal" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(5, 7, 9, 0.92); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px;">
-    <div style="position: relative; max-width: 760px; width: 100%; background: var(--charcoal-800); border: 1px solid var(--gold); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow-lg);">
-        
-        <!-- Header Modal -->
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--charcoal-border); background: var(--charcoal-900);">
-            <div>
-                <h4 id="lightboxTitle" style="color: var(--text-white); font-family: var(--font-serif); margin: 0; font-size: 1.15rem;">Galeri Produk</h4>
-                <span id="lightboxLabel" style="color: var(--gold); font-size: 0.82rem; font-weight: 600;">Bungkus Utama</span>
-            </div>
-            <button type="button" onclick="closeProductLightbox()" style="background: none; border: none; color: var(--text-muted); font-size: 26px; cursor: pointer; line-height: 1; padding: 0;" aria-label="Tutup Galeri">
-                &times;
-            </button>
-        </div>
-
-        <!-- Main Lightbox Display -->
-        <div style="position: relative; background: #ffffff; height: 420px; display: flex; align-items: center; justify-content: center; padding: 20px; overflow: hidden;">
-            <img id="lightboxMainImg" src="" alt="Pratinjau Foto" style="max-height: 100%; max-width: 100%; width: auto; height: auto; object-fit: contain; transition: transform 0.25s ease;">
-            
-            <!-- Arrow Prev & Next -->
-            <button type="button" onclick="prevLightboxImg()" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 50%; background: rgba(14, 12, 10, 0.85); border: 1px solid var(--gold); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-                <i class="fa-solid fa-chevron-left"></i>
-            </button>
-            <button type="button" onclick="nextLightboxImg()" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 50%; background: rgba(14, 12, 10, 0.85); border: 1px solid var(--gold); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-                <i class="fa-solid fa-chevron-right"></i>
-            </button>
-        </div>
-
-        <!-- Lightbox Thumbnails Strip -->
-        <div id="lightboxThumbStrip" style="display: flex; gap: 8px; padding: 12px 20px; background: var(--charcoal-900); border-top: 1px solid var(--charcoal-border); justify-content: center; overflow-x: auto;">
-            <!-- Rendered dynamically -->
-        </div>
-    </div>
-</div>
 @endsection
-
-@push('scripts')
-<script>
-    const productsGalleryData = {
-        @foreach($produks as $p)
-            '{{ $p->id }}': {
-                name: @json($p->nama),
-                images: @json($p->gallery_images)
-            },
-        @endforeach
-    };
-
-    let activeLightboxProdId = null;
-    let activeLightboxImgIdx = 0;
-
-    // Switch image on catalog product card
-    function switchProductCardImage(prodId, imgUrl, badgeText, btnElement) {
-        const mainImg = document.getElementById('prod-main-img-' + prodId);
-        const labelBadge = document.getElementById('prod-label-' + prodId);
-
-        if (mainImg) {
-            mainImg.style.opacity = '0.35';
-            setTimeout(() => {
-                mainImg.src = imgUrl;
-                mainImg.style.opacity = '1';
-            }, 120);
-        }
-
-        if (labelBadge) {
-            labelBadge.innerHTML = '<i class="fa-solid fa-camera"></i> ' + badgeText;
-        }
-
-        if (btnElement && btnElement.parentElement) {
-            const siblings = btnElement.parentElement.querySelectorAll('.product-gallery-thumb');
-            siblings.forEach(s => s.classList.remove('active'));
-            btnElement.classList.add('active');
-        }
-    }
-
-    // Lightbox Modal Functions
-    function openProductLightbox(prodId, index = 0) {
-        const prod = productsGalleryData[prodId];
-        if (!prod || !prod.images.length) return;
-
-        activeLightboxProdId = prodId;
-        activeLightboxImgIdx = index;
-
-        document.getElementById('lightboxTitle').textContent = prod.name;
-        updateLightboxView();
-
-        const modal = document.getElementById('productLightboxModal');
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-    }
-
-    function updateLightboxView() {
-        const prod = productsGalleryData[activeLightboxProdId];
-        if (!prod) return;
-
-        const imgData = prod.images[activeLightboxImgIdx];
-        document.getElementById('lightboxMainImg').src = imgData.url;
-        document.getElementById('lightboxLabel').textContent = imgData.label;
-
-        // Render Thumbnails
-        const thumbStrip = document.getElementById('lightboxThumbStrip');
-        thumbStrip.innerHTML = '';
-
-        prod.images.forEach((img, i) => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'product-gallery-thumb' + (i === activeLightboxImgIdx ? ' active' : '');
-            btn.style.width = '46px';
-            btn.style.height = '46px';
-            btn.style.flex = 'none';
-            btn.title = img.label;
-            btn.innerHTML = `<img src="${img.url}" alt="${img.label}">`;
-            btn.onclick = () => {
-                activeLightboxImgIdx = i;
-                updateLightboxView();
-            };
-            thumbStrip.appendChild(btn);
-        });
-    }
-
-    function prevLightboxImg() {
-        const prod = productsGalleryData[activeLightboxProdId];
-        if (!prod) return;
-        activeLightboxImgIdx = (activeLightboxImgIdx - 1 + prod.images.length) % prod.images.length;
-        updateLightboxView();
-    }
-
-    function nextLightboxImg() {
-        const prod = productsGalleryData[activeLightboxProdId];
-        if (!prod) return;
-        activeLightboxImgIdx = (activeLightboxImgIdx + 1) % prod.images.length;
-        updateLightboxView();
-    }
-
-    function closeProductLightbox() {
-        document.getElementById('productLightboxModal').style.display = 'none';
-        document.body.style.overflow = '';
-    }
-
-    // Close on Escape or click outside
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeProductLightbox();
-        if (e.key === 'ArrowLeft') prevLightboxImg();
-        if (e.key === 'ArrowRight') nextLightboxImg();
-    });
-
-    document.getElementById('productLightboxModal').addEventListener('click', (e) => {
-        if (e.target.id === 'productLightboxModal') {
-            closeProductLightbox();
-        }
-    });
-</script>
-@endpush
 

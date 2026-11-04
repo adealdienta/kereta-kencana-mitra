@@ -6,11 +6,17 @@ use Tests\TestCase;
 use App\Models\User;
 use App\Models\Barang;
 use App\Models\Transaksi;
+use App\Mail\ResetPasswordMail;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class KeretaKencanaTest extends TestCase
 {
+    use DatabaseTransactions;
     public function test_halaman_publik_dapat_diakses(): void
     {
         $this->get('/')->assertStatus(200);
@@ -61,6 +67,10 @@ class KeretaKencanaTest extends TestCase
         ]);
 
         $barang = Barang::where('slug', 'kereta-kencana-12')->first() ?? Barang::first();
+        if ($barang->stok < 20) {
+            $barang->update(['stok' => 200]);
+            $barang->refresh();
+        }
         $stokAwal = $barang->stok;
 
         $response = $this->actingAs($customer)->post('/pesan', [
@@ -217,6 +227,9 @@ class KeretaKencanaTest extends TestCase
         $b1 = $barangs[0]; // misal pesan 1 Bal
         $b2 = $barangs[1]; // misal pesan 1 Slop
 
+        if ($b1->stok < 10) { $b1->update(['stok' => 100]); $b1->refresh(); }
+        if ($b2->stok < 10) { $b2->update(['stok' => 100]); $b2->refresh(); }
+
         $stokAwalB1 = $b1->stok;
         $stokAwalB2 = $b2->stok;
 
@@ -259,5 +272,152 @@ class KeretaKencanaTest extends TestCase
         $b2->refresh();
         $this->assertEquals($stokAwalB1, $b1->stok);
         $this->assertEquals($stokAwalB2, $b2->stok);
+    }
+
+    public function test_pelanggan_dapat_meminta_link_reset_sandi(): void
+    {
+        Mail::fake();
+
+        $customer = User::factory()->create([
+            'role' => 'pelanggan',
+            'email' => 'reset_test_' . time() . '@test.com',
+        ]);
+
+        $response = $this->post('/lupa-sandi', [
+            'email' => $customer->email,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('password_reset_tokens', [
+            'email' => $customer->email,
+        ]);
+
+        Mail::assertSent(ResetPasswordMail::class, function ($mail) use ($customer) {
+            return $mail->hasTo($customer->email);
+        });
+    }
+
+    public function test_pelanggan_dapat_mereset_sandi_dengan_token(): void
+    {
+        $customer = User::factory()->create([
+            'role' => 'pelanggan',
+            'email' => 'reset_done_' . time() . '@test.com',
+            'password' => Hash::make('passwordLama123'),
+        ]);
+
+        $plainToken = 'test-token-reset-1234567890';
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $customer->email],
+            [
+                'token' => Hash::make($plainToken),
+                'created_at' => now(),
+            ]
+        );
+
+        // Akses halaman reset sandi
+        $this->get("/reset-sandi/{$plainToken}?email=" . urlencode($customer->email))
+            ->assertStatus(200);
+
+        // Kirim perubahan sandi baru
+        $response = $this->post('/reset-sandi', [
+            'token' => $plainToken,
+            'email' => $customer->email,
+            'password' => 'passwordBaruSuper123',
+            'password_confirmation' => 'passwordBaruSuper123',
+        ]);
+
+        $response->assertRedirect(route('login'));
+        $response->assertSessionHas('success');
+
+        // Token telah dihapus
+        $this->assertDatabaseMissing('password_reset_tokens', [
+            'email' => $customer->email,
+        ]);
+
+        // Sandi baru terupdate dan bisa login
+        $customer->refresh();
+        $this->assertTrue(Hash::check('passwordBaruSuper123', $customer->password));
+
+        $loginResponse = $this->post('/login', [
+            'email' => $customer->email,
+            'password' => 'passwordBaruSuper123',
+        ]);
+        $loginResponse->assertRedirect(route('pesanan.saya'));
+    }
+
+    public function test_staff_dapat_mengirim_link_reset_sandi_ke_email_mitra_dari_panel_admin(): void
+    {
+        Mail::fake();
+
+        $admin = User::where('role', 'staff')->first() ?? User::where('role', 'admin')->first() ?? User::factory()->create(['role' => 'staff']);
+        $customer = User::factory()->create(['role' => 'pelanggan']);
+
+        $response = $this->actingAs($admin)->post("/admin/mitra/{$customer->id}/kirim-reset-link");
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('password_reset_tokens', [
+            'email' => $customer->email,
+        ]);
+
+        Mail::assertSent(ResetPasswordMail::class, function ($mail) use ($customer) {
+            return $mail->hasTo($customer->email);
+        });
+    }
+
+    public function test_api_v1_lupa_sandi_dan_reset_sandi_mobile(): void
+    {
+        Mail::fake();
+
+        $customer = User::factory()->create([
+            'role' => 'pelanggan',
+            'email' => 'mobile_api_' . time() . '@test.com',
+            'password' => Hash::make('rahasiaLama123'),
+        ]);
+
+        // 1. Endpoint Forgot Password Mobile
+        $forgotResponse = $this->postJson('/api/v1/forgot-password', [
+            'email' => $customer->email,
+        ]);
+
+        $forgotResponse->assertStatus(200)
+            ->assertJson([
+                'status' => 'success',
+            ]);
+
+        $token = $forgotResponse->json('data.token');
+        $this->assertNotEmpty($token);
+
+        // 2. Endpoint Verifikasi Token Mobile
+        $verifyResponse = $this->postJson('/api/v1/verify-reset-token', [
+            'email' => $customer->email,
+            'token' => $token,
+        ]);
+
+        $verifyResponse->assertStatus(200)
+            ->assertJson([
+                'status' => 'success',
+                'valid' => true,
+            ]);
+
+        // 3. Endpoint Reset Password Mobile
+        $resetResponse = $this->postJson('/api/v1/reset-password', [
+            'email' => $customer->email,
+            'token' => $token,
+            'password' => 'passwordMobileBaru123',
+            'password_confirmation' => 'passwordMobileBaru123',
+        ]);
+
+        $resetResponse->assertStatus(200)
+            ->assertJson([
+                'status' => 'success',
+            ]);
+
+        // Verifikasi kata sandi baru telah tersimpan
+        $customer->refresh();
+        $this->assertTrue(Hash::check('passwordMobileBaru123', $customer->password));
     }
 }

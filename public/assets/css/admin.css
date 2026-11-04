@@ -160,12 +160,18 @@ body {
   border: 1px solid rgba(52, 211, 153, 0.4);
 }
 
+/* Universal SVG safeguard against oversized icons */
+svg {
+  max-width: 100%;
+}
+
 /* Main Area */
 .admin-main {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
+  overflow-x: hidden;
 }
 
 .admin-topbar {
@@ -438,4 +444,92 @@ body {
 @media (max-width: 768px) {
   .admin-wrapper { flex-direction: column; }
   .admin-sidebar { width: 100%; }
+}
+
+/* =========================================================
+   PAGINATION STYLING: PR. KERETA KENCANA (ADMIN PANEL)
+   ========================================================= */
+.custom-pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 18px;
+  margin-top: 18px;
+  border-top: 1px solid var(--admin-border);
+}
+
+.pagination-info {
+  font-size: 0.85rem;
+  color: var(--admin-muted);
+}
+
+.pagination-info strong {
+  color: var(--admin-primary);
+  font-weight: 700;
+}
+
+.pagination-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 6px;
+  border: 1px solid var(--admin-border);
+  background: #ffffff;
+  color: var(--admin-text);
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+  user-select: none;
+}
+
+.page-btn:hover:not(.disabled):not(.active) {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: var(--admin-primary);
+}
+
+.page-btn.active {
+  background: linear-gradient(135deg, var(--admin-gold), var(--admin-gold-hover));
+  border-color: var(--admin-gold);
+  color: #ffffff;
+  font-weight: 800;
+  box-shadow: 0 2px 4px rgba(197, 160, 89, 0.25);
+}
+
+.page-btn.disabled {
+  color: #94a3b8;
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.page-btn i, .page-btn svg {
+  font-size: 0.8rem;
+  width: 14px;
+  height: 14px;
+}
+
+/* Fallback for Tailwind Pagination if ever rendered */
+nav[role="navigation"] svg {
+  width: 16px !important;
+  height: 16px !important;
+  max-width: 16px !important;
+  max-height: 16px !important;
+  display: inline-block;
+  vertical-align: middle;
 }

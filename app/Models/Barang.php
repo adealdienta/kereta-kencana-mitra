@@ -104,44 +104,34 @@ class Barang extends Model
             if (file_exists(public_path('storage/' . $this->gambar))) {
                 return asset('storage/' . $this->gambar);
             }
+            return asset($this->gambar);
         }
+
+        // Pemetaan otomatis berdasarkan slug produk resmi PR. Kereta Kencana
+        $slugMap = [
+            'sembada-12' => 'assets/img/produk/sembada-12.jpg',
+            'kereta-kencana-12' => 'assets/img/produk/kereta-kencana-12.jpg',
+            'sembada-cethe-12' => 'assets/img/produk/sembada-cethe-12.jpg',
+        ];
+
+        if (!empty($this->slug) && isset($slugMap[$this->slug])) {
+            return asset($slugMap[$this->slug]);
+        }
+
         return asset('assets/img/logo-resmi.png');
     }
 
     /**
-     * Galeri 4 Foto Produk (Referensi Showcase Wismilak)
-     * Kemasan Utama, Slop 10 Bungkus, Kemasan Terbuka / Batang, Detail Presisi
+     * Foto Produk Resmi (1 Foto Mewakili 1 Produk)
      */
     public function getGalleryImagesAttribute(): array
     {
-        $slug = $this->slug;
-        $map = [
-            'sembada-12' => [
-                ['url' => asset('assets/img/produk/gallery/sembada-1.jpg'), 'label' => 'Bungkus Utama', 'badge' => 'Bungkus'],
-                ['url' => asset('assets/img/produk/gallery/sembada-2.jpg'), 'label' => 'Kemasan Slop (10 Bungkus)', 'badge' => 'Slop'],
-                ['url' => asset('assets/img/produk/gallery/sembada-3.jpg'), 'label' => 'Kemasan Terbuka & Batang', 'badge' => 'Isi Batang'],
-                ['url' => asset('assets/img/produk/gallery/sembada-4.jpg'), 'label' => 'Perspektif & Sudut Presisi', 'badge' => 'Detail'],
-            ],
-            'kereta-kencana-12' => [
-                ['url' => asset('assets/img/produk/gallery/kereta-kencana-1.jpg'), 'label' => 'Bungkus Utama', 'badge' => 'Bungkus'],
-                ['url' => asset('assets/img/produk/gallery/kereta-kencana-2.jpg'), 'label' => 'Kemasan Slop (10 Bungkus)', 'badge' => 'Slop'],
-                ['url' => asset('assets/img/produk/gallery/kereta-kencana-3.jpg'), 'label' => 'Kemasan Terbuka & Batang Emas', 'badge' => 'Isi Batang'],
-                ['url' => asset('assets/img/produk/gallery/kereta-kencana-4.jpg'), 'label' => 'Batang Rokok & Kemasan', 'badge' => 'Detail'],
-            ],
-            'sembada-cethe-12' => [
-                ['url' => asset('assets/img/produk/gallery/sembada-cethe-1.jpg'), 'label' => 'Bungkus Utama', 'badge' => 'Bungkus'],
-                ['url' => asset('assets/img/produk/gallery/sembada-cethe-2.jpg'), 'label' => 'Kemasan Slop (10 Bungkus)', 'badge' => 'Slop'],
-                ['url' => asset('assets/img/produk/gallery/sembada-cethe-3.jpg'), 'label' => 'Kemasan Terbuka & Cethe', 'badge' => 'Isi Batang'],
-                ['url' => asset('assets/img/produk/gallery/sembada-cethe-4.jpg'), 'label' => 'Batang Cethe Beraroma', 'badge' => 'Detail'],
-            ],
-        ];
-
-        if (isset($map[$slug])) {
-            return $map[$slug];
-        }
-
         return [
-            ['url' => $this->image_url, 'label' => $this->nama, 'badge' => 'Utama']
+            [
+                'url' => $this->image_url,
+                'label' => $this->nama,
+                'badge' => 'Produk Resmi',
+            ]
         ];
     }
 }

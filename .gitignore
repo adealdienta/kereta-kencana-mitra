@@ -3,6 +3,8 @@
 .env
 .env.backup
 .env.production
+.env*
+!.env.example
 .phpactor.json
 .phpunit.result.cache
 /.codex
@@ -27,3 +29,15 @@ Homestead.yaml
 Thumbs.db
 *.exe
 cloudflared.exe
+*.bat
+/File Migrasi Kereta Kencana/
+/Foto produk/
+/Design Mobile/
+/pengujian/
+/*.pdf
+/mobile_app/.idea/
+/mobile_app/.gradle/
+/mobile_app/build/
+/mobile_app/app/build/
+/mobile_app/local.properties
+.vercel

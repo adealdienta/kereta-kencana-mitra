@@ -3,36 +3,29 @@
 @section('title', 'PR. KERETA KENCANA - Pabrik Sigaret Kretek Blitar')
 
 @section('content')
+<div class="beranda-no-zoom">
 <!-- Hero Section -->
-<section class="hero-section" id="heroSection" style="position: relative; overflow: hidden; padding: 60px 0; min-height: 80vh; display: flex; align-items: center; background-color: #0e0c0a;">
+<section class="hero-section" id="heroSection" style="position: relative; overflow: hidden; padding: 115px 0 60px; min-height: 95vh; display: flex; align-items: flex-start; background-color: #0e0c0a;">
     <!-- Large Background Slider (Auto-Slide / Ken-Burns Fade) -->
     @php
         $heroSlides = [
             [
-                'img' => asset('assets/img/produk/trio-produk-kereta-kencana.jpg'),
-                'title' => '3 Varian Sigaret Kretek Tangan PR. Kereta Kencana',
+                'img' => asset('assets/img/produksi-pabrik-asli.jpg') . '?v=2',
+                'title' => 'Lini Produksi SKT PR. KERETA KENCANA',
             ],
             [
-                'img' => asset('assets/img/produk/gallery/kereta-kencana-1.jpg'),
-                'title' => 'KERETA KENCANA 12 SKT',
+                'img' => asset('assets/img/proses-bahan-baku.jpg') . '?v=2',
+                'title' => 'Racikan Tembakau & Cengkeh Pilihan',
             ],
             [
-                'img' => asset('assets/img/produk/gallery/sembada-1.jpg'),
-                'title' => 'SEMBADA 12 SKT',
+                'img' => asset('assets/img/proses-gudang-distribusi.jpg') . '?v=2',
+                'title' => 'Kemasan Slop Resmi 3 Varian SKT',
             ],
             [
-                'img' => asset('assets/img/produk/gallery/sembada-cethe-1.jpg'),
-                'title' => 'SEMBADA CETHE 12 SKT',
+                'img' => asset('assets/img/proses-linting-skt.jpg') . '?v=2',
+                'title' => 'Kepatuhan Pita Cukai Resmi Negara',
             ],
         ];
-
-        // Slot Modular: Deteksi otomatis foto fasilitas pabrik / lini produksi jika file asli sudah diunggah
-        if (file_exists(public_path('assets/img/produksi-pabrik-asli.jpg'))) {
-            $heroSlides[] = [
-                'img' => asset('assets/img/produksi-pabrik-asli.jpg'),
-                'title' => 'Lini Produksi PR. KERETA KENCANA Ponggok',
-            ];
-        }
     @endphp
 
     <div class="hero-slider-container" id="heroBgSlider">
@@ -59,7 +52,7 @@
     </div>
 
     <div class="container" style="position: relative; z-index: 2;">
-        <div class="hero-content-clean scroll-reveal reveal-zoom" style="max-width: 800px; padding: 48px 0;">
+        <div class="hero-content-clean scroll-reveal reveal-up" style="max-width: 800px; padding: 0;">
             <!-- Badge Atas -->
             <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(22, 19, 15, 0.85); border: 1px solid var(--charcoal-border); padding: 6px 16px; border-radius: 20px; margin-bottom: 22px;">
                 <span style="color: var(--gold); font-size: 11px;">✦</span>
@@ -73,127 +66,100 @@
                 <span style="color: var(--gold);">HINGGA INDUSTRI MODERN</span>
             </h1>
 
-            <!-- Deskripsi Singkat Fokus Bisnis / Jual Beli -->
-            <p class="hero-subheadline" style="font-size: 1.05rem; line-height: 1.75; color: var(--text-light); margin-bottom: 32px; max-width: 720px;">
-                PR. KERETA KENCANA memproduksi 3 varian Sigaret Kretek Tangan (SKT) 12 batang berpita cukai resmi negara. Menyediakan pasokan langsung pabrik untuk mitra distributor grosir, agen, hingga toko dengan kemudahan order mulai dari 1 slop hingga kemasan bal.
-            </p>
-
-            <!-- Tombol Aksi -->
-            <div class="hero-buttons" style="display: flex; gap: 14px; flex-wrap: wrap;">
-                <a href="{{ route('pesanan.form') }}" class="btn btn-gold btn-lg">
-                    <i class="fa-solid fa-cart-shopping"></i> Order Sekarang (Mulai 1 Slop)
-                </a>
-                <a href="{{ route('katalog.index') }}" class="btn btn-secondary btn-lg">
-                    <i class="fa-solid fa-boxes-stacked"></i> Lihat Katalog Produk
-                </a>
-            </div>
         </div>
     </div>
 </section>
 
-<!-- Ornamen Pembatas Batik Jawa -->
-<div class="batik-divider" aria-hidden="true">
-    <span class="batik-divider-line"></span>
-    <span class="batik-divider-symbol">
-        <svg viewBox="0 0 24 24"><path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9L12 2Z"/></svg>
-        <span>KRETEK BLITAR</span>
-        <svg viewBox="0 0 24 24"><path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9L12 2Z"/></svg>
-    </span>
-    <span class="batik-divider-line right"></span>
-</div>
-
-<!-- Tentang Singkat & Lencana Legalitas -->
+<!-- Tentang Singkat & Lencana Legalitas (Tata Letak Container Terbingkai Rapi) -->
 <section class="section-about">
     <div class="container">
-        <div class="about-grid">
-            <div class="about-text scroll-reveal reveal-up">
+        <div class="about-grid" style="align-items: stretch;">
+            <div class="about-text scroll-reveal reveal-up" style="display: flex; flex-direction: column; justify-content: center;">
                 <span class="eyebrow">SEKILAS PABRIK KRETEK</span>
-                <h2 class="section-title" style="font-size: clamp(1.6rem, 2.8vw, 2.1rem); margin-bottom: 14px;">TRADISI LINTINGAN BLITAR BERIZIN RESMI CUKAI</h2>
+                <h2 class="section-title" style="font-size: clamp(1.75rem, 2.8vw, 2.25rem); margin-bottom: 16px;">Tradisi Lintingan Blitar Berizin Resmi Cukai</h2>
                 <div class="about-highlight-box">
-                    <p style="margin-bottom: 0; color: var(--text-dark); font-weight: 600; font-size: 1rem; line-height: 1.6;">
-                        "Menjaga kemurnian cita rasa kretek warisan nusantara dengan kepatuhan penuh terhadap regulasi pita cukai negara."
+                    <p style="margin-bottom: 0; color: var(--text-dark); font-weight: 600; font-size: 0.98rem; line-height: 1.65;">
+                        "Menjaga kemurnian cita rasa kretek warisan Nusantara dengan kepatuhan penuh terhadap regulasi pita cukai negara."
                     </p>
                 </div>
-                <p>
-                    Beroperasi di Dusun Subontoro, Desa Kebonduren, Kecamatan Ponggok, Kabupaten Blitar, Jawa Timur, <strong>PR. KERETA KENCANA</strong> dipimpin oleh Bapak Komari Yaman. Kami memproduksi 3 produk kretek tangan 12 batang (SEMBADA, KERETA KENCANA, SEMBADA CETHE) dan melayani pengadaan pasokan distributor besar, agen grosir, hingga toko dan warung dengan fleksibilitas order mulai dari <strong>1 slop</strong> hingga kemasan Bal.
+                <p style="margin-bottom: 24px;">
+                    Beroperasi di Dusun Subontoro, Desa Kebonduren, Kecamatan Ponggok, Kabupaten Blitar, Jawa Timur, <strong>PR. KERETA KENCANA</strong> dipimpin oleh Bapak Komari Yaman. Kami memproduksi 3 varian Sigaret Kretek Tangan (SKT) 12 batang (<strong>SEMBADA</strong>, <strong>KERETA KENCANA</strong>, dan <strong>SEMBADA CETHE</strong>) serta melayani pengadaan pasokan distributor besar, agen grosir, hingga toko dan warung dengan fleksibilitas order mulai dari <strong>1 slop</strong> hingga kemasan Bal.
                 </p>
-                <div style="margin-top: 24px;">
+                <div>
                     <a href="{{ route('profil') }}" class="btn btn-sm btn-outline-gold">
                         Baca Profil Perusahaan & Legalitas Selengkapnya <i class="fa-solid fa-arrow-right"></i>
                     </a>
                 </div>
             </div>
 
-            <div class="scroll-reveal reveal-zoom reveal-delay-2">
-                <span class="eyebrow">KEPATUHAN REGULASI & PERIZINAN</span>
-                <div class="legal-badges-grid">
-                    <div class="badge-card">
-                        <div class="badge-icon"><i class="fa-solid fa-stamp"></i></div>
-                        <div>
-                            <div class="badge-title">NPPBKC Resmi</div>
-                            <div class="badge-sub">0821.1.2.XXXXX (Bea Cukai Blitar)</div>
-                        </div>
-                    </div>
-                    <div class="badge-card">
-                        <div class="badge-icon"><i class="fa-solid fa-file-contract"></i></div>
-                        <div>
-                            <div class="badge-title">NIB Usaha Terbit</div>
-                            <div class="badge-sub">9120001234567 (OSS RBA RI)</div>
-                        </div>
-                    </div>
-                    <div class="badge-card">
-                        <div class="badge-icon"><i class="fa-solid fa-shield-halved"></i></div>
-                        <div>
-                            <div class="badge-title">Pita Cukai Asli</div>
-                            <div class="badge-sub">Seri HPTL/Hasil Tembakau Resmi</div>
-                        </div>
-                    </div>
-                    <div class="badge-card">
-                        <div class="badge-icon"><i class="fa-solid fa-truck-fast"></i></div>
-                        <div>
-                            <div class="badge-title">Pengiriman Cepat</div>
-                            <div class="badge-sub">Armada Pabrik & Ekspedisi Kargo</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Slot Modular Foto Gedung/Fasilitas Pabrik (Otomatis aktif bila file pabrik-beranda.jpg diunggah) -->
+            <div class="scroll-reveal reveal-up reveal-delay-2" style="display: flex;">
                 @if(file_exists(public_path('assets/img/pabrik-beranda.jpg')))
-                    <div class="photo-frame-modern" style="margin-top: 16px; border-radius: var(--radius); height: 160px;">
-                        <img src="{{ asset('assets/img/pabrik-beranda.jpg') }}" alt="Gedung Pabrik PR. Kereta Kencana" class="photo-frame-img">
+                    <div class="photo-frame-modern" style="width: 100%; min-height: 340px; height: 100%;">
+                        <img src="{{ asset('assets/img/pabrik-beranda.jpg') }}?v=2" alt="Gedung Pabrik PR. Kereta Kencana" class="photo-frame-img">
                         <div class="photo-frame-caption">
-                            <i class="fa-solid fa-industry" style="color: var(--gold);"></i> Gedung & Fasilitas Pabrik Ponggok
+                            <i class="fa-solid fa-industry" style="color: var(--gold);"></i> Aktivitas & Fasilitas Pabrik Ponggok
                         </div>
+                    </div>
+                @else
+                    <div class="photo-placeholder-slot" style="width: 100%; min-height: 340px; height: 100%;">
+                        <div class="photo-placeholder-icon" style="width: 60px; height: 60px; font-size: 22px;">
+                            <i class="fa-solid fa-industry"></i>
+                        </div>
+                        <div class="photo-placeholder-title">Foto Gedung & Gerbang Utama Pabrik</div>
+                        <div class="photo-placeholder-sub">Dokumentasi tampak depan fasilitas produksi PR. Kereta Kencana di Desa Kebonduren, Kec. Ponggok, Kab. Blitar.</div>
+                        <span class="photo-placeholder-tag"><i class="fa-regular fa-image"></i> public/assets/img/pabrik-beranda.jpg</span>
                     </div>
                 @endif
+            </div>
+        </div>
+
+        <!-- Baris 4 Lencana Kepatuhan Regulasi & Perizinan (Sejajar Rapi 4 Kolom) -->
+        <div class="legal-badges-4col scroll-reveal reveal-up">
+            <div class="badge-card">
+                <div class="badge-icon"><i class="fa-solid fa-stamp"></i></div>
+                <div>
+                    <div class="badge-title">NPPBKC Resmi</div>
+                    <div class="badge-sub">0821.1.2.XXXXX (Bea Cukai Blitar)</div>
+                </div>
+            </div>
+            <div class="badge-card">
+                <div class="badge-icon"><i class="fa-solid fa-file-contract"></i></div>
+                <div>
+                    <div class="badge-title">NIB Usaha Terbit</div>
+                    <div class="badge-sub">9120001234567 (OSS RBA RI)</div>
+                </div>
+            </div>
+            <div class="badge-card">
+                <div class="badge-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <div>
+                    <div class="badge-title">Pita Cukai Asli</div>
+                    <div class="badge-sub">Seri HPTL/Hasil Tembakau Resmi</div>
+                </div>
+            </div>
+            <div class="badge-card">
+                <div class="badge-icon"><i class="fa-solid fa-truck-fast"></i></div>
+                <div>
+                    <div class="badge-title">Pengiriman Cepat</div>
+                    <div class="badge-sub">Armada Pabrik & Ekspedisi Kargo</div>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Ornamen Pembatas Batik Jawa -->
-<div class="batik-divider" aria-hidden="true">
-    <span class="batik-divider-line"></span>
-    <span class="batik-divider-symbol">
-        <svg viewBox="0 0 24 24"><path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9L12 2Z"/></svg>
-        <span>PRODUK RESMI</span>
-        <svg viewBox="0 0 24 24"><path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9L12 2Z"/></svg>
-    </span>
-    <span class="batik-divider-line right"></span>
-</div>
-
 <!-- Produk Unggulan SKT Resmi -->
-<section class="section-py" id="produk" style="padding: 50px 0 80px;">
+<section class="section-py" id="produk" style="padding: 88px 0; background: var(--bg-surface-subtle); border-bottom: 1px solid var(--border-light);">
     <div class="container">
         <div class="section-header-center scroll-reveal reveal-up">
-            <span class="eyebrow"><i class="fa-solid fa-boxes-stacked"></i> KATALOG RESMI B2B</span>
-            <h2 class="section-title" style="font-size: clamp(1.6rem, 2.8vw, 2.2rem);">3 KOLEKSI SIGARET KRETEK TANGAN RESMI</h2>
-            <p class="section-subtitle">Pilihan Sigaret Kretek Tangan (SKT) 12 batang berpita cukai resmi negara: <strong>SEMBADA</strong>, <strong>KERETA KENCANA</strong>, dan <strong>SEMBADA CETHE</strong>. Pemesanan langsung pabrik mulai dari 1 slop (eceran toko) hingga kemasan bal grosir.</p>
+            <span class="eyebrow">PORTOFOLIO PRODUK RESMI</span>
+            <h2 class="section-title" style="font-size: clamp(1.75rem, 3vw, 2.3rem);">Koleksi Sigaret Kretek Tangan (SKT)</h2>
+            <div class="gold-divider"></div>
+            <p class="section-subtitle">Tiga varian Sigaret Kretek Tangan (SKT) 12 batang berpita cukai resmi negara: <strong>SEMBADA</strong>, <strong>KERETA KENCANA</strong>, dan <strong>SEMBADA CETHE</strong>. Pemesanan langsung pabrik mulai dari 1 slop hingga kemasan bal grosir.</p>
         </div>
 
         <div class="products-grid">
             @foreach($produks as $p)
-                <div class="product-card scroll-reveal reveal-zoom reveal-delay-{{ ($loop->index % 3) + 1 }}">
+                <div class="product-card scroll-reveal reveal-up reveal-delay-{{ ($loop->index % 3) + 1 }}">
                     <div class="product-img-wrapper">
                         <img src="{{ $p->image_url }}" alt="{{ $p->nama }}" class="product-img">
                         <span class="category-tag category-{{ strtolower($p->kategori->slug) }}">
@@ -262,6 +228,116 @@
         </div>
     </div>
 </section>
+
+<!-- Warisan & Proses Pembuatan Kretek (Bagian Full-Bleed 50:50 Zig-Zag PR. Kereta Kencana) -->
+<section style="padding: 80px 0 0; background: #ffffff;">
+    <div class="container">
+        <div class="section-header-center scroll-reveal reveal-up" style="margin-bottom: 56px;">
+            <span class="eyebrow">WARISAN KRETEK & STANDAR PRODUKSI</span>
+            <h2 class="section-title" style="font-size: clamp(1.75rem, 3vw, 2.3rem);">Proses Manufaktur & Jaminan Pasokan</h2>
+            <div class="gold-divider"></div>
+            <p class="section-subtitle">Ketelitian peracikan daun tembakau dan cengkeh Nusantara, keahlian pelintingan tangan tradisional, hingga kesiapan distribusi berskala slop dan bal.</p>
+        </div>
+    </div>
+    <div class="proses-split-list">
+        <!-- Baris 1: Gambar Besar 50% di KIRI — Teks di KANAN -->
+        <div class="proses-split-row scroll-reveal reveal-up">
+            <div class="proses-split-media">
+                @if(file_exists(public_path('assets/img/proses-bahan-baku.jpg')))
+                    <div class="photo-frame-modern">
+                        <img src="{{ asset('assets/img/proses-bahan-baku.jpg') }}?v=2" alt="Seleksi Tembakau & Cengkeh Pilihan" class="photo-frame-img">
+                        <div class="photo-frame-caption">
+                            <i class="fa-solid fa-seedling" style="color: var(--gold);"></i> Bahan Baku Tembakau & Cengkeh Nusantara
+                        </div>
+                    </div>
+                @else
+                    <div class="photo-placeholder-slot">
+                        <div class="photo-placeholder-icon">
+                            <i class="fa-solid fa-seedling"></i>
+                        </div>
+                        <div class="photo-placeholder-title">Foto Bahan Baku Tembakau & Cengkeh</div>
+                        <div class="photo-placeholder-sub">Dokumentasi gudang penyimpanan daun tembakau kering & rempah cengkeh pilihan PR. Kereta Kencana.</div>
+                        <span class="photo-placeholder-tag"><i class="fa-regular fa-image"></i> public/assets/img/proses-bahan-baku.jpg</span>
+                    </div>
+                @endif
+            </div>
+            <div class="proses-split-content">
+                <h3 class="proses-split-title">Keunikan Racikan Tembakau & Cengkeh</h3>
+                <p class="proses-split-desc">
+                    Kretek merupakan karya khas Nusantara yang mengandalkan ketelitian peracikan bahan baku. Di PR. Kereta Kencana, cita rasa setiap varian ditentukan oleh perpaduan daun tembakau pegunungan Jawa pilihan dan bunga cengkeh kering berkualitas tinggi yang diseleksi secara ketat sejak tahap awal penerimaan.
+                </p>
+                <p class="proses-split-desc">
+                    Usia simpan daun tembakau, tingkat kelembaban, serta proporsi antara rajangan tembakau dan cengkeh diatur secara presisi. Seluruh komposisi tersebut diperam bersama saus racikan khas pabrik untuk menghasilkan keseimbangan aroma rempah yang hangat dan kenikmatan tarikan yang konsisten di setiap batang.
+                </p>
+            </div>
+        </div>
+
+        <!-- Baris 2: Teks di KIRI — Gambar Besar 50% di KANAN -->
+        <div class="proses-split-row reverse scroll-reveal reveal-up">
+            <div class="proses-split-content">
+                <h3 class="proses-split-title">Keahlian Linting Tangan & Legalitas Cukai</h3>
+                <p class="proses-split-desc">
+                    Pembuatan Sigaret Kretek Tangan (SKT) dilakukan langsung oleh tangan-tangan terampil pekerja pabrik di Ponggok, Kabupaten Blitar. Proses pelintingan manual memastikan kepadatan tembakau di setiap batang terjaga merata tanpa mengurangi kelancaran hisapan.
+                </p>
+                <p class="proses-split-desc">
+                    Setiap bungkus rokok isi 12 batang yang telah selesai dilinting melewati tahapan pemeriksaan mutu berlapis sebelum dilekati pita cukai resmi Republik Indonesia yang terdaftar di KPPBC Bea Cukai Blitar. Kepatuhan ini menjamin seluruh produk kami aman dan resmi untuk diperdagangkan oleh mitra toko maupun agen.
+                </p>
+            </div>
+            <div class="proses-split-media">
+                @if(file_exists(public_path('assets/img/proses-linting-skt.jpg')))
+                    <div class="photo-frame-modern">
+                        <img src="{{ asset('assets/img/proses-linting-skt.jpg') }}?v=2" alt="Lini Linting Tangan SKT & Pita Cukai" class="photo-frame-img">
+                        <div class="photo-frame-caption">
+                            <i class="fa-solid fa-hands-holding-circle" style="color: var(--gold);"></i> Lini Produksi SKT & Pelekatan Pita Cukai
+                        </div>
+                    </div>
+                @else
+                    <div class="photo-placeholder-slot">
+                        <div class="photo-placeholder-icon">
+                            <i class="fa-solid fa-stamp"></i>
+                        </div>
+                        <div class="photo-placeholder-title">Foto Proses Linting SKT & Pita Cukai</div>
+                        <div class="photo-placeholder-sub">Dokumentasi pekerja linting Sigaret Kretek Tangan (SKT) & pelekatan pita cukai resmi Bea Cukai.</div>
+                        <span class="photo-placeholder-tag"><i class="fa-regular fa-image"></i> public/assets/img/proses-linting-skt.jpg</span>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        <!-- Baris 3: Gambar Besar 50% di KIRI — Teks di KANAN -->
+        <div class="proses-split-row scroll-reveal reveal-up">
+            <div class="proses-split-media">
+                @if(file_exists(public_path('assets/img/proses-gudang-distribusi.jpg')))
+                    <div class="photo-frame-modern">
+                        <img src="{{ asset('assets/img/proses-gudang-distribusi.jpg') }}?v=2" alt="Gudang Distribusi Slop & Bal" class="photo-frame-img">
+                        <div class="photo-frame-caption">
+                            <i class="fa-solid fa-boxes-stacked" style="color: var(--gold);"></i> Gudang Stok Slop & Bal Siap Kirim
+                        </div>
+                    </div>
+                @else
+                    <div class="photo-placeholder-slot">
+                        <div class="photo-placeholder-icon">
+                            <i class="fa-solid fa-truck-ramp-box"></i>
+                        </div>
+                        <div class="photo-placeholder-title">Foto Gudang Stok Slop & Kemasan Bal</div>
+                        <div class="photo-placeholder-sub">Dokumentasi kesiapan stok kemasan slop dan bal di gudang distribusi PR. Kereta Kencana.</div>
+                        <span class="photo-placeholder-tag"><i class="fa-regular fa-image"></i> public/assets/img/proses-gudang-distribusi.jpg</span>
+                    </div>
+                @endif
+            </div>
+            <div class="proses-split-content">
+                <h3 class="proses-split-title">Jaringan Distribusi Slop hingga Kemasan Bal</h3>
+                <p class="proses-split-desc">
+                    Untuk mendukung kelancaran perputaran usaha mitra di berbagai wilayah, fasilitas gudang barang jadi kami menerapkan standar penyimpanan yang bersih dan terstruktur. Setiap produk dikemas rapi ke dalam satuan slop (10 bungkus) dan satuan bal (20 slop / 200 bungkus).
+                </p>
+                <p class="proses-split-desc">
+                    Melalui sistem pemesanan terpadu yang dilengkapi faktur resmi, PR. Kereta Kencana melayani pengiriman pasokan langsung dari pabrik baik untuk kebutuhan toko kelontong dan warung mulai dari 1 slop, maupun pengadaan grosir partai besar bagi agen dan distributor daerah.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+</div>
 @endsection
 
 @push('scripts')

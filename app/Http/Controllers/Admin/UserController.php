@@ -7,6 +7,10 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Helpers\ActivityLogger;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use App\Mail\ResetPasswordMail;
 
 class UserController extends Controller
 {
@@ -106,29 +110,47 @@ class UserController extends Controller
     }
 
     /**
-     * Reset kata sandi mitra toko atas permintaan bantuan
-     * Hanya dapat dieksekusi oleh Owner & Super Admin demi keamanan.
+     * Kirimkan tautan atur ulang kata sandi resmi ke email mitra toko
+     * Mencegah staf mengarang/mengetahui kata sandi mitra (perlindungan privasi data pelanggan).
+     */
+    public function kirimResetLinkMitra(Request $request, $id)
+    {
+        $mitra = User::where('role', 'pelanggan')->findOrFail($id);
+
+        // Generate token aman dan OTP 6 digit
+        $token = Str::random(64);
+        $otpCode = str_pad((string)random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $mitra->email],
+            [
+                'token' => Hash::make($token),
+                'created_at' => now(),
+            ]
+        );
+
+        $resetUrl = route('password.reset', [
+            'token' => $token,
+            'email' => $mitra->email,
+        ]);
+
+        try {
+            Mail::to($mitra->email)->send(new ResetPasswordMail($mitra, $token, $resetUrl, $otpCode));
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal mengirim email verifikasi ke mitra. Pastikan konfigurasi mail server aktif.');
+        }
+
+        $staffName = auth()->user()->name;
+        ActivityLogger::log('Bantuan Reset Sandi', "Staf '{$staffName}' memicu pengiriman email reset sandi ke toko: {$mitra->nama_toko} ({$mitra->email})");
+
+        return back()->with('success', "Tautan pengaturan ulang kata sandi telah berhasil dikirimkan ke email resmi mitra ({$mitra->email}). Pemilik toko dapat mengatur kata sandi barunya secara mandiri tanpa campur tangan staf.");
+    }
+
+    /**
+     * Alias kompatibilitas
      */
     public function resetPasswordMitra(Request $request, $id)
     {
-        if (!auth()->user()->isOwner() && !auth()->user()->isSuperAdmin()) {
-            abort(403, 'Hanya Owner atau Super Admin yang berwenang mereset kata sandi mitra toko.');
-        }
-
-        $mitra = User::where('role', 'pelanggan')->findOrFail($id);
-
-        $request->validate([
-            'new_password' => ['required', 'string', 'min:6'],
-        ], [
-            'new_password.required' => 'Kata sandi baru wajib diisi.',
-            'new_password.min' => 'Kata sandi minimal 6 karakter.',
-        ]);
-
-        $mitra->password = Hash::make($request->new_password);
-        $mitra->save();
-
-        ActivityLogger::log('Reset Sandi Mitra', "Mereset kata sandi mitra toko: {$mitra->nama_toko} ({$mitra->email})");
-
-        return back()->with('success', "Kata sandi untuk toko '{$mitra->nama_toko}' ({$mitra->name}) berhasil diperbarui.");
+        return $this->kirimResetLinkMitra($request, $id);
     }
 }

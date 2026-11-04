@@ -48,10 +48,9 @@
                     <label style="color: var(--text-muted); display: flex; align-items: center; gap: 6px; cursor: pointer;">
                         <input type="checkbox" name="remember" value="1"> Ingat saya di perangkat ini
                     </label>
-                    <a href="https://wa.me/6281234567890?text=Halo%20Admin%20PR.%20Kereta%20Kencana%2C%20saya%20pemilik%20toko%20ingin%20meminta%20bantuan%20terkait%20akun%20mitra%20saya%20(lupa%20email%20atau%20kata%20sandi)." 
-                       target="_blank" rel="noopener noreferrer"
+                    <a href="{{ route('password.request') }}" 
                        style="color: var(--gold-hover); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
-                        <i class="fa-brands fa-whatsapp" style="color: #25D366; font-size: 14px;"></i> Lupa Sandi / Email?
+                        <i class="fa-solid fa-key" style="color: var(--gold-hover); font-size: 13px;"></i> Lupa Kata Sandi?
                     </a>
                 </div>
 

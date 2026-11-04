@@ -32,7 +32,8 @@
         </div>
         <div>
             <div style="font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: 600;">Volume Distribusi</div>
-            <div style="font-size: 24px; font-weight: 800; color: #1e293b;">{{ number_format($totalBal) }} Bal</div>
+            <div style="font-size: 22px; font-weight: 800; color: #1e293b;">{{ $volumeDistribusi }}</div>
+            <div style="font-size: 11.5px; color: #059669; font-weight: 600; margin-top: 2px;">Setara {{ number_format($totalBungkus, 0, ',', '.') }} Bungkus</div>
         </div>
     </div>
 

@@ -34,22 +34,13 @@
         </form>
     </div>
 
-    <!-- Alert Informasi Hak Akses -->
-    @if(auth()->user()->isStaff())
-        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 12px 16px; font-size: 12.5px; color: #166534; display: flex; align-items: center; gap: 10px;">
-            <i class="fa-solid fa-shield-halved" style="font-size: 16px;"></i>
-            <span>
-                <strong>Akses Staf Gudang (Hanya Lihat / Read-Only):</strong> Anda dapat melihat informasi toko dan nomor WhatsApp untuk membantu mitra yang lupa email atau koordinasi pesanan. Penggantian kata sandi hanya dapat dilakukan oleh Owner atau Super Admin.
-            </span>
-        </div>
-    @else
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 16px; font-size: 12.5px; color: #334155; display: flex; align-items: center; gap: 10px;">
-            <i class="fa-solid fa-user-shield" style="font-size: 16px; color: var(--admin-gold);"></i>
-            <span>
-                <strong>Akses Manajemen Penuh (Owner & Super Admin):</strong> Anda berwenang mereset kata sandi toko jika ada permohonan bantuan resmi dari mitra melalui tombol aksi di tabel.
-            </span>
-        </div>
-    @endif
+    <!-- Alert Informasi Keamanan Data Mitra -->
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 16px; font-size: 12.5px; color: #334155; display: flex; align-items: center; gap: 10px;">
+        <i class="fa-solid fa-shield-halved" style="font-size: 16px; color: var(--admin-gold);"></i>
+        <span>
+            <strong>Keamanan & Privasi Data Mitra Terlindungi:</strong> Seluruh kata sandi toko dienkripsi secara aman dan tidak dapat dilihat oleh staf internal. Jika pemilik toko meminta bantuan akibat lupa sandi, staf dapat memicu pengiriman <em>Tautan Atur Ulang Sandi Resmi</em> langsung ke alamat email terdaftar milik toko yang bersangkutan.
+        </span>
+    </div>
 </div>
 
 <!-- Tabel Daftar Mitra -->
@@ -107,12 +98,10 @@
                                 </a>
                             @endif
 
-                            @if(auth()->user()->isOwner() || auth()->user()->isSuperAdmin())
-                                <button type="button" class="btn btn-sm" onclick="openResetPasswordModal({{ $mitra->id }}, '{{ addslashes($mitra->nama_toko ?: $mitra->name) }}', '{{ $mitra->email }}')"
-                                        style="background: #f59e0b; color: #fff; padding: 6px 10px; border-radius: 4px; font-size: 12px; border: none; cursor: pointer;" title="Reset Kata Sandi Mitra">
-                                    <i class="fa-solid fa-key"></i> Reset Sandi
-                                </button>
-                            @endif
+                            <button type="button" class="btn btn-sm" onclick="openResetPasswordModal({{ $mitra->id }}, '{{ addslashes($mitra->nama_toko ?: $mitra->name) }}', '{{ $mitra->email }}')"
+                                    style="background: #f59e0b; color: #fff; padding: 6px 10px; border-radius: 4px; font-size: 12px; border: none; cursor: pointer;" title="Kirim Tautan Atur Ulang Sandi Resmi ke Email Mitra">
+                                <i class="fa-solid fa-paper-plane"></i> Kirim Link Reset
+                            </button>
                         </div>
                     </td>
                 </tr>
@@ -132,48 +121,37 @@
     </div>
 </div>
 
-@if(auth()->user()->isOwner() || auth()->user()->isSuperAdmin())
-<!-- Modal Reset Password (Hanya untuk Owner & Super Admin) -->
+<!-- Modal Konfirmasi Kirim Tautan Reset Password (Privasi Mitra Terlindungi) -->
 <div id="resetPasswordModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
-    <div style="background: #fff; border-radius: 8px; width: 100%; max-width: 440px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+    <div style="background: #fff; border-radius: 8px; width: 100%; max-width: 460px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
             <h3 style="font-size: 16px; font-weight: 700; color: #1e293b; margin: 0;">
-                <i class="fa-solid fa-key" style="color: #f59e0b; margin-right: 6px;"></i> Reset Kata Sandi Mitra
+                <i class="fa-solid fa-paper-plane" style="color: #f59e0b; margin-right: 6px;"></i> Kirim Tautan Atur Ulang Sandi
             </h3>
             <button type="button" onclick="closeResetPasswordModal()" style="background: none; border: none; font-size: 18px; color: #94a3b8; cursor: pointer;">&times;</button>
         </div>
 
-        <p style="font-size: 13px; color: #475569; margin-bottom: 16px;">
-            Setel kata sandi baru untuk <strong id="modalMitraName">Toko Mitra</strong> (<span id="modalMitraEmail" style="color: #64748b;">email</span>).
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 14px; margin-bottom: 18px;">
+            <div style="font-size: 12px; color: #64748b; margin-bottom: 2px;">Toko Mitra Penerima:</div>
+            <strong id="modalMitraName" style="color: #0f172a; font-size: 14px; display: block; margin-bottom: 6px;">Toko Mitra</strong>
+            <div style="font-size: 12px; color: #64748b; margin-bottom: 2px;">Alamat Email Terdaftar:</div>
+            <span id="modalMitraEmail" style="font-family: monospace; font-size: 13px; color: #b45309; font-weight: 700;">email@toko.com</span>
+        </div>
+
+        <p style="font-size: 12.5px; color: #475569; line-height: 1.5; margin-bottom: 20px;">
+            <i class="fa-solid fa-shield-halved" style="color: #16a34a; margin-right: 4px;"></i> 
+            Sistem akan men-<em>generate</em> token keamanan dan mengirimkan email resmi berisi tautan atur ulang kata sandi langsung ke kotak masuk mitra. Staf <strong>tidak dapat melihat atau mengarang</strong> kata sandi mitra demi integritas dan keamanan data akun.
         </p>
 
         <form id="formResetPassword" method="POST">
             @csrf
-            @method('PUT')
-
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; font-weight: 600; font-size: 13px; color: #1e293b; margin-bottom: 6px;">
-                    Kata Sandi Baru <span style="color: #ef4444;">*</span>
-                </label>
-                <div style="position: relative;">
-                    <input type="password" name="new_password" id="modalNewPassword" required minlength="6" placeholder="Masukkan sandi baru (min. 6 karakter)"
-                           style="width: 100%; padding: 10px 38px 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
-                    <button type="button" onclick="togglePasswordVisibility('modalNewPassword', 'toggleModalEyeIcon')" 
-                            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; font-size: 14px;">
-                        <i id="toggleModalEyeIcon" class="fa-solid fa-eye"></i>
-                    </button>
-                </div>
-                <small style="color: #64748b; font-size: 11.5px; display: block; margin-top: 4px;">
-                    Contoh: Sandi mudah seperti <code>Mitra123#</code> agar pemilik toko mudah mengingatnya.
-                </small>
-            </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 10px;">
                 <button type="button" onclick="closeResetPasswordModal()" style="padding: 9px 16px; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 6px; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;">
                     Batal
                 </button>
-                <button type="submit" style="padding: 9px 18px; border: none; background: #f59e0b; border-radius: 6px; font-size: 13px; font-weight: 700; color: #fff; cursor: pointer;">
-                    Simpan Sandi Baru
+                <button type="submit" style="padding: 9px 18px; border: none; background: #f59e0b; border-radius: 6px; font-size: 13px; font-weight: 700; color: #fff; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-paper-plane"></i> Kirimkan Tautan Resmi
                 </button>
             </div>
         </form>
@@ -184,8 +162,7 @@
 function openResetPasswordModal(mitraId, mitraName, mitraEmail) {
     document.getElementById('modalMitraName').innerText = mitraName;
     document.getElementById('modalMitraEmail').innerText = mitraEmail;
-    document.getElementById('formResetPassword').action = '/admin/mitra/' + mitraId + '/reset-password';
-    document.getElementById('modalNewPassword').value = '';
+    document.getElementById('formResetPassword').action = '/admin/mitra/' + mitraId + '/kirim-reset-link';
     const modal = document.getElementById('resetPasswordModal');
     modal.style.display = 'flex';
 }
@@ -194,22 +171,6 @@ function closeResetPasswordModal() {
     const modal = document.getElementById('resetPasswordModal');
     modal.style.display = 'none';
 }
-
-function togglePasswordVisibility(inputId, iconId) {
-    const input = document.getElementById(inputId);
-    const icon = document.getElementById(iconId);
-    if (!input || !icon) return;
-    if (input.type === 'password') {
-        input.type = 'text';
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-    } else {
-        input.type = 'password';
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
-    }
-}
 </script>
-@endif
 
 @endsection

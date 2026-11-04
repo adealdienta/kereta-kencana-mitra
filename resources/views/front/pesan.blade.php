@@ -85,23 +85,27 @@
                              style="background: var(--bg-surface); border: 1px solid {{ ($isPreselected || $oldQty > 0) ? 'var(--gold)' : 'var(--border-light)' }}; border-radius: 10px; padding: 18px; box-shadow: var(--shadow-sm); transition: all 0.2s ease;">
                             
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px;">
-                                <!-- Info Produk -->
-                                <div style="flex: 1 1 260px; min-width: 240px;">
-                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
-                                        <h4 style="color: var(--text-dark); font-size: 16px; margin: 0; font-weight: 700;">
-                                            {{ $p->nama }}
-                                        </h4>
-                                        <span style="background: rgba(179, 139, 63, 0.12); color: var(--gold-hover); border: 1px solid rgba(179, 139, 63, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600;">
-                                            {{ $p->kategori->nama_kategori }}
-                                        </span>
-                                    </div>
-                                    <div style="font-size: 12.5px; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 4px;">
-                                        <span><strong style="color: var(--text-dark);">Per Slop:</strong> {{ $p->formatted_harga_slop }}</span>
-                                        <span>&bull;</span>
-                                        <span><strong style="color: var(--text-dark);">Per Bal:</strong> {{ $p->formatted_harga }}</span>
-                                    </div>
-                                    <div style="font-size: 11.5px; color: #059669; font-weight: 600;">
-                                        <i class="fa-solid fa-circle-check"></i> Stok Pabrik: <strong>{{ $p->stok }} Bal</strong> (Tersedia)
+                                <!-- Info Produk & Thumbnail Foto -->
+                                <div style="display: flex; gap: 14px; align-items: center; flex: 1 1 280px; min-width: 240px;">
+                                    <img src="{{ $p->image_url }}" alt="{{ $p->nama }}" 
+                                         style="width: 68px; height: 68px; object-fit: contain; border-radius: 8px; border: 1px solid var(--border-light); background: #ffffff; padding: 4px; flex-shrink: 0; box-shadow: var(--shadow-sm);">
+                                    <div>
+                                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                                            <h4 style="color: var(--text-dark); font-size: 16px; margin: 0; font-weight: 700;">
+                                                {{ $p->nama }}
+                                            </h4>
+                                            <span style="background: rgba(179, 139, 63, 0.12); color: var(--gold-hover); border: 1px solid rgba(179, 139, 63, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600;">
+                                                {{ $p->kategori->nama_kategori }}
+                                            </span>
+                                        </div>
+                                        <div style="font-size: 12.5px; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 4px;">
+                                            <span><strong style="color: var(--text-dark);">Per Slop:</strong> {{ $p->formatted_harga_slop }}</span>
+                                            <span>&bull;</span>
+                                            <span><strong style="color: var(--text-dark);">Per Bal:</strong> {{ $p->formatted_harga }}</span>
+                                        </div>
+                                        <div style="font-size: 11.5px; color: #059669; font-weight: 600;">
+                                            <i class="fa-solid fa-circle-check"></i> Stok Pabrik: <strong>{{ $p->stok }} Bal</strong> (Tersedia)
+                                        </div>
                                     </div>
                                 </div>
 
@@ -189,7 +193,7 @@
                     <h3 style="color: var(--gold-hover); font-size: 18px; margin-bottom: 6px;">
                         <i class="fa-solid fa-address-card"></i> 2. Identitas Pemesan / Toko Mitra
                     </h3>
-                    <p style="color: var(--text-muted); font-size: 13px;">Data resmi mitra untuk surat jalan, nota fisik, & konfirmasi pengiriman armada (terisi otomatis dari akun Anda).</p>
+                    <p style="color: var(--text-muted); font-size: 13px;">Data resmi mitra untuk surat jalan, nota fisik, &amp; konfirmasi pengantaran kurir pabrik (terisi otomatis dari akun Anda).</p>
                 </div>
 
                 <div class="grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">

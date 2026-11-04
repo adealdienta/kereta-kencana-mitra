@@ -24,6 +24,8 @@ class Transaksi extends Model
         'satuan',
         'total_harga',
         'catatan',
+        'metode_pembayaran',
+        'status_pembayaran',
         'status',
         'nomor_do',
         'nomor_resi',

@@ -98,6 +98,16 @@
                 <span style="font-weight: 700; font-size: 14px;">Total Nilai Pesanan:</span>
                 <span style="font-size: 18px; font-weight: 800; color: #b45309;">{{ $transaksi->formatted_total }}</span>
             </div>
+            <div style="margin-top: 8px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 13px; color: #64748b;">Metode & Status Pembayaran:</span>
+                <span style="font-size: 13px; font-weight: 600; color: #1e293b;">
+                    <i class="fa-solid {{ ($transaksi->metode_pembayaran && stripos($transaksi->metode_pembayaran, 'transfer') !== false) ? 'fa-building-columns' : 'fa-money-bill-wave' }}"></i>
+                    {{ $transaksi->metode_pembayaran ?? 'Bayar di Tempat (COD)' }}
+                    <span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; margin-left: 4px; background: {{ ($transaksi->status_pembayaran === 'Lunas' || $transaksi->status === 'Selesai') ? '#dcfce7; color: #166534;' : '#fef3c7; color: #92400e;' }}">
+                        {{ $transaksi->status_pembayaran ?? ($transaksi->status === 'Selesai' ? 'Lunas' : 'Belum Dibayar') }}
+                    </span>
+                </span>
+            </div>
         </div>
 
         @if($transaksi->catatan)
@@ -144,8 +154,12 @@
                 <select name="status" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
                     <option value="Baru Masuk" {{ $transaksi->status === 'Baru Masuk' ? 'selected' : '' }}>Baru Masuk (Antrean)</option>
                     <option value="Diproses" {{ $transaksi->status === 'Diproses' ? 'selected' : '' }}>Diproses Gudang</option>
-                    <option value="Dikirim" {{ $transaksi->status === 'Dikirim' ? 'selected' : '' }}>Sedang Dikirim Armada Pabrik</option>
-                    <option value="Selesai" {{ $transaksi->status === 'Selesai' ? 'selected' : '' }}>Selesai / Diterima</option>
+                    <option value="Dikirim" {{ $transaksi->status === 'Dikirim' ? 'selected' : '' }}>Sedang Diantar oleh Kurir Resmi Pabrik</option>
+                    @if(auth()->user()->isStaff())
+                        <option value="Selesai" disabled style="color: #94a3b8;">Selesai (Hanya via Aplikasi / Otorisasi Owner)</option>
+                    @else
+                        <option value="Selesai" {{ $transaksi->status === 'Selesai' ? 'selected' : '' }}>Selesai / Diterima</option>
+                    @endif
                     <option value="Dibatalkan" {{ $transaksi->status === 'Dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
                 </select>
                 <small style="color: #64748b; font-size: 11px;">*Status 'Dikirim' akan memicu notifikasi konfirmasi di HP pembeli.</small>
@@ -168,18 +182,51 @@
             </button>
         </form>
 
-        <!-- Tombol Verifikasi Manual oleh Admin via Nota Fisik -->
+        <!-- Verifikasi Manual oleh Owner / Super Admin via Surat Jalan Fisik -->
         @if($transaksi->status === 'Dikirim' && !$transaksi->bukti_penerimaan)
-            <div style="border-top: 1px dashed #cbd5e1; margin-top: 20px; padding-top: 16px;">
-                <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">
-                    <i class="fa-solid fa-info-circle"></i> Jika kurir pabrik telah kembali dengan membawa Surat Jalan/Nota fisik bertanda tangan toko:
-                </div>
-                <form action="{{ route('admin.transaksis.verifikasi_manual', $transaksi->id) }}" method="POST" onsubmit="return confirm('Verifikasi pesanan {{ $transaksi->kode_transaksi }} sebagai Selesai berdasarkan surat jalan fisik?')">
-                    @csrf
-                    <button type="submit" style="background: #10b981; color: #fff; border: none; padding: 10px 16px; border-radius: 6px; font-size: 12.5px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                        <i class="fa-solid fa-stamp"></i> Selesaikan Manual via Nota Fisik (Bypass Foto)
-                    </button>
-                </form>
+            <div style="border-top: 1px dashed #cbd5e1; margin-top: 24px; padding-top: 18px;">
+                @if(auth()->user()->isOwner() || auth()->user()->isSuperAdmin())
+                    <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px; padding: 16px;">
+                        <h4 style="font-size: 13.5px; color: #166534; margin-bottom: 6px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-shield-halved"></i> Otorisasi Khusus Owner: Verifikasi Manual via Surat Jalan Fisik
+                        </h4>
+                        <p style="font-size: 11.5px; color: #15803d; line-height: 1.5; margin-bottom: 14px;">
+                            Gunakan fitur ini jika mitra toko tidak dapat melakukan konfirmasi digital (misal: kendala perangkat/sinyal) namun armada pabrik telah menyerahkan barang dan membawa fisik Surat Jalan berstempel/tanda tangan basah beserta setoran COD ke kasir.
+                        </p>
+
+                        <form action="{{ route('admin.transaksis.verifikasi_manual', $transaksi->id) }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <div style="margin-bottom: 12px;">
+                                <label style="display: block; font-weight: 600; font-size: 12px; margin-bottom: 4px; color: #14532d;">
+                                    Foto Fisik Surat Jalan / Bukti Setoran Kasir <span style="color: #dc2626;">*</span>
+                                </label>
+                                <input type="file" name="bukti_surat_jalan" accept="image/*" required
+                                       style="width: 100%; padding: 8px; border: 1px solid #86efac; background: #fff; border-radius: 6px; font-size: 12px;">
+                                <small style="color: #15803d; font-size: 10.5px;">Wajib melampirkan foto dokumen fisik bertanda tangan basah toko (JPG, PNG, maks 3 MB).</small>
+                            </div>
+
+                            <div style="margin-bottom: 14px;">
+                                <label style="display: block; font-weight: 600; font-size: 12px; margin-bottom: 4px; color: #14532d;">
+                                    Alasan Verifikasi Manual & Catatan Audit <span style="color: #dc2626;">*</span>
+                                </label>
+                                <input type="text" name="alasan_bypass" required placeholder="Contoh: Surat Jalan #SJ-2026-0901 basah diterima, uang COD Rp 1.500.000 sudah disetor kasir."
+                                       style="width: 100%; padding: 9px; border: 1px solid #86efac; border-radius: 6px; font-size: 12px;">
+                            </div>
+
+                            <button type="submit" onclick="return confirm('Apakah Anda yakin dokumen fisik Surat Jalan dan setoran uang COD pesanan ini telah valid dan lengkap?')"
+                                    style="background: #16a34a; color: #fff; border: none; padding: 10px 16px; border-radius: 6px; font-size: 12.5px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                <i class="fa-solid fa-stamp"></i> Otorisasi & Selesaikan Pesanan (Arsipkan Bukti Fisik)
+                            </button>
+                        </form>
+                    </div>
+                @else
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; font-size: 12px; color: #64748b; line-height: 1.5;">
+                        <strong style="color: #334155; display: block; margin-bottom: 4px;">
+                            <i class="fa-solid fa-lock" style="color: #eab308;"></i> Proteksi Audit & Pencegahan Fraud:
+                        </strong>
+                        Staf operasional tidak memiliki hak menyelesaikan pesanan secara langsung. Konfirmasi pesanan harus dilakukan oleh mitra toko melalui aplikasi mobile, atau diotorisasi oleh <strong>Owner / Super Admin</strong> dengan mengunggah foto Surat Jalan fisik asli.
+                    </div>
+                @endif
             </div>
         @endif
     </div>

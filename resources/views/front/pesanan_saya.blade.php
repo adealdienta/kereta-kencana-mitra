@@ -48,7 +48,7 @@
                     <div>
                         <strong style="color: #854d0e; font-size: 15px; display: block;">Barang Sedang Dikirim ke Toko Anda</strong>
                         <p style="color: #713f12; font-size: 13px; margin: 2px 0 0 0;">
-                            Pesanan <strong>{{ $pendingDelivery->kode_transaksi }}</strong> ({{ $pendingDelivery->barang->nama }}) sedang di jalan. Saat armada tiba, segera unggah foto barang yang Anda terima untuk menyelesaikan pesanan.
+                            Pesanan <strong>{{ $pendingDelivery->kode_transaksi }}</strong> ({{ $pendingDelivery->barang->nama }}) sedang di jalan. Saat kurir tiba, segera unggah foto barang yang Anda terima untuk menyelesaikan pesanan.
                         </p>
                     </div>
                 </div>
@@ -100,7 +100,7 @@
                                     </span>
                                 @elseif($t->status === 'Dikirim')
                                     <span style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); padding: 6px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                                        <i class="fa-solid fa-truck-fast"></i> Sedang Dikirim Armada Pabrik
+                                        <i class="fa-solid fa-truck-fast"></i> Sedang Diantar oleh Kurir Resmi Pabrik
                                     </span>
                                 @elseif($t->status === 'Selesai')
                                     <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 6px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">

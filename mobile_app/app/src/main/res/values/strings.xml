@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Kereta Kencana Mitra</string>
+    <string name="app_tagline">Pabrik Sigaret Kretek • Blitar</string>
+
+    <!-- Bottom Navigation -->
+    <string name="nav_beranda">Beranda</string>
+    <string name="nav_pesanan">Pesanan</string>
+    <string name="nav_akun">Akun</string>
+
+    <!-- General Labels -->
+    <string name="katalog_grosir">KATALOG PRODUK GROSIR</string>
+    <string name="info_satuan_slop">1 slop = 10 bungkus. Ketuk produk untuk pilihan pembelian skala bal.</string>
+    <string name="pesanan_saya">Pesanan Saya</string>
+    <string name="pantau_pengiriman">Pantau pengiriman kretek &amp; riwayat pasokan grosir toko Anda</string>
+    <string name="akun_saya">Akun Saya</string>
+    <string name="keranjang">Keranjang Grosir</string>
+    <string name="lihat_keranjang">Lihat Keranjang</string>
+    <string name="muat_ulang">Muat Ulang</string>
+    <string name="keluar">Keluar</string>
+</resources>

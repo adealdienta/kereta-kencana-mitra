@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand PR. Kereta Kencana -->
+    <color name="brand_brown_dark">#2B1704</color>
+    <color name="brand_brown_light">#432608</color>
+    <color name="brand_gold">#C59B27</color>
+    <color name="brand_gold_light">#E8C86A</color>
+    <color name="brand_cream_bg">#FAF7F2</color>
+
+    <!-- Surfaces & Cards -->
+    <color name="surface_white">#FFFFFF</color>
+    <color name="surface_cream_card">#F5EFE6</color>
+    <color name="border_light">#EBE6DD</color>
+
+    <!-- Typography -->
+    <color name="text_primary">#1C1917</color>
+    <color name="text_secondary">#78716C</color>
+    <color name="text_muted">#A8A29E</color>
+    <color name="price_red">#991B1B</color>
+
+    <!-- Status Indicators -->
+    <color name="status_green">#15803D</color>
+    <color name="status_green_bg">#DCFCE7</color>
+    <color name="status_orange">#B45309</color>
+    <color name="status_orange_bg">#FEF3C7</color>
+    <color name="status_red">#DC2626</color>
+    <color name="status_red_bg">#FEE2E2</color>
+    <color name="whatsapp_green">#25D366</color>
+
+    <!-- Standard Android Palette -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>

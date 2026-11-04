@@ -95,12 +95,15 @@
                                     <i class="fa-solid fa-image"></i> Lihat Foto
                                 </a>
                             @elseif($t->status === 'Dikirim')
-                                <form action="{{ route('admin.transaksis.verifikasi_manual', $t->id) }}" method="POST" onsubmit="return confirm('Verifikasi manual transaksi {{ $t->kode_transaksi }} berdasarkan tanda tangan nota fisik?')" style="display: inline;">
-                                    @csrf
-                                    <button type="submit" style="background: #f8fafc; border: 1px solid #cbd5e1; color: #475569; padding: 3px 6px; border-radius: 4px; font-size: 11px; cursor: pointer;" title="Klik jika nota fisik bertanda tangan sudah kembali">
-                                        <i class="fa-solid fa-stamp"></i> Verif Nota
-                                    </button>
-                                </form>
+                                @if(auth()->user()->isOwner() || auth()->user()->isSuperAdmin())
+                                    <a href="{{ route('admin.transaksis.show', $t->id) }}" style="display: inline-flex; align-items: center; gap: 4px; background: #f0fdf4; border: 1px solid #86efac; color: #166534; padding: 3px 6px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 600;" title="Buka detail transaksi untuk mengunggah foto surat jalan fisik">
+                                        <i class="fa-solid fa-stamp"></i> Verif Surat Jalan
+                                    </a>
+                                @else
+                                    <span style="color: #94a3b8; font-size: 11px;" title="Menunggu konfirmasi penerimaan dari mitra via aplikasi mobile">
+                                        <i class="fa-solid fa-clock"></i> Tunggu Mitra
+                                    </span>
+                                @endif
                             @else
                                 <span style="color: #cbd5e1; font-size: 11px;">-</span>
                             @endif

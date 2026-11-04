@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('barangs', function (Blueprint $table) {
-            $table->decimal('harga_per_slop', 14, 2)->nullable()->after('harga_per_bal');
-            $table->integer('min_order_slop')->default(1)->after('min_order_bal');
+            if (!Schema::hasColumn('barangs', 'harga_per_slop')) {
+                $table->decimal('harga_per_slop', 14, 2)->nullable()->after('harga_per_bal');
+            }
+            if (!Schema::hasColumn('barangs', 'min_order_slop')) {
+                $table->integer('min_order_slop')->default(1)->after('min_order_bal');
+            }
         });
     }
 

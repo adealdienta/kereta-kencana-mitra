@@ -9,6 +9,7 @@ use App\Models\TransaksiDetail;
 use App\Models\Barang;
 use App\Models\User;
 use App\Helpers\ActivityLogger;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class TransaksiController extends Controller
@@ -97,7 +98,14 @@ class TransaksiController extends Controller
             }
         }
 
-        // Jika admin mengubah langsung ke Selesai
+        // Proteksi Fraud: Staf operasional tidak boleh mengubah status ke 'Selesai' secara sepihak
+        if ($statusBaru === 'Selesai' && $statusLama !== 'Selesai') {
+            if (Auth::user()->isStaff()) {
+                return back()->with('error', 'Akses ditolak: Staf operasional tidak memiliki hak menyelesaikan pesanan secara langsung. Status Selesai hanya dapat diotorisasi oleh Owner / Super Admin dengan melampirkan foto Surat Jalan fisik, atau dikonfirmasi langsung oleh mitra di aplikasi.');
+            }
+        }
+
+        // Jika Owner/Super Admin mengubah langsung ke Selesai
         if ($statusBaru === 'Selesai' && !$transaksi->diterima_pada) {
             $transaksi->diterima_pada = now();
         }
@@ -110,21 +118,41 @@ class TransaksiController extends Controller
     }
 
     /**
-     * Verifikasi Manual oleh Admin via Nota/Surat Jalan Fisik (Bypass Upload Foto)
+     * Verifikasi Manual Penerimaan Khusus Owner / Super Admin via Surat Jalan Fisik (Arsip Wajib & Audit Trail)
      */
     public function verifikasiManual(Request $request, $id)
     {
+        if (!Auth::user()->isOwner() && !Auth::user()->isSuperAdmin()) {
+            abort(403, 'Akses ditolak: Hanya Owner atau Super Admin yang berwenang melakukan verifikasi manual / bypass penyelesaian pesanan.');
+        }
+
         $transaksi = Transaksi::findOrFail($id);
+
+        $validated = $request->validate([
+            'bukti_surat_jalan' => ['required', 'file', 'image', 'mimes:jpeg,png,jpg,webp', 'max:3072'],
+            'alasan_bypass' => ['required', 'string', 'min:5', 'max:255'],
+        ], [
+            'bukti_surat_jalan.required' => 'Wajib melampirkan foto fisik Surat Jalan / Kwitansi Setoran bertanda tangan basah.',
+            'bukti_surat_jalan.image' => 'Berkas bukti surat jalan harus berupa gambar (JPG, PNG, WEBP).',
+            'bukti_surat_jalan.max' => 'Ukuran foto surat jalan maksimal 3 MB.',
+            'alasan_bypass.required' => 'Alasan verifikasi manual wajib diisi untuk keperluan audit internal.',
+            'alasan_bypass.min' => 'Alasan verifikasi manual minimal 5 karakter.',
+        ]);
+
+        $path = $request->file('bukti_surat_jalan')->store('bukti_penerimaan', 'public');
+        $roleName = strtoupper(Auth::user()->role);
+        $userName = Auth::user()->name;
 
         $transaksi->update([
             'status' => 'Selesai',
             'diterima_pada' => now(),
-            'catatan_penerima' => '[Diverifikasi Manual oleh Admin Pabrik berdasarkan tanda tangan Surat Jalan/Nota fisik]',
+            'bukti_penerimaan' => $path,
+            'catatan_penerima' => "[Verifikasi Manual {$roleName} - {$userName}]: " . trim($validated['alasan_bypass']),
         ]);
 
-        ActivityLogger::log('Verifikasi Manual', "Admin memverifikasi penerimaan transaksi {$transaksi->kode_transaksi} secara manual");
+        ActivityLogger::log('Verifikasi Manual Transaksi', "Owner/Super Admin {$userName} mengotorisasi penyelesaian transaksi {$transaksi->kode_transaksi} dengan lampiran surat jalan fisik.");
 
-        return back()->with('success', "Transaksi {$transaksi->kode_transaksi} telah diselesaikan secara manual. Kunci pemesanan mitra terkait telah dibuka.");
+        return back()->with('success', "Transaksi {$transaksi->kode_transaksi} berhasil diselesaikan dengan arsip bukti fisik surat jalan. Kunci pemesanan mitra telah dibuka.");
     }
 
     /**

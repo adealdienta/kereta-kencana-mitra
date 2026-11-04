@@ -7,10 +7,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
         'name',
@@ -18,6 +19,7 @@ class User extends Authenticatable
         'email',
         'telepon',
         'alamat',
+        'foto_profil',
         'password',
         'role',
     ];
@@ -68,5 +70,13 @@ class User extends Authenticatable
     public function activityLogs(): HasMany
     {
         return $this->hasMany(ActivityLog::class);
+    }
+
+    public function getFotoProfilUrlAttribute(): ?string
+    {
+        if ($this->foto_profil) {
+            return asset('storage/' . $this->foto_profil);
+        }
+        return null;
     }
 }

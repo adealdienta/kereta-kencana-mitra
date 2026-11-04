@@ -11,16 +11,16 @@
     <link rel="shortcut icon" href="{{ asset('assets/img/logo-resmi.png') }}?v=kencana3">
     <link rel="apple-touch-icon" href="{{ asset('assets/img/logo-resmi.png') }}?v=kencana3">
     
-    <!-- Google Fonts: Cinzel & Plus Jakarta Sans -->
+    <!-- Google Fonts: Plus Jakarta Sans & Inter (Clean Corporate Typography) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Tema CSS Asli PR. KERETA KENCANA -->
-    <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}?v={{ filemtime(public_path('assets/css/style.css')) }}">
     @stack('styles')
 </head>
 <body>
@@ -74,10 +74,7 @@
                 
                 <div class="nav-actions" style="display: flex; align-items: center; gap: 8px;">
                     @guest
-                        <a href="{{ route('register') }}" class="btn btn-sm btn-outline" style="font-size: 12px; padding: 6px 12px;">
-                            <i class="fa-solid fa-user-plus"></i> Daftar Mitra
-                        </a>
-                        <a href="{{ route('login') }}" class="btn btn-sm btn-outline-gold" style="font-size: 12px; padding: 6px 12px;">
+                        <a href="{{ route('login') }}" class="btn btn-sm btn-gold" style="font-size: 12px; padding: 6px 14px;">
                             <i class="fa-solid fa-right-to-bracket"></i> Masuk
                         </a>
                     @else

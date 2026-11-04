@@ -37,6 +37,12 @@ Route::get('/register', [AuthController::class, 'showRegister'])->name('register
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// Rute Mandiri Lupa & Atur Ulang Kata Sandi Mitra
+Route::get('/lupa-sandi', [AuthController::class, 'showForgotPassword'])->name('password.request');
+Route::post('/lupa-sandi', [AuthController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('/reset-sandi/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
+Route::post('/reset-sandi', [AuthController::class, 'resetPassword'])->name('password.update');
+
 // --- 3. RUTE PEMESANAN & PELACAKAN (WAJIB AUTHENTIKASI MITRA) ---
 Route::middleware(['auth'])->group(function () {
     Route::get('/pesan', [PemesananController::class, 'form'])->name('pesanan.form');
@@ -58,11 +64,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     // Daftar Mitra Toko (Dapat diakses oleh Staf/Admin Gudang, Super Admin, Owner)
     Route::get('/mitra', [UserController::class, 'mitraIndex'])->name('mitra.index');
+    Route::match(['put', 'post'], '/mitra/{id}/reset-password', [UserController::class, 'kirimResetLinkMitra'])->name('mitra.reset_password');
+    Route::post('/mitra/{id}/kirim-reset-link', [UserController::class, 'kirimResetLinkMitra'])->name('mitra.kirim_reset_link');
 
     // Transaksi Offline / Kasir Langsung di Pabrik
     Route::get('/transaksis/offline', [TransaksiController::class, 'createOffline'])->name('transaksis.offline');
     Route::post('/transaksis/offline', [TransaksiController::class, 'storeOffline'])->name('transaksis.store_offline');
-    Route::post('/transaksis/{id}/verifikasi-manual', [TransaksiController::class, 'verifikasiManual'])->name('transaksis.verifikasi_manual');
 
     // Transaksi & Pesanan Distributor (Acara 17, 18, 23)
     Route::get('/transaksis', [TransaksiController::class, 'index'])->name('transaksis.index');
@@ -85,11 +92,13 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     // Fitur Khusus Role Owner & Super Admin (Acara 9 - 10)
     Route::middleware(['role:owner,superadmin'])->group(function () {
+        // Verifikasi Manual Penerimaan Khusus Owner & Super Admin dengan Surat Jalan Fisik
+        Route::post('/transaksis/{id}/verifikasi-manual', [TransaksiController::class, 'verifikasiManual'])->name('transaksis.verifikasi_manual');
+
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
         Route::put('/users/{id}', [UserController::class, 'update'])->name('users.update');
         Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
-        Route::put('/mitra/{id}/reset-password', [UserController::class, 'resetPasswordMitra'])->name('mitra.reset_password');
 
         Route::get('/logs', [ActivityLogController::class, 'index'])->name('logs.index');
     });
