@@ -22,6 +22,7 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.keretakencana.mitra.R
 import com.keretakencana.mitra.data.api.ApiClient
+import com.keretakencana.mitra.data.local.SessionManager
 import com.keretakencana.mitra.data.model.Transaksi
 import com.keretakencana.mitra.databinding.ActivityFakturBinding
 import com.keretakencana.mitra.utils.CurrencyHelper
@@ -37,7 +38,7 @@ class FakturActivity : AppCompatActivity() {
     private lateinit var binding: ActivityFakturBinding
     private var pesananId: Long = -1L
     private var currentTransaksi: Transaksi? = null
-    private var currentNppbkc: String = "0821.1.2.00482"
+    private var currentNppbkc: String = SessionManager.DEFAULT_NPPBKC
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,6 +46,7 @@ class FakturActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         pesananId = intent.getLongExtra(EXTRA_PESANAN_ID, -1L)
+        currentNppbkc = SessionManager.getInstance(this).getPengaturan().nppbkc ?: SessionManager.DEFAULT_NPPBKC
 
         setSupportActionBar(binding.toolbarFaktur)
         binding.toolbarFaktur.setNavigationOnClickListener { finish() }
@@ -60,6 +62,14 @@ class FakturActivity : AppCompatActivity() {
     }
 
     private fun setupActions() {
+        binding.ivToolbarAvatar.setOnClickListener {
+            val intent = Intent(this, com.keretakencana.mitra.ui.main.MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+                putExtra(com.keretakencana.mitra.ui.main.MainActivity.EXTRA_NAV_TAB, R.id.menu_akun)
+            }
+            startActivity(intent)
+        }
+
         binding.btnCetakNota.setOnClickListener {
             val transaksi = currentTransaksi
             if (transaksi == null) {
@@ -119,23 +129,24 @@ class FakturActivity : AppCompatActivity() {
         binding.tvFakturAlamat.text = t.alamat
         binding.tvFakturGrandTotal.text = CurrencyHelper.formatRupiah(t.totalHarga)
 
-        // Penandaan Status Lunas vs Belum Dibayar (QRIS vs COD)
+        // Penandaan Status Lunas vs Belum Dibayar (Transfer BCA vs COD)
         val isSelesai = t.status.equals("Selesai", ignoreCase = true)
-        val isQris = t.metodePembayaran?.contains("qris", ignoreCase = true) == true
+        val isTransfer = t.metodePembayaran?.contains("transfer", ignoreCase = true) == true ||
+                t.metodePembayaran?.contains("bca", ignoreCase = true) == true
         val isLunas = t.statusPembayaran.equals("Lunas", ignoreCase = true) || isSelesai
 
-        if (isQris) {
-            binding.tvFakturMetodeBayar.text = "Metode bayar: QRIS Resmi PR Kereta Kencana"
+        if (isTransfer) {
+            binding.tvFakturMetodeBayar.text = "Metode bayar: Transfer Bank"
         } else {
-            binding.tvFakturMetodeBayar.text = "Metode bayar: COD, dibayar tunai saat kurir tiba"
+            binding.tvFakturMetodeBayar.text = "Metode bayar: Bayar di Tempat (COD)"
         }
 
         if (isLunas) {
-            binding.tvFakturStatusStempel.text = if (isQris) "LUNAS (QRIS)" else "LUNAS (COD)"
+            binding.tvFakturStatusStempel.text = if (isTransfer) "LUNAS (TRANSFER BANK)" else "LUNAS (COD)"
             binding.tvFakturStatusStempel.setBackgroundResource(R.drawable.bg_badge_lunas)
             binding.tvFakturStatusStempel.setTextColor(ContextCompat.getColor(this, R.color.status_green))
         } else {
-            binding.tvFakturStatusStempel.text = if (isQris) "MENUNGGU PEMBAYARAN QRIS" else "BELUM DIBAYAR (COD)"
+            binding.tvFakturStatusStempel.text = if (isTransfer) "MENUNGGU VERIFIKASI TRANSFER" else "BELUM DIBAYAR (COD)"
             binding.tvFakturStatusStempel.setBackgroundResource(R.drawable.bg_badge_belum_bayar)
             binding.tvFakturStatusStempel.setTextColor(ContextCompat.getColor(this, R.color.brand_gold))
         }
@@ -143,10 +154,7 @@ class FakturActivity : AppCompatActivity() {
         // Tampilkan Identitas Invoice & NPPBKC Pabrik
         val invCode = "INV-${t.kodeTransaksi.replace("TRX-", "")}"
         binding.tvFakturInvCode.text = invCode
-        binding.tvFakturNppbkc.text = "NPPBKC $currentNppbkc"
-
-        // Generate QR Code Dinamis
-        generateAndShowQr(invCode)
+        binding.tvFakturNppbkc.text = "NPPBKC $currentNppbkc • PR KERETA KENCANA"
 
         populateFakturItemRows(t)
     }
@@ -195,28 +203,6 @@ class FakturActivity : AppCompatActivity() {
             row.addView(tvQty)
             row.addView(tvSubtotal)
             binding.layoutFakturItems.addView(row)
-        }
-    }
-
-    private fun generateAndShowQr(content: String) {
-        lifecycleScope.launch(Dispatchers.Default) {
-            try {
-                val size = 400
-                val bitMatrix = MultiFormatWriter().encode(content, BarcodeFormat.QR_CODE, size, size)
-                val width = bitMatrix.width
-                val height = bitMatrix.height
-                val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
-                for (x in 0 until width) {
-                    for (y in 0 until height) {
-                        bitmap.setPixel(x, y, if (bitMatrix[x, y]) Color.BLACK else Color.WHITE)
-                    }
-                }
-                withContext(Dispatchers.Main) {
-                    binding.ivFakturQr.setImageBitmap(bitmap)
-                }
-            } catch (e: Exception) {
-                // Fallback jika QR generation gagal
-            }
         }
     }
 

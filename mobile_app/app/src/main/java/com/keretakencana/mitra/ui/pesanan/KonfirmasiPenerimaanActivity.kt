@@ -24,6 +24,7 @@ class KonfirmasiPenerimaanActivity : AppCompatActivity() {
 
     private var pesananId: Long = -1L
     private var kodeTrx: String = ""
+    private var metodePembayaran: String = "COD"
     private var selectedImageUri: Uri? = null
 
     private val selectImageLauncher = registerForActivityResult(
@@ -42,6 +43,7 @@ class KonfirmasiPenerimaanActivity : AppCompatActivity() {
 
         pesananId = intent.getLongExtra(EXTRA_PESANAN_ID, -1L)
         kodeTrx = intent.getStringExtra(EXTRA_KODE_TRX) ?: ""
+        metodePembayaran = intent.getStringExtra(EXTRA_METODE_PEMBAYARAN) ?: "COD"
 
         setSupportActionBar(binding.toolbarKonfirmasiTerima)
         binding.toolbarKonfirmasiTerima.setNavigationOnClickListener { finish() }
@@ -79,9 +81,17 @@ class KonfirmasiPenerimaanActivity : AppCompatActivity() {
             return
         }
 
+        val isTransfer = metodePembayaran.contains("transfer", ignoreCase = true) ||
+                metodePembayaran.contains("bca", ignoreCase = true)
+        val confirmMessage = if (isTransfer) {
+            "Dengan mengonfirmasi, Anda menyatakan bahwa muatan rokok pesanan #$kodeTrx telah diterima lengkap di toko."
+        } else {
+            "Dengan mengonfirmasi, Anda menyatakan bahwa muatan rokok pesanan #$kodeTrx telah diterima di toko dan pembayaran COD telah diselesaikan."
+        }
+
         AlertDialog.Builder(this)
             .setTitle("Konfirmasi Terima?")
-            .setMessage("Dengan mengonfirmasi, Anda menyatakan bahwa muatan rokok pesanan #$kodeTrx telah diterima di toko dan pembayaran COD telah diselesaikan.")
+            .setMessage(confirmMessage)
             .setPositiveButton("Ya, Konfirmasi") { _, _ ->
                 uploadBukti(uri)
             }
@@ -156,5 +166,6 @@ class KonfirmasiPenerimaanActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_PESANAN_ID = "extra_pesanan_id"
         const val EXTRA_KODE_TRX = "extra_kode_trx"
+        const val EXTRA_METODE_PEMBAYARAN = "extra_metode_pembayaran"
     }
 }

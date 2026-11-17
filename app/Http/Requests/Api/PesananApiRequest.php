@@ -22,7 +22,7 @@ class PesananApiRequest extends FormRequest
             'metode_pembayaran' => ['nullable', 'string', 'max:50'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.barang_id' => ['required', 'integer', 'exists:barangs,id'],
-            'items.*.satuan' => ['required', 'string', 'in:Slop,Bal'],
+            'items.*.satuan' => ['required', 'string', 'in:Slop'],
             'items.*.jumlah' => ['required', 'integer', 'min:1'],
         ];
     }
@@ -34,10 +34,10 @@ class PesananApiRequest extends FormRequest
             'items.min' => 'Pilih minimal 1 item produk untuk membuat pesanan.',
             'items.*.barang_id.required' => 'ID produk wajib disertakan.',
             'items.*.barang_id.exists' => 'Varian produk yang dipilih tidak ditemukan di sistem.',
-            'items.*.satuan.required' => 'Satuan produk wajib ditentukan (Slop atau Bal).',
-            'items.*.satuan.in' => 'Satuan produk hanya boleh Slop atau Bal.',
+            'items.*.satuan.required' => 'Satuan produk wajib ditentukan (Slop).',
+            'items.*.satuan.in' => 'Pemesanan online khusus satuan Slop (maksimal 19 Slop). Untuk pembelian Bal, hubungi Admin via WhatsApp.',
             'items.*.jumlah.required' => 'Jumlah pesanan wajib diisi.',
-            'items.*.jumlah.min' => 'Jumlah pesanan minimal 1 unit.',
+            'items.*.jumlah.min' => 'Jumlah pesanan minimal 1 Slop.',
         ];
     }
 

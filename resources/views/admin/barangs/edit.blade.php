@@ -114,13 +114,13 @@
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
             <div>
-                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px;">Kadar Tar (mg)</label>
-                <input type="number" step="0.1" name="tar_mg" value="{{ old('tar_mg', $barang->tar_mg) }}"
+                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px;">Kadar Tar (mg) &ndash; Opsional</label>
+                <input type="number" step="0.1" name="tar_mg" value="{{ old('tar_mg', $barang->tar_mg) }}" placeholder="Isi sesuai hasil uji lab resmi"
                        style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
             </div>
             <div>
-                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px;">Kadar Nikotin (mg)</label>
-                <input type="number" step="0.1" name="nikotin_mg" value="{{ old('nikotin_mg', $barang->nikotin_mg) }}"
+                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px;">Kadar Nikotin (mg) &ndash; Opsional</label>
+                <input type="number" step="0.1" name="nikotin_mg" value="{{ old('nikotin_mg', $barang->nikotin_mg) }}" placeholder="Isi sesuai hasil uji lab resmi"
                        style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
             </div>
         </div>

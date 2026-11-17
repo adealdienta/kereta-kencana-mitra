@@ -30,9 +30,9 @@
     <div class="header">
         <div>
             <div class="title">PR. KERETA KENCANA</div>
-            <div>Pabrik Sigaret Kretek Mesin & Sigaret Kretek Tangan</div>
-            <div>Dusun Subontoro, Desa Kebonduren, Kec. Ponggok, Blitar - Jawa Timur</div>
-            <div><strong>NPPBKC: 0821.1.2.XXXXX (Bea Cukai Blitar)</strong></div>
+            <div>Pabrik Sigaret Kretek Tangan (SKT)</div>
+            <div>Dusun Subontoro RT. 001 RW. 015, Desa Kebonduren, Kec. Ponggok, Kab. Blitar - Jawa Timur</div>
+            <div><strong>NPPBKC: {{ config('pabrik.nppbkc', '750******-070700-221221*******') }} (KPPBC TMP C Blitar)</strong></div>
         </div>
         <div class="meta">
             <div style="font-size: 16px; font-weight: bold; border: 1px solid #222; padding: 4px 8px; display: inline-block;">

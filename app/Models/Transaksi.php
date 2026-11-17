@@ -30,6 +30,8 @@ class Transaksi extends Model
         'nomor_do',
         'nomor_resi',
         'sumber',
+        'bukti_transfer',
+        'ditransfer_pada',
         'bukti_penerimaan',
         'diterima_pada',
         'catatan_penerima',
@@ -40,6 +42,7 @@ class Transaksi extends Model
         return [
             'total_harga' => 'decimal:2',
             'jumlah' => 'integer',
+            'ditransfer_pada' => 'datetime',
             'diterima_pada' => 'datetime',
         ];
     }

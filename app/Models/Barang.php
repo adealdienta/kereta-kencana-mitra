@@ -75,6 +75,17 @@ class Barang extends Model
         return $query->where('aktif', true);
     }
 
+    public static function hargaSlopByQty(int $totalSlop): float
+    {
+        if ($totalSlop > 10) {
+            return 60000.0;
+        }
+        if ($totalSlop >= 6) {
+            return 65000.0;
+        }
+        return 70000.0;
+    }
+
     public function getHargaPerSlopAttribute(): float
     {
         $val = (float)($this->attributes['harga_per_slop'] ?? 0);

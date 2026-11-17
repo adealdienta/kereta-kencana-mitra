@@ -7,11 +7,28 @@ use Illuminate\Http\Request;
 use App\Models\Barang;
 use App\Models\Kategori;
 use App\Helpers\ActivityLogger;
+use App\Models\TransaksiDetail;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
 class BarangController extends Controller
 {
+    private function generateUniqueSlug(string $nama, ?int $ignoreId = null): string
+    {
+        $baseSlug = Str::slug($nama);
+        $slug = $baseSlug;
+        $counter = 2;
+
+        while (Barang::where('slug', $slug)
+            ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
+            ->exists()) {
+            $slug = "{$baseSlug}-{$counter}";
+            $counter++;
+        }
+
+        return $slug;
+    }
+
     public function index(Request $request)
     {
         $kategoris = Kategori::all();
@@ -64,13 +81,13 @@ class BarangController extends Controller
             'urutan' => ['integer'],
         ]);
 
-        $validated['slug'] = Str::slug($request->nama);
+        $validated['slug'] = $this->generateUniqueSlug($request->nama);
         $validated['aktif'] = $request->boolean('aktif');
         if (empty($validated['harga_per_slop'])) {
-            $validated['harga_per_slop'] = round($validated['harga_per_bal'] / ($validated['slop_per_bal'] ?: 20));
+            $validated['harga_per_slop'] = 70000;
         }
 
-        // Handle Image Upload (BKPM Acara 16)
+        // Handle Image Upload
         if ($request->hasFile('gambar')) {
             $path = $request->file('gambar')->store('produk', 'public');
             $validated['gambar'] = 'storage/' . $path;
@@ -116,10 +133,10 @@ class BarangController extends Controller
             'urutan' => ['integer'],
         ]);
 
-        $validated['slug'] = Str::slug($request->nama);
+        $validated['slug'] = $this->generateUniqueSlug($request->nama, $barang->id);
         $validated['aktif'] = $request->boolean('aktif');
         if (empty($validated['harga_per_slop'])) {
-            $validated['harga_per_slop'] = round($validated['harga_per_bal'] / ($validated['slop_per_bal'] ?: 20));
+            $validated['harga_per_slop'] = 70000;
         }
 
         if ($request->hasFile('gambar')) {
@@ -142,8 +159,8 @@ class BarangController extends Controller
     {
         $barang = Barang::findOrFail($id);
 
-        // Validasi relasi transaksi (BKPM Acara 14/15)
-        if ($barang->transaksis()->count() > 0) {
+        // Validasi relasi transaksi induk maupun transaksi_details (multi-item)
+        if ($barang->transaksis()->count() > 0 || TransaksiDetail::where('barang_id', $barang->id)->exists()) {
             return back()->with('error', 'Produk ini tidak dapat dihapus karena masih memiliki riwayat transaksi pemesanan.');
         }
 

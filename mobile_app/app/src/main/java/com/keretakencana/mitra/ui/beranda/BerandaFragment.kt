@@ -77,26 +77,9 @@ class BerandaFragment : Fragment() {
             loadCatalog()
         }
 
-        // Klik Avatar Profil di Header -> Buka Login jika belum masuk
-        binding.ivProfileHeader.setOnClickListener {
-            val session = SessionManager.getInstance(requireContext())
-            if (!session.isLoggedIn()) {
-                val loginSheet = LoginBottomSheetFragment.newInstance()
-                loginSheet.onLoginSuccessCallback = {
-                    Toast.makeText(requireContext(), "Sesi aktif. Silakan memilih produk.", Toast.LENGTH_SHORT).show()
-                }
-                loginSheet.show(childFragmentManager, LoginBottomSheetFragment.TAG)
-            } else {
-                Toast.makeText(
-                    requireContext(),
-                    "Masuk sebagai: ${session.getUser()?.namaToko ?: session.getUser()?.name}",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-
         binding.ivNotification.setOnClickListener {
-            Toast.makeText(requireContext(), "Semua notifikasi pengiriman pesanan Anda terpantau aman.", Toast.LENGTH_SHORT).show()
+            val intent = Intent(requireContext(), com.keretakencana.mitra.ui.notifikasi.NotifikasiActivity::class.java)
+            startActivity(intent)
         }
 
         binding.btnLihatKeranjang.setOnClickListener {
@@ -120,6 +103,15 @@ class BerandaFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val api = ApiClient.getService(requireContext())
+                // Sinkronkan konfigurasi resmi pabrik (WA Admin, NPPBKC, status rekening bank)
+                try {
+                    val cfgRes = api.getPengaturan()
+                    val cfgData = cfgRes.body()?.data
+                    if (cfgRes.isSuccessful && cfgRes.body()?.success == true && cfgData != null) {
+                        SessionManager.getInstance(requireContext()).savePengaturan(cfgData)
+                    }
+                } catch (_: Exception) {}
+
                 val response = api.getBarang()
 
                 binding.progressBeranda.visibility = View.GONE
@@ -155,24 +147,14 @@ class BerandaFragment : Fragment() {
     private fun updateCartSummaryBar() {
         val cartManager = CartManager.getInstance(requireContext())
         val cartItems = cartManager.getItems()
+        val totalSlop = cartManager.getTotalSlopQty()
+        val totalSubtotal = cartManager.getEstimatedSubtotal()
 
-        var totalSlop = 0
-        var totalSubtotal = 0.0
+        binding.tvSlopTerpilihHeader.text = "$totalSlop / ${Barang.MAX_SLOP_PER_ORDER} Slop Terpilih"
 
-        for (item in cartItems) {
-            if (item.satuan.equals("Slop", ignoreCase = true)) {
-                totalSlop += item.jumlah
-            } else {
-                totalSlop += (item.jumlah * item.barang.slopPerBal)
-            }
-            totalSubtotal += item.subtotal
-        }
-
-        binding.tvSlopTerpilihHeader.text = "$totalSlop Slop Terpilih"
-
-        if (cartItems.isNotEmpty()) {
+        if (cartItems.isNotEmpty() && totalSlop > 0) {
             binding.layoutBottomCartBar.visibility = View.VISIBLE
-            binding.tvBottomCartTotalQty.text = "$totalSlop Slop Total"
+            binding.tvBottomCartTotalQty.text = "$totalSlop Slop Total (${CurrencyHelper.formatRupiah(Barang.hargaSlopByQty(totalSlop))}/slop)"
             binding.tvBottomCartTotalPrice.text = CurrencyHelper.formatRupiah(totalSubtotal)
         } else {
             binding.layoutBottomCartBar.visibility = View.GONE

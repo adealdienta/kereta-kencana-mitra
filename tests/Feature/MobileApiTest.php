@@ -40,6 +40,13 @@ class MobileApiTest extends TestCase
 
     public function test_pengaturan_endpoint(): void
     {
+        // Verifikasi nilai bawaan setelah penghapusan data dummy bank dan update WA admin
+        $defaultRes = $this->getJson('/api/v1/pengaturan');
+        $defaultRes->assertStatus(200)
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.wa_pabrik', '6285790627104')
+            ->assertJsonPath('data.bank_rekening', null);
+
         config(['pabrik.wa_pabrik' => '628123456789', 'pabrik.nppbkc' => '0821.1.2.99999']);
 
         $response = $this->getJson('/api/v1/pengaturan');
@@ -188,22 +195,25 @@ class MobileApiTest extends TestCase
 
         $stokAwal = $barang->stok; // dalam Bal
 
-        // Pesan 1 Bal dan 5 Slop untuk barang yang sama
+        // Pesan 5 Slop dan 6 Slop (Total 11 Slop -> tier Rp 60.000/slop = Rp 660.000)
         $response = $this->withHeader('Authorization', 'Bearer ' . $token)
             ->postJson('/api/v1/pesanan', [
+                'metode_pembayaran' => 'Transfer Bank',
                 'catatan' => 'Titip di toko tetangga jika tutup',
                 'items' => [
-                    ['barang_id' => $barang->id, 'satuan' => 'Bal', 'jumlah' => 1],
                     ['barang_id' => $barang->id, 'satuan' => 'Slop', 'jumlah' => 5],
+                    ['barang_id' => $barang->id, 'satuan' => 'Slop', 'jumlah' => 6],
                 ],
             ]);
 
         $response->assertStatus(201)
             ->assertJsonPath('success', true)
-            ->assertJsonPath('data.status', 'Baru Masuk');
+            ->assertJsonPath('data.status', 'Baru Masuk')
+            ->assertJsonPath('data.metode_pembayaran', 'Transfer Bank')
+            ->assertJsonPath('data.total_harga', 660000);
 
-        // Pengurangan stok: 1 Bal + ceil(5/20) Bal = 1 + 1 = 2 Bal
-        $this->assertEquals($stokAwal - 2, $barang->fresh()->stok);
+        // Pengurangan stok: ceil(11/20) = 1 Bal
+        $this->assertEquals($stokAwal - 1, $barang->fresh()->stok);
     }
 
     public function test_pembuatan_pesanan_gagal_jika_stok_tidak_cukup(): void
@@ -211,15 +221,43 @@ class MobileApiTest extends TestCase
         $mitra = $this->createMitra();
         $token = $mitra->createToken('test')->plainTextToken;
         $barang = Barang::aktif()->first();
+        $barang->update(['stok' => 0]);
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $token)
             ->postJson('/api/v1/pesanan', [
                 'items' => [
-                    ['barang_id' => $barang->id, 'satuan' => 'Bal', 'jumlah' => $barang->stok + 50],
+                    ['barang_id' => $barang->id, 'satuan' => 'Slop', 'jumlah' => 1],
                 ],
             ]);
 
         $response->assertStatus(422)
+            ->assertJsonPath('success', false);
+    }
+
+    public function test_pembuatan_pesanan_ditolak_jika_melebihi_19_slop_atau_satuan_bal(): void
+    {
+        $mitra = $this->createMitra();
+        $token = $mitra->createToken('test')->plainTextToken;
+        $barang = Barang::aktif()->first();
+
+        // Tolak > 19 Slop
+        $overRes = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->postJson('/api/v1/pesanan', [
+                'items' => [
+                    ['barang_id' => $barang->id, 'satuan' => 'Slop', 'jumlah' => 20],
+                ],
+            ]);
+        $overRes->assertStatus(422)
+            ->assertJsonPath('success', false);
+
+        // Tolak satuan Bal (khusus via WA Admin)
+        $balRes = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->postJson('/api/v1/pesanan', [
+                'items' => [
+                    ['barang_id' => $barang->id, 'satuan' => 'Bal', 'jumlah' => 1],
+                ],
+            ]);
+        $balRes->assertStatus(422)
             ->assertJsonPath('success', false);
     }
 
@@ -300,15 +338,15 @@ class MobileApiTest extends TestCase
 
         $stokAwal = $barang->stok;
 
-        // Buat pesanan
+        // Buat pesanan 5 Slop (memotong 1 Bal)
         $resOrder = $this->withHeader('Authorization', 'Bearer ' . $token)
             ->postJson('/api/v1/pesanan', [
                 'items' => [
-                    ['barang_id' => $barang->id, 'satuan' => 'Bal', 'jumlah' => 2],
+                    ['barang_id' => $barang->id, 'satuan' => 'Slop', 'jumlah' => 5],
                 ],
             ]);
         $orderId = $resOrder->json('data.id');
-        $this->assertEquals($stokAwal - 2, $barang->fresh()->stok);
+        $this->assertEquals($stokAwal - 1, $barang->fresh()->stok);
 
         // Batalkan pesanan
         $resBatal = $this->withHeader('Authorization', 'Bearer ' . $token)

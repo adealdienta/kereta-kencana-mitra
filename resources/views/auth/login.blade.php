@@ -9,7 +9,7 @@
             
             <div style="text-align: center; margin-bottom: 24px;">
                 <div style="text-align: center; margin-bottom: 14px;">
-                    <img src="{{ asset('assets/img/logo-resmi.png') }}" alt="PR. Kereta Kencana" style="height: 65px; width: auto; object-fit: contain; border-radius: 8px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light); padding: 3px; background: #fff;">
+                    <img src="{{ asset('assets/img/logo-resmi.png') }}?v={{ filemtime(public_path('assets/img/logo-resmi.png')) }}" alt="PR. Kereta Kencana" style="height: 65px; width: auto; object-fit: contain; margin: 0 auto;">
                 </div>
                 <h2 style="font-family: var(--font-serif); color: var(--gold-hover); font-size: 22px; margin-bottom: 6px; font-weight: 800;">PORTAL MASUK AKUN</h2>
                 <p style="color: var(--text-muted); font-size: 13.5px;">PR. KERETA KENCANA - Ponggok, Kab. Blitar</p>
@@ -17,9 +17,20 @@
 
 
             @if(session('warning'))
-                <div style="background: rgba(234, 179, 8, 0.12); border: 1px solid #eab308; color: #854d0e; padding: 12px; border-radius: 8px; margin-bottom: 18px; font-size: 13px; display: flex; align-items: center; gap: 10px;">
+                <div style="background: rgba(234, 179, 8, 0.12); border: 1px solid #eab308; color: #854d0e; padding: 12px; border-radius: 2px; margin-bottom: 18px; font-size: 13px; display: flex; align-items: center; gap: 10px;">
                     <i class="fa-solid fa-circle-exclamation" style="font-size: 16px;"></i>
                     <span>{{ session('warning') }}</span>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div style="background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 12px 14px; border-radius: 2px; margin-bottom: 18px; font-size: 13px; display: flex; align-items: flex-start; gap: 10px;">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size: 15px; margin-top: 2px;"></i>
+                    <div>
+                        @foreach($errors->all() as $err)
+                            <div>{{ $err }}</div>
+                        @endforeach
+                    </div>
                 </div>
             @endif
 

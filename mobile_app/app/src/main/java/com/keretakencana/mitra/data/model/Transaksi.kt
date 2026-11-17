@@ -39,6 +39,12 @@ data class Transaksi(
     @SerializedName("bukti_penerimaan_url")
     val buktiPenerimaanUrl: String? = null,
 
+    @SerializedName("bukti_transfer_url")
+    val buktiTransferUrl: String? = null,
+
+    @SerializedName("ditransfer_pada")
+    val ditransferPada: String? = null,
+
     @SerializedName("boleh_batal")
     val bolehBatal: Boolean = false,
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use App\Models\LegalDocument;
 use App\Helpers\ActivityLogger;
 
@@ -24,8 +25,13 @@ class LegalitasController extends Controller
             'berlaku_sampai' => ['nullable', 'date'],
             'status' => ['required', 'string', 'max:50'],
             'catatan' => ['nullable', 'string'],
+            'file_dokumen' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'],
             'urutan' => ['integer'],
         ]);
+
+        if ($request->hasFile('file_dokumen')) {
+            $validated['file_dokumen'] = $request->file('file_dokumen')->store('legalitas', 'public');
+        }
 
         $doc = LegalDocument::create($validated);
 
@@ -45,8 +51,16 @@ class LegalitasController extends Controller
             'berlaku_sampai' => ['nullable', 'date'],
             'status' => ['required', 'string', 'max:50'],
             'catatan' => ['nullable', 'string'],
+            'file_dokumen' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'],
             'urutan' => ['integer'],
         ]);
+
+        if ($request->hasFile('file_dokumen')) {
+            if ($doc->file_dokumen && Storage::disk('public')->exists($doc->file_dokumen)) {
+                Storage::disk('public')->delete($doc->file_dokumen);
+            }
+            $validated['file_dokumen'] = $request->file('file_dokumen')->store('legalitas', 'public');
+        }
 
         $doc->update($validated);
 
@@ -59,6 +73,11 @@ class LegalitasController extends Controller
     {
         $doc = LegalDocument::findOrFail($id);
         $nama = $doc->nama_dokumen;
+
+        if ($doc->file_dokumen && Storage::disk('public')->exists($doc->file_dokumen)) {
+            Storage::disk('public')->delete($doc->file_dokumen);
+        }
+
         $doc->delete();
 
         ActivityLogger::log('Hapus Legalitas', "Menghapus dokumen: {$nama}");

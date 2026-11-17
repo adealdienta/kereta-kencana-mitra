@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
@@ -12,15 +13,19 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.keretakencana.mitra.R
 import com.keretakencana.mitra.data.api.ApiClient
 import com.keretakencana.mitra.data.local.CartManager
 import com.keretakencana.mitra.data.local.SessionManager
+import com.keretakencana.mitra.data.model.Barang
 import com.keretakencana.mitra.data.model.CartItem
+import com.keretakencana.mitra.data.model.Pengaturan
 import com.keretakencana.mitra.databinding.ActivityCheckoutBinding
+import com.keretakencana.mitra.ui.akun.AlamatTokoActivity
 import com.keretakencana.mitra.utils.CurrencyHelper
-import com.keretakencana.mitra.ui.pesanan.PembayaranQrisActivity
+import com.keretakencana.mitra.ui.pesanan.PembayaranTransferActivity
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.util.UUID
@@ -32,7 +37,9 @@ class CheckoutActivity : AppCompatActivity() {
     private var catatanKurir: String = ""
     private var cartItems: List<CartItem> = emptyList()
     private var grandTotal: Double = 0.0
-    private var selectedPaymentMethod: String = "COD" // "COD" atau "QRIS"
+    private var selectedPaymentMethod: String = "COD" // "COD" atau "TRANSFER_BANK"
+    private var isAmbilDiPabrik: Boolean = false
+    private lateinit var currentPengaturan: Pengaturan
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,10 +47,62 @@ class CheckoutActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         catatanKurir = intent.getStringExtra(EXTRA_CATATAN) ?: ""
+        currentPengaturan = SessionManager.getInstance(this).getPengaturan()
+
+        if (catatanKurir.isNotBlank()) {
+            binding.cardCatatanPesanan.visibility = View.VISIBLE
+            binding.tvCatatanPesananPreview.text = catatanKurir
+        } else {
+            binding.cardCatatanPesanan.visibility = View.GONE
+        }
 
         setupProfileSnapshot()
+        bindTransferInfo()
+        fetchPengaturanTerbaru()
         populateCargoItems()
         setupListeners()
+        selectDeliveryMode(isAmbilDiPabrik)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        setupProfileSnapshot()
+    }
+
+    private fun fetchPengaturanTerbaru() {
+        lifecycleScope.launch {
+            try {
+                val res = ApiClient.getService(this@CheckoutActivity).getPengaturan()
+                val data = res.body()?.data
+                if (res.isSuccessful && res.body()?.success == true && data != null) {
+                    SessionManager.getInstance(this@CheckoutActivity).savePengaturan(data)
+                    currentPengaturan = SessionManager.getInstance(this@CheckoutActivity).getPengaturan()
+                    bindTransferInfo()
+                }
+            } catch (_: Exception) {}
+        }
+    }
+
+    private fun bindTransferInfo() {
+        val bankNama = currentPengaturan.bankNama?.trim()
+        val bankRekening = currentPengaturan.bankRekening?.trim()
+        val bankAtasNama = currentPengaturan.bankAtasNama?.trim()
+
+        if (!bankRekening.isNullOrBlank()) {
+            binding.tvTransferBankBadge.text = bankNama?.takeIf { it.isNotBlank() } ?: "Transfer Bank"
+            binding.tvTransferRekeningNumber.visibility = View.VISIBLE
+            binding.tvTransferRekeningNumber.text = bankRekening
+            binding.tvTransferAtasNama.visibility = if (!bankAtasNama.isNullOrBlank()) View.VISIBLE else View.GONE
+            binding.tvTransferAtasNama.text = "a.n. ${bankAtasNama ?: "PR KERETA KENCANA"}"
+            binding.tvTransferInfoDesc.text =
+                "Setelah mengirim pesanan, transfer sesuai total tagihan dan unggah foto struk / screenshot bukti transfer pada menu Pesanan Saya."
+        } else {
+            binding.tvTransferBankBadge.text = "Konfirmasi Admin"
+            binding.tvTransferRekeningNumber.visibility = View.GONE
+            binding.tvTransferAtasNama.visibility = View.GONE
+            binding.tvTransferInfoDesc.text =
+                "Nomor rekening bank resmi pabrik akan diinformasikan langsung oleh Admin via WhatsApp setelah pesanan dibuat. Setelah transfer, unggah bukti transfer melalui menu Pesanan Saya."
+        }
     }
 
     private fun setupProfileSnapshot() {
@@ -66,10 +125,16 @@ class CheckoutActivity : AppCompatActivity() {
         }
 
         binding.layoutItemsMuatan.removeAllViews()
+        val totalSlopOrder = cartManager.getTotalSlopQty()
         grandTotal = 0.0
+        var totalBungkus = 0
 
         for (item in cartItems) {
-            grandTotal += item.subtotal
+            val itemSubtotal = item.getTieredSubtotal(totalSlopOrder)
+            grandTotal += itemSubtotal
+
+            val qty = item.jumlah
+            totalBungkus += qty * item.barang.bungkusPerSlop
 
             val rowLayout = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
@@ -84,7 +149,7 @@ class CheckoutActivity : AppCompatActivity() {
 
             val tvItemName = TextView(this).apply {
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-                text = "${item.barang.nama} (${item.jumlah} ${item.satuan.lowercase()})"
+                text = "${item.barang.nama} (${item.jumlah} slop)"
                 setTextColor(getColor(R.color.text_primary))
                 textSize = 13f
             }
@@ -94,7 +159,7 @@ class CheckoutActivity : AppCompatActivity() {
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 )
-                text = CurrencyHelper.formatRupiah(item.subtotal)
+                text = CurrencyHelper.formatRupiah(itemSubtotal)
                 setTextColor(getColor(R.color.text_primary))
                 textSize = 13f
                 gravity = Gravity.END
@@ -105,26 +170,68 @@ class CheckoutActivity : AppCompatActivity() {
             binding.layoutItemsMuatan.addView(rowLayout)
         }
 
+        binding.tvRincianTotalKuantitas.text = "$totalSlopOrder slop ($totalBungkus bungkus)"
         binding.tvCheckoutTotalHarga.text = CurrencyHelper.formatRupiah(grandTotal)
+        binding.tvRincianTotalHarga.text = CurrencyHelper.formatRupiah(grandTotal)
     }
 
     private fun setupListeners() {
         binding.btnBackCheckout.setOnClickListener { finish() }
 
+        binding.btnModeAntar.setOnClickListener {
+            selectDeliveryMode(ambilDiPabrik = false)
+        }
+
+        binding.btnModeAmbil.setOnClickListener {
+            selectDeliveryMode(ambilDiPabrik = true)
+        }
+
         binding.btnUbahAlamat.setOnClickListener {
-            Toast.makeText(this, "Alamat pengiriman dapat diperbarui pada menu profil akun.", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, AlamatTokoActivity::class.java))
         }
 
         binding.cardPaymentCod.setOnClickListener {
             selectPaymentMethod("COD")
         }
 
-        binding.cardPaymentQris.setOnClickListener {
-            selectPaymentMethod("QRIS")
+        binding.cardPaymentTransfer.setOnClickListener {
+            selectPaymentMethod("TRANSFER_BANK")
         }
 
         binding.btnSubmitOrder.setOnClickListener {
             confirmAndSendOrder()
+        }
+    }
+
+    private fun selectDeliveryMode(ambilDiPabrik: Boolean) {
+        isAmbilDiPabrik = ambilDiPabrik
+
+        if (ambilDiPabrik) {
+            // Ambil di Pabrik aktif
+            binding.btnModeAmbil.setBackgroundResource(R.drawable.bg_card_sharp_selected)
+            binding.tvBtnModeAmbil.setTextColor(ContextCompat.getColor(this, R.color.price_red))
+
+            binding.btnModeAntar.setBackgroundColor(Color.TRANSPARENT)
+            binding.tvBtnModeAntar.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
+
+            binding.cardAlamatToko.visibility = View.GONE
+            binding.cardAlamatPabrik.visibility = View.VISIBLE
+
+            binding.tvRincianPenerimaan.text = "Ambil Mandiri di Pabrik"
+            binding.tvRincianOngkir.text = "Rp 0 (Ambil Mandiri)"
+        } else {
+            // Diantar ke Toko aktif
+            binding.btnModeAntar.setBackgroundResource(R.drawable.bg_card_sharp_selected)
+            binding.tvBtnModeAntar.setTextColor(ContextCompat.getColor(this, R.color.price_red))
+
+            binding.btnModeAmbil.setBackgroundColor(Color.TRANSPARENT)
+            binding.tvBtnModeAmbil.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
+
+            binding.cardAlamatToko.visibility = View.VISIBLE
+            binding.cardAlamatPabrik.visibility = View.GONE
+
+            binding.tvRincianPenerimaan.text = "Diantar Kurir / Ekspedisi"
+            binding.tvRincianOngkir.text = "Area Blitar Gratis (Jarak jauh hubungi Admin)"
         }
     }
 
@@ -133,28 +240,27 @@ class CheckoutActivity : AppCompatActivity() {
         val isCod = method == "COD"
 
         binding.rbPaymentCod.isChecked = isCod
-        binding.rbPaymentQris.isChecked = !isCod
+        binding.rbPaymentTransfer.isChecked = !isCod
 
-        binding.layoutPaymentCod.setBackgroundResource(
-            if (isCod) R.drawable.bg_rounded_card_selected else R.drawable.bg_rounded_card
-        )
-        binding.layoutPaymentQris.setBackgroundResource(
-            if (!isCod) R.drawable.bg_rounded_card_selected else R.drawable.bg_rounded_card
-        )
-
-        binding.cardQrisInfo.visibility = if (isCod) View.GONE else View.VISIBLE
+        binding.cardTransferInfo.visibility = if (isCod) View.GONE else View.VISIBLE
     }
 
     private fun confirmAndSendOrder() {
         val methodDesc = if (selectedPaymentMethod == "COD") {
             "Bayar di Tempat (COD)"
         } else {
-            "QRIS (Instan & Otomatis)"
+            "Transfer Bank"
+        }
+
+        val message = if (isAmbilDiPabrik) {
+            "Pesanan grosir Anda akan disiapkan di loket gudang pabrik PR Kereta Kencana Ponggok Blitar untuk diambil mandiri dengan metode $methodDesc."
+        } else {
+            "Pesanan Anda akan dikirim ke alamat toko dengan metode $methodDesc. Pengiriman area Blitar gratis ongkir (untuk lokasi jarak jauh silakan hubungi Admin via WhatsApp)."
         }
 
         AlertDialog.Builder(this)
             .setTitle("Kirim Pesanan?")
-            .setMessage("Pesanan grosir akan dikirim langsung oleh kurir resmi pabrik ke alamat toko Anda dengan metode $methodDesc.")
+            .setMessage(message)
             .setPositiveButton("Ya, Kirim") { _, _ ->
                 executeOrderCreation()
             }
@@ -168,6 +274,7 @@ class CheckoutActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val api = ApiClient.getService(this@CheckoutActivity)
+                val user = SessionManager.getInstance(this@CheckoutActivity).getUser()
                 val idempotencyKey = UUID.randomUUID().toString()
 
                 val itemsPayload = cartItems.map {
@@ -178,9 +285,22 @@ class CheckoutActivity : AppCompatActivity() {
                     )
                 }
 
+                val catatanFinal = if (isAmbilDiPabrik) {
+                    if (catatanKurir.isNotBlank()) "Ambil langsung ke pabrik. Catatan: $catatanKurir" else "Ambil langsung ke pabrik"
+                } else {
+                    catatanKurir
+                }
+
+                val alamatFinal = if (isAmbilDiPabrik) {
+                    "Gudang Distribusi PR KERETA KENCANA, Ponggok, Blitar (Ambil Mandiri)"
+                } else {
+                    user?.alamat ?: binding.tvCheckoutAlamat.text.toString()
+                }
+
                 val payload = mapOf(
-                    "catatan" to catatanKurir,
-                    "metode_pembayaran" to if (selectedPaymentMethod == "COD") "Bayar di Tempat (COD)" else "QRIS",
+                    "alamat" to alamatFinal,
+                    "catatan" to catatanFinal,
+                    "metode_pembayaran" to if (selectedPaymentMethod == "COD") "Bayar di Tempat (COD)" else "Transfer Bank",
                     "items" to itemsPayload
                 )
 
@@ -198,14 +318,14 @@ class CheckoutActivity : AppCompatActivity() {
                     // Bersihkan keranjang lokal
                     CartManager.getInstance(this@CheckoutActivity).clearCart()
 
-                    if (selectedPaymentMethod == "QRIS") {
-                        // Arahkan ke Layar Pembayaran QRIS Dinamis & Simulasi
-                        val intent = Intent(this@CheckoutActivity, PembayaranQrisActivity::class.java).apply {
+                    if (selectedPaymentMethod == "TRANSFER_BANK") {
+                        // Arahkan ke Layar Pembayaran Transfer Bank & Unggah Bukti
+                        val intent = Intent(this@CheckoutActivity, PembayaranTransferActivity::class.java).apply {
                             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-                            putExtra(PembayaranQrisActivity.EXTRA_PESANAN_ID, pesananId)
-                            putExtra(PembayaranQrisActivity.EXTRA_KODE_TRX, kodeTrx)
-                            putExtra(PembayaranQrisActivity.EXTRA_TOTAL_HARGA, totalHargaFinal)
-                            putExtra(PembayaranQrisActivity.EXTRA_FORMATTED_TOTAL, formattedTotal)
+                            putExtra(PembayaranTransferActivity.EXTRA_PESANAN_ID, pesananId)
+                            putExtra(PembayaranTransferActivity.EXTRA_KODE_TRX, kodeTrx)
+                            putExtra(PembayaranTransferActivity.EXTRA_TOTAL_HARGA, totalHargaFinal)
+                            putExtra(PembayaranTransferActivity.EXTRA_FORMATTED_TOTAL, formattedTotal)
                         }
                         startActivity(intent)
                         finish()

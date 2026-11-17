@@ -6,15 +6,16 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'PR. KERETA KENCANA') - Pabrik Sigaret Kretek Blitar</title>
     
-    <!-- Favicon Resmi PR. KERETA KENCANA -->
-    <link rel="icon" type="image/png" href="{{ asset('assets/img/logo-resmi.png') }}?v=kencana3">
-    <link rel="shortcut icon" href="{{ asset('assets/img/logo-resmi.png') }}?v=kencana3">
-    <link rel="apple-touch-icon" href="{{ asset('assets/img/logo-resmi.png') }}?v=kencana3">
+    <!-- Favicon Resmi PR. KERETA KENCANA (Tanpa Background) -->
+    <link rel="icon" type="image/png" sizes="256x256" href="{{ asset('favicon.png') }}?v={{ filemtime(public_path('favicon.png')) }}">
+    <link rel="icon" type="image/png" sizes="64x64" href="{{ asset('assets/img/logo-resmi.png') }}?v={{ filemtime(public_path('assets/img/logo-resmi.png')) }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}?v={{ filemtime(public_path('favicon.ico')) }}">
+    <link rel="apple-touch-icon" href="{{ asset('favicon.png') }}?v={{ filemtime(public_path('favicon.png')) }}">
     
-    <!-- Google Fonts: Plus Jakarta Sans & Inter (Clean Corporate Typography) -->
+    <!-- Google Fonts: Newsreader (Editorial), Source Sans 3 (Body), IBM Plex Mono (Document & Numbers) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,500&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -51,7 +52,7 @@
     <header class="site-header">
         <div class="container header-inner">
             <a href="{{ route('beranda') }}" class="logo-brand">
-                <img src="{{ asset('assets/img/logo-resmi.png') }}" alt="PR. Kereta Kencana" class="logo-img-brand">
+                <img src="{{ asset('assets/img/logo-resmi.png') }}?v={{ filemtime(public_path('assets/img/logo-resmi.png')) }}" alt="PR. Kereta Kencana" class="logo-img-brand">
                 <div class="logo-text">
                     <div class="logo-title">KERETA KENCANA</div>
                     <div class="logo-sub">PABRIK SIGARET KRETEK BLITAR</div>
@@ -65,12 +66,11 @@
                 <a href="{{ route('pesanan.form') }}" class="nav-link {{ request()->routeIs('pesanan.form') ? 'active' : '' }}">Order</a>
                 @auth
                     @if(Auth::user()->isPelanggan())
-                        <a href="{{ route('pesanan.saya') }}" class="nav-link {{ request()->routeIs('pesanan.saya') ? 'active' : '' }}" style="color: var(--gold);">
+                        <a href="{{ route('pesanan.saya') }}" class="nav-link {{ request()->routeIs('pesanan.saya') ? 'active' : '' }}">
                             <i class="fa-solid fa-box-open"></i> Pesanan Saya
                         </a>
                     @endif
                 @endauth
-                <a href="{{ route('kontak') }}" class="nav-link {{ request()->routeIs('kontak') ? 'active' : '' }}">Kontak & Lokasi</a>
                 
                 <div class="nav-actions" style="display: flex; align-items: center; gap: 8px;">
                     @guest
@@ -79,8 +79,8 @@
                         </a>
                     @else
                         @if(Auth::user()->isPelanggan())
-                            <span style="font-size: 12px; color: var(--text-light); display: inline-flex; align-items: center; gap: 6px; background: rgba(200, 164, 94, 0.1); border: 1px solid rgba(200, 164, 94, 0.3); padding: 5px 10px; border-radius: 6px;">
-                                <i class="fa-solid fa-store" style="color: var(--gold);"></i> {{ Str::limit(Auth::user()->nama_toko ?: Auth::user()->name, 16) }}
+                            <span style="font-size: 12px; color: #f4f4f5; display: inline-flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); padding: 5px 10px; border-radius: 6px;">
+                                <i class="fa-solid fa-store" style="color: #d4d4d8;"></i> {{ Str::limit(Auth::user()->nama_toko ?: Auth::user()->name, 16) }}
                             </span>
                             <form action="{{ route('logout') }}" method="POST" style="display: inline;">
                                 @csrf
@@ -139,28 +139,28 @@
                 <!-- Kolom 1: Profil & Legalitas Pabrik -->
                 <div>
                     <div class="logo-brand" style="margin-bottom: 16px;">
-                        <img src="{{ asset('assets/img/logo-resmi.png') }}" alt="PR. Kereta Kencana" class="logo-img-brand">
+                        <img src="{{ asset('assets/img/logo-resmi.png') }}?v={{ filemtime(public_path('assets/img/logo-resmi.png')) }}" alt="PR. Kereta Kencana" class="logo-img-brand">
                         <div class="logo-text">
                             <div class="logo-title">PR. KERETA KENCANA</div>
                             <div class="logo-sub">PABRIK SIGARET KRETEK BLITAR</div>
                         </div>
                     </div>
-                    <p style="color: #cbd5e1; font-size: 0.92rem; line-height: 1.7; margin-bottom: 20px;">
-                        Pabrik rokok resmi berizin cukai di Blitar, Jawa Timur. Menghadirkan kretek berkualitas tinggi dengan perpaduan tembakau pegunungan pilihan dan cengkeh nusantara, melayani mitra toko, warung, hingga distributor bal partai besar.
+                    <p style="color: #a3a3a3; font-size: 0.92rem; line-height: 1.65; margin-bottom: 20px;">
+                        Pabrik Sigaret Kretek Tangan (SKT) berizin cukai di Ponggok, Kabupaten Blitar. Memproduksi SEMBADA 12, KERETA KENCANA 12, dan SEMBADA Cethe 12 untuk toko ritel hingga agen distributor.
                     </p>
                     <div class="legal-badges-grid" style="margin-top: 0;">
                         <div class="badge-card">
                             <div class="badge-icon"><i class="fa-solid fa-stamp"></i></div>
                             <div>
                                 <div class="badge-title">NPPBKC Resmi</div>
-                                <div class="badge-sub">0821.1.2.XXXXX (Bea Cukai)</div>
+                                <div class="badge-sub" style="font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.01em;">750******-070700-221221*******</div>
                             </div>
                         </div>
                         <div class="badge-card">
-                            <div class="badge-icon"><i class="fa-solid fa-file-contract"></i></div>
+                            <div class="badge-icon"><i class="fa-solid fa-shield-halved"></i></div>
                             <div>
-                                <div class="badge-title">NIB OSS RI</div>
-                                <div class="badge-sub">9120001234567 Terbit</div>
+                                <div class="badge-title">Pengawasan Cukai</div>
+                                <div class="badge-sub">KPPBC TMP C Blitar</div>
                             </div>
                         </div>
                     </div>
@@ -168,49 +168,59 @@
 
                 <!-- Kolom 2: Navigasi Cepat -->
                 <div>
-                    <div class="eyebrow" style="margin-bottom: 14px;"><i class="fa-solid fa-compass"></i> NAVIGASI SITUS</div>
-                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; font-size: 0.92rem;">
-                        <li><a href="{{ route('beranda') }}" class="footer-nav-link"><i class="fa-solid fa-chevron-right" style="font-size: 10px; color: var(--gold);"></i> Beranda Utama</a></li>
-                        <li><a href="{{ route('profil') }}" class="footer-nav-link"><i class="fa-solid fa-chevron-right" style="font-size: 10px; color: var(--gold);"></i> Profil & Legalitas Pabrik</a></li>
-                        <li><a href="{{ route('katalog.index') }}" class="footer-nav-link"><i class="fa-solid fa-chevron-right" style="font-size: 10px; color: var(--gold);"></i> Katalog Produk Rokok</a></li>
-                        <li><a href="{{ route('pesanan.form') }}" class="footer-nav-link"><i class="fa-solid fa-chevron-right" style="font-size: 10px; color: var(--gold);"></i> Formulir Order (Slop / Bal)</a></li>
-                        <li><a href="{{ route('kontak') }}" class="footer-nav-link"><i class="fa-solid fa-chevron-right" style="font-size: 10px; color: var(--gold);"></i> Kontak & Titik Lokasi Pabrik</a></li>
-                        <li><a href="{{ route('login') }}" class="footer-nav-link" style="color: var(--gold-bright) !important; font-weight: 700;"><i class="fa-solid fa-shield-halved" style="font-size: 11px;"></i> Portal Staf Internal</a></li>
+                    <div style="font-family: var(--font-mono); font-size: 0.76rem; color: #a3a3a3; margin-bottom: 14px; letter-spacing: 0.04em;">Navigasi Situs</div>
+                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; font-size: 0.94rem;">
+                        <li><a href="{{ route('beranda') }}" class="footer-nav-link"><i class="fa-solid fa-chevron-right" style="font-size: 10px; color: #737373;"></i> Beranda</a></li>
+                        <li><a href="{{ route('profil') }}" class="footer-nav-link"><i class="fa-solid fa-chevron-right" style="font-size: 10px; color: #737373;"></i> Profil &amp; Legalitas Pabrik</a></li>
+                        <li><a href="{{ route('katalog.index') }}" class="footer-nav-link"><i class="fa-solid fa-chevron-right" style="font-size: 10px; color: #737373;"></i> Katalog Produk Rokok</a></li>
+                        <li><a href="{{ route('pesanan.form') }}" class="footer-nav-link"><i class="fa-solid fa-chevron-right" style="font-size: 10px; color: #737373;"></i> Order Online (Satuan Slop)</a></li>
+                        @auth
+                            @if(Auth::user()->isPelanggan())
+                                <li><a href="{{ route('pesanan.saya') }}" class="footer-nav-link" style="color: #ffffff !important; font-weight: 600;"><i class="fa-solid fa-box-open" style="font-size: 11px; color: #a3a3a3;"></i> Pesanan Saya</a></li>
+                            @else
+                                <li><a href="{{ route('admin.dashboard') }}" class="footer-nav-link" style="color: #ffffff !important; font-weight: 600;"><i class="fa-solid fa-shield-halved" style="font-size: 11px; color: #a3a3a3;"></i> Dashboard Panel Staf</a></li>
+                            @endif
+                        @else
+                            <li><a href="{{ route('login') }}" class="footer-nav-link" style="color: #ffffff !important; font-weight: 600;"><i class="fa-solid fa-shield-halved" style="font-size: 11px; color: #a3a3a3;"></i> Portal Masuk Mitra &amp; Staf</a></li>
+                        @endauth
                     </ul>
                 </div>
 
-                <!-- Kolom 3: Kantor & Jam Kerja Operasional -->
+                <!-- Kolom 3: Kantor & Layanan Kemitraan -->
                 <div>
-                    <div class="eyebrow" style="margin-bottom: 14px;"><i class="fa-solid fa-building"></i> KANTOR & OPERASIONAL</div>
-                    <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid #3d3428; border-radius: var(--radius); padding: 18px; margin-bottom: 14px;">
-                        <p style="color: #ffffff; font-size: 0.9rem; font-weight: 600; margin-bottom: 6px;">
-                            <i class="fa-solid fa-location-dot" style="color: var(--gold); margin-right: 4px;"></i> PR. KERETA KENCANA
+                    <div style="font-family: var(--font-mono); font-size: 0.76rem; color: #a3a3a3; margin-bottom: 14px; letter-spacing: 0.04em;">Kantor &amp; Kemitraan</div>
+                    <div style="background: #141414; border: 1px solid #262626; padding: 18px; margin-bottom: 14px;">
+                        <p style="color: #ffffff; font-size: 0.92rem; font-weight: 600; margin-bottom: 6px;">
+                            PR. KERETA KENCANA
                         </p>
-                        <p style="color: #a8a29e; font-size: 0.83rem; line-height: 1.6; margin-bottom: 12px;">
-                            Dusun Subontoro, Desa Kebonduren, Kecamatan Ponggok, Kabupaten Blitar, Jawa Timur 66153
+                        <p style="color: #a3a3a3; font-size: 0.85rem; line-height: 1.55; margin-bottom: 12px;">
+                            Dusun Subontoro RT. 001 RW. 015, Desa Kebonduren, Kecamatan Ponggok, Kabupaten Blitar, Jawa Timur 66153
                         </p>
-                        <div style="border-top: 1px dashed #3d3428; padding-top: 10px; font-size: 0.82rem; color: #f5f0e8;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                                <span style="color: #a8a29e;">Senin - Sabtu:</span>
-                                <strong>08:00 - 16:00 WIB</strong>
-                            </div>
-                            <div style="display: flex; justify-content: space-between;">
-                                <span style="color: #a8a29e;">Minggu / Libur:</span>
-                                <span style="color: var(--gold);">Libur Produksi</span>
-                            </div>
+                        <div style="border-top: 1px solid #262626; padding-top: 12px;">
+                            <p style="color: #ffffff; font-size: 0.88rem; font-weight: 600; line-height: 1.45; margin-bottom: 6px;">
+                                Tertarik Menjadi Agen atau Mitra Pasokan Toko?
+                            </p>
+                            <p style="color: #a3a3a3; font-size: 0.83rem; line-height: 1.58; margin: 0;">
+                                Hubungi manajemen PR. Kereta Kencana di Ponggok, Kabupaten Blitar untuk pembelian skala Bal, keagenan daerah, maupun konsultasi pemesanan.
+                            </p>
                         </div>
                     </div>
 
-                    <a href="https://maps.app.goo.gl/3fxK2wXZoiRLs2sg8" target="_blank" class="btn btn-sm btn-outline-gold btn-block">
-                        <i class="fa-solid fa-diamond-turn-right"></i> Buka Titik Google Maps
-                    </a>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <a href="https://wa.me/{{ config('pabrik.wa_pabrik', '6285790627104') }}?text={{ urlencode('Halo Admin PR. KERETA KENCANA, saya ingin bertanya mengenai kemitraan & pemesanan rokok.') }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-gold btn-block">
+                            <i class="fa-brands fa-whatsapp"></i> Hubungi Admin via WhatsApp
+                        </a>
+                        <a href="https://maps.app.goo.gl/3fxK2wXZoiRLs2sg8" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-gold btn-block">
+                            <i class="fa-solid fa-diamond-turn-right"></i> Buka Titik Google Maps
+                        </a>
+                    </div>
                 </div>
             </div>
 
             <div class="footer-bottom">
                 <p>&copy; {{ date('Y') }} PR. KERETA KENCANA Ponggok, Kabupaten Blitar. Seluruh hak cipta dilindungi undang-undang.</p>
-                <div style="margin-top: 6px; font-size: 0.75rem; color: #64748b;">
-                    Ade Aldienta Web Prototype
+                <div style="margin-top: 6px; font-size: 0.75rem; color: #737373;">
+                    Portal Kemitraan B2B &bull; Pengawasan KPPBC Tipe Madya Pabean C Blitar
                 </div>
             </div>
         </div>
@@ -223,7 +233,7 @@
     </div>
 
     <!-- Script Utama -->
-    <script src="{{ asset('assets/js/main.js') }}"></script>
+    <script src="{{ asset('assets/js/main.js') }}?v={{ filemtime(public_path('assets/js/main.js')) }}"></script>
     @stack('scripts')
 </body>
 </html>

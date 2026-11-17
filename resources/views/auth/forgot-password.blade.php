@@ -9,7 +9,7 @@
             
             <div style="text-align: center; margin-bottom: 24px;">
                 <div style="text-align: center; margin-bottom: 14px;">
-                    <img src="{{ asset('assets/img/logo-resmi.png') }}" alt="PR. Kereta Kencana" style="height: 65px; width: auto; object-fit: contain; border-radius: 8px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light); padding: 3px; background: #fff;">
+                    <img src="{{ asset('assets/img/logo-resmi.png') }}?v={{ filemtime(public_path('assets/img/logo-resmi.png')) }}" alt="PR. Kereta Kencana" style="height: 65px; width: auto; object-fit: contain; margin: 0 auto;">
                 </div>
                 <h2 style="font-family: var(--font-serif); color: var(--gold-hover); font-size: 22px; margin-bottom: 6px; font-weight: 800;">LUPA KATA SANDI</h2>
                 <p style="color: var(--text-muted); font-size: 13.5px;">Masukkan alamat email terdaftar untuk menerima tautan atur ulang kata sandi secara aman.</p>

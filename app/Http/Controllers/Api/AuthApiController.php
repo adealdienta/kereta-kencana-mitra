@@ -8,6 +8,7 @@ use App\Http\Requests\Api\UpdateProfileApiRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -190,12 +191,12 @@ class AuthApiController extends ApiController
     public function uploadFotoProfil(Request $request)
     {
         $request->validate([
-            'foto' => ['required', 'file', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'foto' => ['required', 'file', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
         ], [
             'foto.required' => 'Berkas foto profil wajib diunggah.',
             'foto.image' => 'Berkas harus berupa gambar.',
             'foto.mimes' => 'Format gambar yang diperbolehkan: JPEG, PNG, JPG, atau WEBP.',
-            'foto.max' => 'Ukuran foto maksimal 2 MB.',
+            'foto.max' => 'Ukuran foto maksimal 10 MB.',
         ]);
 
         $user = $request->user();
@@ -255,6 +256,12 @@ class AuthApiController extends ApiController
             ]
         );
 
+        Cache::put(
+            $this->resetOtpCacheKey($user->email),
+            Hash::make($otpCode),
+            now()->addMinutes(60)
+        );
+
         $resetUrl = route('password.reset', [
             'token' => $token,
             'email' => $user->email,
@@ -273,7 +280,7 @@ class AuthApiController extends ApiController
         return $this->successResponse([
             'email' => $user->email,
             'token' => $token,
-        ], 'Tautan dan kode verifikasi reset sandi telah berhasil dikirimkan ke email Anda.');
+        ], 'Kode verifikasi 6-digit dan tautan reset sandi telah berhasil dikirimkan ke email Anda.');
     }
 
     /**
@@ -290,26 +297,27 @@ class AuthApiController extends ApiController
             'token.required' => 'Token verifikasi wajib disertakan.',
         ]);
 
-        $record = DB::table('password_reset_tokens')->where('email', strtolower(trim($request->email)))->first();
+        $email = strtolower(trim($request->email));
+        $record = DB::table('password_reset_tokens')->where('email', $email)->first();
 
-        if (!$record || !Hash::check($request->token, $record->token)) {
+        if (!$record || !$this->matchesResetCredential($email, $request->token, $record->token)) {
             return response()->json([
                 'success' => false,
                 'status' => 'error',
                 'valid' => false,
-                'message' => 'Token verifikasi tidak valid atau tidak ditemukan.',
+                'message' => 'Kode verifikasi atau token tidak valid atau tidak ditemukan.',
                 'errors' => ['valid' => false],
             ], 422);
         }
 
         $createdAt = Carbon::parse($record->created_at);
         if ($createdAt->addMinutes(60)->isPast()) {
-            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+            $this->clearResetCredentials($email);
             return response()->json([
                 'success' => false,
                 'status' => 'error',
                 'valid' => false,
-                'message' => 'Token verifikasi telah kedaluwarsa.',
+                'message' => 'Kode verifikasi atau token telah kedaluwarsa.',
                 'errors' => ['valid' => false],
             ], 422);
         }
@@ -318,10 +326,10 @@ class AuthApiController extends ApiController
             'success' => true,
             'status' => 'success',
             'valid' => true,
-            'message' => 'Token verifikasi sah dan dapat digunakan untuk membuat kata sandi baru.',
+            'message' => 'Kode verifikasi sah dan dapat digunakan untuk membuat kata sandi baru.',
             'data' => [
                 'valid' => true,
-                'email' => $request->email,
+                'email' => $email,
             ],
         ], 200);
     }
@@ -344,19 +352,20 @@ class AuthApiController extends ApiController
             'password.confirmed' => 'Konfirmasi kata sandi baru tidak cocok.',
         ]);
 
-        $record = DB::table('password_reset_tokens')->where('email', strtolower(trim($request->email)))->first();
+        $email = strtolower(trim($request->email));
+        $record = DB::table('password_reset_tokens')->where('email', $email)->first();
 
-        if (!$record || !Hash::check($request->token, $record->token)) {
-            return $this->errorResponse('Token verifikasi tidak valid atau telah usang.', 422);
+        if (!$record || !$this->matchesResetCredential($email, $request->token, $record->token)) {
+            return $this->errorResponse('Kode verifikasi atau token tidak valid atau telah usang.', 422);
         }
 
         $createdAt = Carbon::parse($record->created_at);
         if ($createdAt->addMinutes(60)->isPast()) {
-            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
-            return $this->errorResponse('Token verifikasi telah kedaluwarsa.', 422);
+            $this->clearResetCredentials($email);
+            return $this->errorResponse('Kode verifikasi atau token telah kedaluwarsa.', 422);
         }
 
-        $user = User::where('email', strtolower(trim($request->email)))->first();
+        $user = User::where('email', $email)->first();
         if (!$user) {
             return $this->errorResponse('Akun pengguna tidak ditemukan.', 404);
         }
@@ -364,10 +373,32 @@ class AuthApiController extends ApiController
         $user->password = Hash::make($request->password);
         $user->save();
 
-        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+        $this->clearResetCredentials($email);
 
         ActivityLogger::log('API Sandi Diperbarui', "Kata sandi akun {$user->email} berhasil diubah melalui Mobile API");
 
         return $this->successResponse(null, 'Kata sandi akun Anda berhasil diperbarui. Silakan login ke dalam aplikasi mobile.');
+    }
+
+    protected function resetOtpCacheKey(string $email): string
+    {
+        return 'mobile_reset_otp:' . strtolower(trim($email));
+    }
+
+    protected function matchesResetCredential(string $email, string $input, string $storedTokenHash): bool
+    {
+        if (Hash::check($input, $storedTokenHash)) {
+            return true;
+        }
+
+        $otpHash = Cache::get($this->resetOtpCacheKey($email));
+        return is_string($otpHash) && Hash::check($input, $otpHash);
+    }
+
+    protected function clearResetCredentials(string $email): void
+    {
+        $normalized = strtolower(trim($email));
+        DB::table('password_reset_tokens')->where('email', $normalized)->delete();
+        Cache::forget($this->resetOtpCacheKey($normalized));
     }
 }

@@ -12,7 +12,7 @@
         </div>
         <div>
             <div style="font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: 600;">Varian Produk</div>
-            <div style="font-size: 24px; font-weight: 800; color: #1e293b;">{{ $totalProduk }} SKM/SKT</div>
+            <div style="font-size: 24px; font-weight: 800; color: #1e293b;">{{ $totalProduk }} Varian SKT</div>
         </div>
     </div>
 
@@ -85,8 +85,8 @@
                                 <strong>{{ $trx->nama_mitra }}</strong>
                                 <div style="font-size: 11px; color: #64748b;">{{ $trx->telepon }}</div>
                             </td>
-                            <td style="padding: 10px;">{{ $trx->barang->nama }}</td>
-                            <td style="padding: 10px; text-align: center; font-weight: 700;">{{ $trx->jumlah }} Bal</td>
+                            <td style="padding: 10px;">{{ $trx->ringkasan_item }}</td>
+                            <td style="padding: 10px; text-align: center; font-weight: 700;">{{ $trx->jumlah }} {{ $trx->satuan ?? 'Slop' }}</td>
                             <td style="padding: 10px; text-align: right; font-weight: 700; color: #0f1316;">
                                 {{ $trx->formatted_total }}
                             </td>

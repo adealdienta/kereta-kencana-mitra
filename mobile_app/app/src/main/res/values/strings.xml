@@ -9,7 +9,7 @@
 
     <!-- General Labels -->
     <string name="katalog_grosir">KATALOG PRODUK GROSIR</string>
-    <string name="info_satuan_slop">1 slop = 10 bungkus. Ketuk produk untuk pilihan pembelian skala bal.</string>
+    <string name="info_satuan_slop">1 slop = 10 bungkus. Pembelian Bal via WhatsApp Admin.</string>
     <string name="pesanan_saya">Pesanan Saya</string>
     <string name="pantau_pengiriman">Pantau pengiriman kretek &amp; riwayat pasokan grosir toko Anda</string>
     <string name="akun_saya">Akun Saya</string>

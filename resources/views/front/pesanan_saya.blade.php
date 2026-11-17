@@ -5,10 +5,10 @@
 @section('content')
 <!-- Header Banner -->
 <section class="page-header">
-    <div class="container text-center">
-        <span class="header-badge"><i class="fa-solid fa-boxes-packing"></i> STATUS PENGIRIMAN & FAKTUR</span>
-        <h1 class="page-title">PELACAKAN PESANAN SAYA</h1>
-        <p class="page-subtitle">Pantau tahapan proses pesanan rokok Anda dari lini produksi hingga tiba di toko</p>
+    <div class="container">
+        <span class="header-badge">Status Pengiriman &amp; Faktur</span>
+        <h1 class="page-title">Pelacakan Pesanan Saya</h1>
+        <p class="page-subtitle" style="margin: 0;">Pantau tahapan proses pesanan rokok Anda dari lini produksi hingga tiba di toko</p>
     </div>
 </section>
 
@@ -16,21 +16,16 @@
     <div class="container" style="max-width: 1000px;">
         
         <!-- Mitra Profile Card -->
-        <div style="background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; box-shadow: var(--shadow-sm);">
-            <div style="display: flex; align-items: center; gap: 14px;">
-                <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(179,139,63,0.12); color: var(--gold-hover); display: flex; align-items: center; justify-content: center; font-size: 22px;">
-                    <i class="fa-solid fa-store"></i>
-                </div>
-                <div>
-                    <h3 style="color: var(--text-dark); font-size: 18px; margin-bottom: 3px;">{{ $user->nama_toko ?: $user->name }}</h3>
-                    <p style="color: var(--text-muted); font-size: 13px; margin: 0;">
-                        Pemilik: <strong>{{ $user->name }}</strong> &bull; WA: {{ $user->telepon ?: '-' }} &bull; {{ $user->email }}
-                    </p>
-                </div>
+        <div style="background: var(--bg-surface); border: 1px solid var(--border-light); border-top: 2px solid var(--text-dark); border-radius: 2px; padding: 20px 24px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div>
+                <h3 style="font-family: var(--font-serif); color: var(--text-dark); font-size: 19px; margin-bottom: 3px;">{{ $user->nama_toko ?: $user->name }}</h3>
+                <p style="color: var(--text-muted); font-size: 13.5px; margin: 0;">
+                    Pemilik: <strong>{{ $user->name }}</strong> &bull; <span class="font-mono" style="font-size: 12.5px;">{{ $user->telepon ?: '-' }}</span> &bull; {{ $user->email }}
+                </p>
             </div>
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                 <button type="button" class="btn btn-outline-gold btn-sm" onclick="openMitraProfileModal()" style="display: inline-flex; align-items: center; gap: 8px;">
-                    <i class="fa-solid fa-user-pen"></i> Ubah Data & Sandi
+                    <i class="fa-solid fa-user-pen"></i> Ubah Data &amp; Sandi
                 </button>
                 <a href="{{ route('pesanan.form') }}" class="btn btn-gold btn-sm" style="display: inline-flex; align-items: center; gap: 8px;">
                     <i class="fa-solid fa-cart-plus"></i> Buat Pesanan Baru
@@ -40,112 +35,114 @@
 
         @if($pendingDelivery)
             <!-- Alert Khusus Pesanan Siap Konfirmasi -->
-            <div style="background: #fefce8; border: 1px solid #fde047; border-radius: 8px; padding: 18px; margin-bottom: 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; box-shadow: var(--shadow-sm);">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="color: #ca8a04; font-size: 26px;">
-                        <i class="fa-solid fa-truck-ramp-box"></i>
-                    </div>
-                    <div>
-                        <strong style="color: #854d0e; font-size: 15px; display: block;">Barang Sedang Dikirim ke Toko Anda</strong>
-                        <p style="color: #713f12; font-size: 13px; margin: 2px 0 0 0;">
-                            Pesanan <strong>{{ $pendingDelivery->kode_transaksi }}</strong> ({{ $pendingDelivery->barang->nama }}) sedang di jalan. Saat kurir tiba, segera unggah foto barang yang Anda terima untuk menyelesaikan pesanan.
-                        </p>
-                    </div>
+            <div style="background: #fefce8; border: 1px solid #d97706; border-radius: 2px; padding: 18px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <strong style="color: #854d0e; font-size: 15px; display: block;">Barang Sedang Dikirim ke Toko Anda</strong>
+                    <p style="color: #713f12; font-size: 13.5px; margin: 2px 0 0 0;">
+                        Pesanan <strong class="font-mono">{{ $pendingDelivery->kode_transaksi }}</strong> ({{ $pendingDelivery->ringkasan_item }}) sedang di jalan. Saat kurir tiba, segera unggah foto barang yang Anda terima untuk menyelesaikan pesanan.
+                    </p>
                 </div>
-                <button type="button" class="btn btn-sm btn-gold" onclick="openKonfirmasiModal('{{ $pendingDelivery->id }}', '{{ $pendingDelivery->kode_transaksi }}', '{{ $pendingDelivery->barang->nama }}')">
+                <button type="button" class="btn btn-sm btn-gold" onclick='openKonfirmasiModal(@json($pendingDelivery->id), @json($pendingDelivery->kode_transaksi), @json($pendingDelivery->ringkasan_item))'>
                     <i class="fa-solid fa-camera"></i> Konfirmasi Terima Sekarang
                 </button>
             </div>
         @endif
 
+        @if($errors->any())
+            <div style="background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 12px 16px; border-radius: 2px; margin-bottom: 20px; font-size: 13.5px;">
+                <i class="fa-solid fa-triangle-exclamation"></i> {{ $errors->first() }}
+            </div>
+        @endif
+
         <!-- Daftar Transaksi Pelanggan -->
         @if($transaksis->isEmpty())
-            <div style="background: var(--bg-surface); border: 1px dashed var(--border-light); border-radius: var(--radius-lg); padding: 50px 20px; text-align: center; box-shadow: var(--shadow-sm);">
-                <div style="font-size: 40px; color: var(--text-muted); margin-bottom: 12px;">
-                    <i class="fa-solid fa-box-open"></i>
-                </div>
-                <h3 style="color: var(--text-dark); font-size: 18px; margin-bottom: 6px;">Belum Ada Riwayat Pemesanan</h3>
-                <p style="color: var(--text-muted); font-size: 13.5px; max-width: 450px; margin: 0 auto 20px;">
+            <div style="background: var(--bg-surface); border: 1px dashed var(--border-light); border-radius: 2px; padding: 48px 20px; text-align: center;">
+                <h3 style="font-family: var(--font-serif); color: var(--text-dark); font-size: 20px; margin-bottom: 6px;">Belum Ada Riwayat Pemesanan</h3>
+                <p style="color: var(--text-muted); font-size: 14px; max-width: 450px; margin: 0 auto 20px;">
                     Anda belum pernah membuat transaksi pemesanan rokok. Silakan buka formulir pemesanan untuk memulai order perdana Anda.
                 </p>
                 <a href="{{ route('pesanan.form') }}" class="btn btn-gold">
-                    <i class="fa-solid fa-cart-plus"></i> Pesan Rokok Sekarang (Mulai 1 Slop)
+                    Pesan Rokok Sekarang (Mulai 1 Slop)
                 </a>
             </div>
         @else
             <div style="display: flex; flex-direction: column; gap: 20px;">
                 @foreach($transaksis as $t)
-                    <div style="background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-sm); transition: 0.2s;">
+                    @php
+                        $isTransferBank = $t->metode_pembayaran && stripos($t->metode_pembayaran, 'transfer') !== false;
+                        $paymentStatus = $t->status_pembayaran ?? ($t->status === 'Selesai' ? 'Lunas' : 'Belum Dibayar');
+                    @endphp
+                    <div style="background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: 2px; padding: 24px;">
                         
                         <!-- Header Transaksi -->
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 16px; margin-bottom: 18px;">
                             <div>
-                                <span style="font-family: monospace; font-size: 14px; font-weight: 700; color: var(--gold-hover); letter-spacing: 0.5px;">
+                                <span class="font-mono" style="font-size: 14.5px; font-weight: 600; color: var(--text-dark); letter-spacing: 0.02em;">
                                     {{ $t->kode_transaksi }}
                                 </span>
-                                <div style="color: var(--text-muted); font-size: 12px; margin-top: 3px;">
+                                <div style="color: var(--text-muted); font-size: 12.5px; margin-top: 3px;">
                                     Dipesan pada: {{ $t->created_at->format('d M Y, H:i') }} WIB
                                 </div>
                             </div>
 
-                            <!-- Status Badge Berbasis Icon -->
-                            <div>
+                            <!-- Status Badge Berbasis Kontras Tinggi -->
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                                 @if($t->status === 'Baru Masuk')
-                                    <span style="background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.3); padding: 6px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                                    <span style="background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; padding: 5px 12px; border-radius: 2px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
                                         <i class="fa-regular fa-clock"></i> Menunggu Konfirmasi Pabrik
                                     </span>
                                 @elseif($t->status === 'Diproses')
-                                    <span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); padding: 6px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                                        <i class="fa-solid fa-gears"></i> Sedang Diproses di Gudang
+                                    <span style="background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; padding: 5px 12px; border-radius: 2px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                                        <i class="fa-solid fa-gears"></i> Sedang Diproses Gudang
                                     </span>
                                 @elseif($t->status === 'Dikirim')
-                                    <span style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); padding: 6px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                                        <i class="fa-solid fa-truck-fast"></i> Sedang Diantar oleh Kurir Resmi Pabrik
+                                    <span style="background: #f3e8ff; color: #6b21a8; border: 1px solid #d8b4fe; padding: 5px 12px; border-radius: 2px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                                        <i class="fa-solid fa-truck-fast"></i> Sedang Diantar Kurir Pabrik
                                     </span>
                                 @elseif($t->status === 'Selesai')
-                                    <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 6px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                                    <span style="background: #dcfce7; color: #166534; border: 1px solid #86efac; padding: 5px 12px; border-radius: 2px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
                                         <i class="fa-solid fa-circle-check"></i> Pesanan Selesai (Diterima)
                                     </span>
                                 @else
-                                    <span style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 6px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                                    <span style="background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; padding: 5px 12px; border-radius: 2px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
                                         <i class="fa-solid fa-ban"></i> Dibatalkan
                                     </span>
                                 @endif
                             </div>
                         </div>
 
-                        <!-- Icon Stepper Sederhana Progres Barang -->
+                        <!-- Stepper Progres Barang (Light Editorial Style) -->
                         @if($t->status !== 'Dibatalkan')
-                            <div style="background: rgba(0,0,0,0.25); border-radius: 8px; padding: 14px 18px; margin-bottom: 20px;">
-                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; text-align: center;">
+                            <div style="background: var(--kk-ivory); border: 1px solid var(--kk-ivory-border); border-radius: 2px; padding: 14px 18px; margin-bottom: 20px;">
+                                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center;">
                                     
                                     <!-- Step 1: Diterbitkan -->
-                                    <div style="color: {{ in_array($t->status, ['Baru Masuk', 'Diproses', 'Dikirim', 'Selesai']) ? 'var(--gold)' : 'var(--text-muted)' }};">
-                                        <div style="font-size: 20px; margin-bottom: 4px;">
+                                    <div style="color: {{ in_array($t->status, ['Baru Masuk', 'Diproses', 'Dikirim', 'Selesai']) ? 'var(--text-dark)' : '#a1a1aa' }};">
+                                        <div style="font-size: 18px; margin-bottom: 4px;">
                                             <i class="fa-solid fa-file-lines"></i>
                                         </div>
                                         <div style="font-size: 11.5px; font-weight: 600;">1. Order Diterbitkan</div>
                                     </div>
 
                                     <!-- Step 2: Diproses Gudang -->
-                                    <div style="color: {{ in_array($t->status, ['Diproses', 'Dikirim', 'Selesai']) ? 'var(--gold)' : 'var(--text-muted)' }};">
-                                        <div style="font-size: 20px; margin-bottom: 4px;">
+                                    <div style="color: {{ in_array($t->status, ['Diproses', 'Dikirim', 'Selesai']) ? 'var(--text-dark)' : '#a1a1aa' }};">
+                                        <div style="font-size: 18px; margin-bottom: 4px;">
                                             <i class="fa-solid fa-boxes-packing"></i>
                                         </div>
                                         <div style="font-size: 11.5px; font-weight: 600;">2. Diproses Gudang</div>
                                     </div>
 
                                     <!-- Step 3: Dikirim -->
-                                    <div style="color: {{ in_array($t->status, ['Dikirim', 'Selesai']) ? 'var(--gold)' : 'var(--text-muted)' }};">
-                                        <div style="font-size: 20px; margin-bottom: 4px;">
+                                    <div style="color: {{ in_array($t->status, ['Dikirim', 'Selesai']) ? 'var(--text-dark)' : '#a1a1aa' }};">
+                                        <div style="font-size: 18px; margin-bottom: 4px;">
                                             <i class="fa-solid fa-truck"></i>
                                         </div>
                                         <div style="font-size: 11.5px; font-weight: 600;">3. Sedang Dikirim</div>
                                     </div>
 
                                     <!-- Step 4: Selesai -->
-                                    <div style="color: {{ $t->status === 'Selesai' ? '#10b981' : 'var(--text-muted)' }};">
-                                        <div style="font-size: 20px; margin-bottom: 4px;">
+                                    <div style="color: {{ $t->status === 'Selesai' ? '#15803d' : '#a1a1aa' }};">
+                                        <div style="font-size: 18px; margin-bottom: 4px;">
                                             <i class="fa-solid fa-circle-check"></i>
                                         </div>
                                         <div style="font-size: 11.5px; font-weight: 600;">4. Diterima Toko</div>
@@ -154,7 +151,7 @@
                             </div>
                         @endif
 
-                        <!-- Detail Produk & Harga -->
+                        <!-- Detail Produk, Harga & Pembayaran -->
                         <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; margin-bottom: 18px;" class="grid-2col">
                             <div>
                                 <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 4px;">Item Rokok Dipesan:</div>
@@ -162,8 +159,8 @@
                                     <div style="display: flex; flex-direction: column; gap: 6px;">
                                         @foreach($t->details as $d)
                                             <div style="font-size: 13.5px; color: var(--text-dark);">
-                                                <strong style="color: var(--gold-hover);">&bull; {{ $d->barang?->nama ?? 'Produk' }}</strong>: 
-                                                {{ $d->jumlah }} {{ $d->satuan }} 
+                                                <strong style="color: var(--text-dark);">&bull; {{ $d->barang?->nama ?? 'Produk' }}</strong>: 
+                                                <span class="font-mono">{{ $d->jumlah }} {{ $d->satuan }}</span> 
                                                 <span style="color: var(--text-muted); font-size: 12px;">
                                                     ({{ $d->total_bungkus }} Bks &bull; {{ $d->formatted_subtotal }})
                                                 </span>
@@ -179,7 +176,7 @@
                                         @if($t->satuan === 'Slop')
                                             <span style="color: var(--text-muted);">({{ $t->jumlah * 10 }} Bungkus)</span>
                                         @else
-                                            <span style="color: var(--text-muted);">({{ $t->jumlah * ($t->barang->slop_per_bal ?: 20) }} Slop / {{ $t->jumlah * ($t->barang->slop_per_bal ?: 20) * 10 }} Bks)</span>
+                                            <span style="color: var(--text-muted);">(Kemasan Bal)</span>
                                         @endif
                                     </div>
                                 @endif
@@ -187,18 +184,61 @@
 
                             <div style="text-align: right;" class="text-left-mobile">
                                 <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 2px;">Total Nilai Pesanan:</div>
-                                <div style="color: var(--gold-hover); font-size: 18px; font-weight: 800;">
+                                <div class="font-mono" style="color: var(--text-dark); font-size: 18px; font-weight: 700;">
                                     {{ $t->formatted_total }}
                                 </div>
-                                <div style="color: var(--text-muted); font-size: 12px;">
+                                <div style="color: var(--text-medium); font-size: 12px; margin-top: 3px;">
+                                    {{ $t->metode_pembayaran ?? 'Bayar di Tempat (COD)' }} &bull;
+                                    <strong style="color: {{ $paymentStatus === 'Lunas' ? '#15803d' : ($paymentStatus === 'Menunggu Verifikasi' ? '#b45309' : (str_contains($paymentStatus, 'Ditolak') ? '#b91c1c' : '#52525b')) }};">
+                                        {{ $paymentStatus }}
+                                    </strong>
+                                </div>
+                                <div style="color: var(--text-muted); font-size: 11.5px; margin-top: 2px;">
                                     Sumber: {{ $t->sumber }}
                                 </div>
                             </div>
                         </div>
 
+                        <!-- Info Transfer Bank & Upload Bukti -->
+                        @if($isTransferBank && $t->status !== 'Dibatalkan')
+                            <div style="background: #f8fafc; border: 1px solid var(--border-light); border-left: 3px solid var(--text-dark); border-radius: 2px; padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                                <div style="font-size: 12.5px; color: var(--text-dark); line-height: 1.5;">
+                                    @if($t->bukti_transfer)
+                                        <strong><i class="fa-solid fa-receipt"></i> Bukti Transfer Terunggah</strong>
+                                        <span style="color: var(--text-muted); display: block; font-size: 11.5px;">
+                                            Diunggah: {{ $t->ditransfer_pada ? $t->ditransfer_pada->format('d M Y, H:i') : '-' }} WIB &bull; Status: <strong>{{ $paymentStatus }}</strong>
+                                        </span>
+                                    @elseif(!empty($bankInfo['rekening']))
+                                        <strong>Pembayaran Transfer {{ $bankInfo['nama'] ?? 'Bank Resmi' }}:</strong>
+                                        <span class="font-mono">{{ $bankInfo['rekening'] }}</span> a.n. {{ $bankInfo['atas_nama'] ?? 'PR. KERETA KENCANA' }}
+                                        <span style="color: var(--text-muted); display: block; font-size: 11.5px;">
+                                            Silakan lakukan transfer sesuai total faktur lalu unggah foto bukti transfer.
+                                        </span>
+                                    @else
+                                        <strong>Pembayaran Transfer Bank:</strong>
+                                        <span style="color: var(--text-muted); display: block; font-size: 11.5px;">
+                                            Nomor rekening resmi pabrik dikonfirmasi langsung oleh Admin via WhatsApp (<span class="font-mono">+62 857-9062-7104</span>), lalu unggah foto bukti transfer di sini.
+                                        </span>
+                                    @endif
+                                </div>
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                    @if($t->bukti_transfer)
+                                        <a href="{{ asset('storage/' . $t->bukti_transfer) }}" target="_blank" class="btn btn-sm btn-secondary" style="font-size: 12px; padding: 5px 10px;">
+                                            <i class="fa-solid fa-eye"></i> Lihat Struk
+                                        </a>
+                                    @endif
+                                    @if($paymentStatus !== 'Lunas')
+                                        <button type="button" class="btn btn-sm btn-gold" onclick='openTransferModal(@json($t->id), @json($t->kode_transaksi), @json($t->formatted_total))' style="font-size: 12px;">
+                                            <i class="fa-solid fa-upload"></i> {{ $t->bukti_transfer ? 'Unggah Ulang Struk' : 'Unggah Bukti Transfer' }}
+                                        </button>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+
                         <!-- Info Bukti Penerimaan (Jika Ada) -->
                         @if($t->bukti_penerimaan)
-                            <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                            <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 2px; padding: 12px 16px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <i class="fa-solid fa-camera-retro" style="color: #059669; font-size: 18px;"></i>
                                     <div>
@@ -207,7 +247,7 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <a href="{{ asset('storage/' . $t->bukti_penerimaan) }}" target="_blank" class="btn btn-sm btn-outline" style="font-size: 12px; padding: 4px 10px;">
+                                    <a href="{{ asset('storage/' . $t->bukti_penerimaan) }}" target="_blank" class="btn btn-sm btn-secondary" style="font-size: 12px; padding: 4px 10px;">
                                         <i class="fa-solid fa-eye"></i> Lihat Foto Bukti
                                     </a>
                                 </div>
@@ -216,7 +256,7 @@
 
                         <!-- Tombol Aksi Pesanan -->
                         <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; border-top: 1px solid var(--border-light); padding-top: 14px;">
-                            <div style="display: flex; gap: 8px;">
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                                 <a href="{{ route('pesanan.invoice', $t->kode_transaksi) }}" class="btn btn-sm btn-outline-gold" style="font-size: 12px;">
                                     <i class="fa-solid fa-file-invoice"></i> Buka Faktur / Invoice
                                 </a>
@@ -225,23 +265,23 @@
                                 @if($t->status === 'Baru Masuk')
                                     <form action="{{ route('pesanan.batal', $t->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pesanan ini? Stok akan dipulihkan kembali.')" style="display: inline;">
                                         @csrf
-                                        <button type="submit" class="btn btn-sm btn-outline" style="font-size: 12px; color: #ef4444; border-color: rgba(239,68,68,0.4);">
+                                        <button type="submit" class="btn btn-sm btn-secondary" style="font-size: 12px; color: #b91c1c; border-color: #fca5a5;">
                                             <i class="fa-solid fa-xmark"></i> Batalkan Pesanan
                                         </button>
                                     </form>
                                 @endif
                             </div>
 
-                            <div>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                                 <!-- Tombol Konfirmasi Terima (Khusus jika status Dikirim) -->
                                 @if($t->status === 'Dikirim' && !$t->bukti_penerimaan)
-                                    <button type="button" class="btn btn-sm btn-gold" onclick="openKonfirmasiModal('{{ $t->id }}', '{{ $t->kode_transaksi }}', '{{ $t->barang->nama }}')">
-                                        <i class="fa-solid fa-camera"></i> Konfirmasi Terima & Unggah Bukti
+                                    <button type="button" class="btn btn-sm btn-gold" onclick='openKonfirmasiModal(@json($t->id), @json($t->kode_transaksi), @json($t->ringkasan_item))'>
+                                        <i class="fa-solid fa-camera"></i> Konfirmasi Terima &amp; Unggah Bukti
                                     </button>
                                 @endif
 
                                 @if($t->status !== 'Dibatalkan')
-                                    <a href="https://wa.me/6281234567890?text={{ urlencode('Halo Admin PR. KERETA KENCANA, saya ingin menanyakan status pesanan ' . $t->kode_transaksi . ' atas nama ' . $t->nama_mitra) }}" target="_blank" class="btn btn-sm btn-outline" style="font-size: 12px;">
+                                    <a href="https://wa.me/{{ config('pabrik.wa_pabrik', '6285790627104') }}?text={{ urlencode('Halo Admin PR. KERETA KENCANA, saya ingin menanyakan status pesanan ' . $t->kode_transaksi . ' atas nama ' . $t->nama_mitra) }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-secondary" style="font-size: 12px;">
                                         <i class="fa-brands fa-whatsapp"></i> Chat Admin Pabrik
                                     </a>
                                 @endif
@@ -263,7 +303,7 @@
 
 <!-- Modal Konfirmasi Terima & Upload Foto Bukti -->
 <div id="modalKonfirmasiTerima" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(22, 19, 15, 0.75); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
-    <div style="background: var(--bg-surface); border: 1.5px solid var(--border-light); border-top: 4px solid var(--gold); border-radius: var(--radius-lg); width: 100%; max-width: 500px; padding: 28px; box-shadow: var(--shadow-lg); position: relative;">
+    <div style="background: var(--bg-surface); border: 1.5px solid var(--border-light); border-top: 4px solid var(--text-dark); border-radius: var(--radius-lg); width: 100%; max-width: 500px; padding: 28px; box-shadow: var(--shadow-lg); position: relative;">
         
         <button type="button" onclick="closeKonfirmasiModal()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--text-muted); font-size: 22px; cursor: pointer; line-height: 1;">&times;</button>
         
@@ -298,7 +338,44 @@
             </div>
 
             <button type="submit" class="btn btn-gold" style="width: 100%; padding: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <i class="fa-solid fa-cloud-arrow-up"></i> Konfirmasi & Unggah Bukti
+                <i class="fa-solid fa-cloud-arrow-up"></i> Konfirmasi &amp; Unggah Bukti
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Unggah Bukti Transfer Bank -->
+<div id="modalUploadTransfer" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(22, 19, 15, 0.75); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: var(--bg-surface); border: 1.5px solid var(--border-light); border-top: 4px solid var(--text-dark); border-radius: var(--radius-lg); width: 100%; max-width: 500px; padding: 28px; box-shadow: var(--shadow-lg); position: relative;">
+        <button type="button" onclick="closeTransferModal()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--text-muted); font-size: 22px; cursor: pointer; line-height: 1;">&times;</button>
+
+        <div style="text-align: center; margin-bottom: 18px;">
+            <h3 style="color: var(--text-dark); font-size: 18px; margin-bottom: 4px; font-weight: 800;">Unggah Bukti Transfer Bank</h3>
+            <p style="color: var(--text-muted); font-size: 13px; margin: 0;" id="modalTransferLabel">Kode Transaksi</p>
+        </div>
+
+        <div style="background: var(--kk-ivory); border: 1px solid var(--kk-ivory-border); padding: 12px 14px; font-size: 12.5px; color: var(--text-dark); margin-bottom: 16px; line-height: 1.55;">
+            @if(!empty($bankInfo['rekening']))
+                <strong>{{ $bankInfo['nama'] ?? 'Bank Resmi Pabrik' }}</strong><br>
+                No. Rek: <span class="font-mono" style="font-weight: 700;">{{ $bankInfo['rekening'] }}</span> &bull; a.n. <strong>{{ $bankInfo['atas_nama'] ?? 'PR. KERETA KENCANA' }}</strong>
+            @else
+                <strong>Transfer Bank</strong><br>
+                Pastikan Anda telah menerima konfirmasi nomor rekening resmi dari Admin WhatsApp (<span class="font-mono">+62 857-9062-7104</span>) sebelum mengunggah struk.
+            @endif
+        </div>
+
+        <form id="formUploadTransfer" method="POST" enctype="multipart/form-data">
+            @csrf
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="display: block; color: var(--text-dark); font-size: 13.5px; margin-bottom: 6px; font-weight: 600;">
+                    Foto Struk / Screenshot Transfer <span style="color: #ef4444;">*</span>
+                </label>
+                <input type="file" name="bukti_transfer" class="form-control" required accept="image/*"
+                       style="width: 100%; padding: 10px; background: #ffffff; border: 1px solid var(--border-light); color: var(--text-dark); border-radius: 6px;">
+                <small style="color: var(--text-muted); font-size: 11.5px; display: block; margin-top: 4px;">Format: JPG, PNG, atau WEBP (Maks. 5 MB).</small>
+            </div>
+            <button type="submit" class="btn btn-gold" style="width: 100%; padding: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Kirim Bukti Transfer
             </button>
         </form>
     </div>
@@ -405,6 +482,20 @@ function openKonfirmasiModal(id, kode, namaBarang) {
 
 function closeKonfirmasiModal() {
     document.getElementById('modalKonfirmasiTerima').style.display = 'none';
+}
+
+function openTransferModal(id, kode, totalFormatted) {
+    const modal = document.getElementById('modalUploadTransfer');
+    const form = document.getElementById('formUploadTransfer');
+    const label = document.getElementById('modalTransferLabel');
+
+    form.action = `/pesanan/${id}/upload-bukti-transfer`;
+    label.innerText = `${kode} • Tagihan ${totalFormatted}`;
+    modal.style.display = 'flex';
+}
+
+function closeTransferModal() {
+    document.getElementById('modalUploadTransfer').style.display = 'none';
 }
 
 function openMitraProfileModal() {

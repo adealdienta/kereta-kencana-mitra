@@ -5,27 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') - Panel Manajemen PR. KERETA KENCANA</title>
-    <link rel="icon" type="image/png" href="{{ asset('assets/img/logo-resmi.png') }}?v=kencana3">
-    <link rel="shortcut icon" href="{{ asset('assets/img/logo-resmi.png') }}?v=kencana3">
-    <link rel="apple-touch-icon" href="{{ asset('assets/img/logo-resmi.png') }}?v=kencana3">
+    <link rel="icon" type="image/png" sizes="256x256" href="{{ asset('favicon.png') }}?v={{ filemtime(public_path('favicon.png')) }}">
+    <link rel="icon" type="image/png" sizes="64x64" href="{{ asset('assets/img/logo-resmi.png') }}?v={{ filemtime(public_path('assets/img/logo-resmi.png')) }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}?v={{ filemtime(public_path('favicon.ico')) }}">
+    <link rel="apple-touch-icon" href="{{ asset('favicon.png') }}?v={{ filemtime(public_path('favicon.png')) }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('assets/css/admin.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/admin.css') }}?v=mobile2">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @stack('styles')
 </head>
 <body>
 
 <div class="admin-wrapper">
+    <!-- Sidebar Backdrop for Mobile Drawer -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
     <!-- Sidebar -->
-    <aside class="admin-sidebar">
+    <aside class="admin-sidebar" id="adminSidebar">
         <div class="sidebar-brand">
-            <img src="{{ asset('assets/img/logo-resmi.png') }}" alt="PR. Kereta Kencana" style="height: 38px; width: auto; object-fit: contain; border-radius: 4px; background: #fff; padding: 2px;">
-            <div>
-                <strong style="letter-spacing: 1px;">KERETA KENCANA</strong>
-                <div style="font-size: 11px; color: var(--admin-muted);">Operasional & Distribusi</div>
+            <div class="sidebar-brand-content">
+                <img src="{{ asset('assets/img/logo-resmi.png') }}?v={{ filemtime(public_path('assets/img/logo-resmi.png')) }}" alt="PR. Kereta Kencana" style="height: 40px; width: auto; object-fit: contain;">
+                <div>
+                    <strong style="letter-spacing: 1px;">KERETA KENCANA</strong>
+                    <div style="font-size: 11px; color: var(--admin-muted);">Operasional & Distribusi</div>
+                </div>
             </div>
+            <button type="button" class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Tutup Menu">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
         </div>
 
         <div class="sidebar-user">
@@ -57,7 +66,7 @@
                 <i class="fa-solid fa-boxes-stacked"></i> Produk Rokok
             </a>
             <a href="{{ route('admin.kategoris.index') }}" class="sidebar-link {{ request()->routeIs('admin.kategoris.*') ? 'active' : '' }}">
-                <i class="fa-solid fa-tags"></i> Kategori (SKM / SKT)
+                <i class="fa-solid fa-tags"></i> Kategori Sigaret (SKT)
             </a>
 
             <div class="nav-section-title">PERIZINAN & SISTEM</div>
@@ -95,9 +104,14 @@
     <div class="admin-main">
         <!-- Topbar -->
         <header class="admin-topbar">
-            <div class="topbar-title">
-                <h2>@yield('header_title', 'Dashboard Operasional')</h2>
-                <small style="color: var(--admin-muted);">PR. KERETA KENCANA Ponggok, Kabupaten Blitar</small>
+            <div class="topbar-left">
+                <button type="button" class="admin-sidebar-toggle" id="adminSidebarToggle" aria-label="Buka Menu Navigasi">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="topbar-title">
+                    <h2>@yield('header_title', 'Dashboard Operasional')</h2>
+                    <small style="color: var(--admin-muted);">PR. KERETA KENCANA Ponggok, Kabupaten Blitar</small>
+                </div>
             </div>
             <div class="topbar-actions">
                 <span class="badge-role">{{ auth()->user()->name }} ({{ strtoupper(auth()->user()->role) }})</span>
@@ -133,6 +147,61 @@
         </main>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('adminSidebar');
+        const toggleBtn = document.getElementById('adminSidebarToggle');
+        const closeBtn = document.getElementById('sidebarCloseBtn');
+        const backdrop = document.getElementById('sidebarBackdrop');
+
+        function openSidebar() {
+            if (sidebar) sidebar.classList.add('show');
+            if (backdrop) backdrop.classList.add('show');
+            document.body.classList.add('sidebar-open');
+        }
+
+        function closeSidebar() {
+            if (sidebar) sidebar.classList.remove('show');
+            if (backdrop) backdrop.classList.remove('show');
+            document.body.classList.remove('sidebar-open');
+        }
+
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                openSidebar();
+            });
+        }
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                closeSidebar();
+            });
+        }
+
+        if (backdrop) {
+            backdrop.addEventListener('click', closeSidebar);
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeSidebar();
+            }
+        });
+
+        // Close when clicking nav links on mobile devices
+        const sidebarLinks = document.querySelectorAll('.sidebar-link');
+        sidebarLinks.forEach(function(link) {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 992) {
+                    closeSidebar();
+                }
+            });
+        });
+    });
+</script>
 
 @stack('scripts')
 </body>

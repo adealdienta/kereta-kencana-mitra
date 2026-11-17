@@ -85,9 +85,9 @@
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity" />
 
-        <!-- Layar Pembayaran QRIS Dinamis & Simulasi Real-Time -->
+        <!-- Layar Pembayaran Transfer Bank Manual -->
         <activity
-            android:name=".ui.pesanan.PembayaranQrisActivity"
+            android:name=".ui.pesanan.PembayaranTransferActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity" />
@@ -130,6 +130,13 @@
         <!-- Layar Ubah Kata Sandi Akun (S20) -->
         <activity
             android:name=".ui.akun.UbahSandiActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity" />
+
+        <!-- Layar Riwayat Notifikasi Sistem & Pesanan -->
+        <activity
+            android:name=".ui.notifikasi.NotifikasiActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity" />

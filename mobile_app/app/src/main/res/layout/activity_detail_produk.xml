@@ -129,9 +129,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:text="Rp 57.500 / slop"
+                android:text="Rp 70.000 / slop"
                 android:textColor="@color/price_red"
-                android:textSize="20sp"
+                android:textSize="16sp"
                 android:textStyle="bold" />
 
             <!-- Deskripsi Cita Rasa Produk -->
@@ -145,7 +145,7 @@
                 android:textColor="@color/text_secondary"
                 android:textSize="13sp" />
 
-            <!-- Chip Spesifikasi Tar, Nikotin, Batang -->
+            <!-- Chip Spesifikasi SKT -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -175,7 +175,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:layout_weight="1"
-                        android:text="Tar 30 mg • Nikotin 2 mg • 12 batang per bungkus"
+                        android:text="SKT • 12 batang/bks • 10 bks/slop"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -193,7 +193,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Pilih Satuan Grosir"
+                    android:text="Satuan Pemesanan"
                     android:textColor="@color/text_primary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
@@ -202,9 +202,9 @@
                     android:id="@+id/tv_detail_stok_tersedia"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Tersedia 340 Slop (Perkiraan)"
+                    android:text="Maks. 19 Slop per pesanan online"
                     android:textColor="@color/text_secondary"
-                    android:textSize="12sp" />
+                    android:textSize="11.5sp" />
             </LinearLayout>
 
             <!-- Dua Kartu Pilihan Satuan: Slop vs Bal -->
@@ -253,7 +253,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Rp 57.500"
+                        android:text="Rp 70.000"
                         android:textColor="@color/price_red"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -262,7 +262,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:text="10 bungkus"
+                        android:text="10 bungkus (order 1–19 slop)"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -288,9 +288,9 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Bal"
+                            android:text="Bal (20+ Slop)"
                             android:textColor="@color/text_primary"
-                            android:textSize="15sp"
+                            android:textSize="14sp"
                             android:textStyle="bold" />
 
                         <ImageView
@@ -307,9 +307,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Rp 1.150.000"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp"
+                        android:text="Hubungi Admin"
+                        android:textColor="@color/brand_brown_dark"
+                        android:textSize="14sp"
                         android:textStyle="bold" />
 
                     <TextView
@@ -439,7 +439,7 @@
             android:layout_width="0dp"
             android:layout_height="50dp"
             android:background="@drawable/bg_button_primary"
-            android:text="Tambah ke Keranjang • Rp 57.500"
+            android:text="Tambah ke Keranjang • Rp 70.000"
             android:textAllCaps="false"
             android:textColor="@color/white"
             android:textSize="15sp"

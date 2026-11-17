@@ -13,7 +13,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.keretakencana.mitra.R
 import com.keretakencana.mitra.data.api.ApiClient
+import com.keretakencana.mitra.data.local.CartManager
 import com.keretakencana.mitra.data.local.SessionManager
+import com.keretakencana.mitra.data.model.Barang
 import com.keretakencana.mitra.data.model.Transaksi
 import com.keretakencana.mitra.databinding.FragmentPesananBinding
 import com.keretakencana.mitra.ui.auth.LoginBottomSheetFragment
@@ -62,6 +64,7 @@ class PesananFragment : Fragment() {
                         val intent = Intent(requireContext(), KonfirmasiPenerimaanActivity::class.java).apply {
                             putExtra(KonfirmasiPenerimaanActivity.EXTRA_PESANAN_ID, transaksi.id)
                             putExtra(KonfirmasiPenerimaanActivity.EXTRA_KODE_TRX, transaksi.kodeTransaksi)
+                            putExtra(KonfirmasiPenerimaanActivity.EXTRA_METODE_PEMBAYARAN, transaksi.metodePembayaran ?: "COD")
                         }
                         startActivity(intent)
                     }
@@ -82,8 +85,7 @@ class PesananFragment : Fragment() {
                         showDialogBatalPesanan(transaksi.id)
                     }
                     "Selesai" -> {
-                        val intent = Intent(requireContext(), CartActivity::class.java)
-                        startActivity(intent)
+                        pesanLagiDariRiwayat(transaksi)
                     }
                     else -> {
                         openDetailPesanan(transaksi.id)
@@ -132,22 +134,6 @@ class PesananFragment : Fragment() {
                     putExtra(MainActivity.EXTRA_NAV_TAB, R.id.menu_beranda)
                 }
                 startActivity(intent)
-            }
-        }
-
-        binding.ivPesananProfile.setOnClickListener {
-            val session = SessionManager.getInstance(requireContext())
-            if (!session.isLoggedIn()) {
-                val loginSheet = LoginBottomSheetFragment.newInstance()
-                loginSheet.onLoginSuccessCallback = { checkSessionAndLoadOrders() }
-                loginSheet.show(childFragmentManager, LoginBottomSheetFragment.TAG)
-            } else {
-                (activity as? MainActivity)?.let {
-                    val intent = Intent(requireContext(), MainActivity::class.java).apply {
-                        putExtra(MainActivity.EXTRA_NAV_TAB, R.id.menu_akun)
-                    }
-                    startActivity(intent)
-                }
             }
         }
     }
@@ -222,6 +208,9 @@ class PesananFragment : Fragment() {
                         binding.rvPesanan.visibility = View.VISIBLE
                         binding.layoutEmptyPesanan.visibility = View.GONE
                     }
+                } else if (response.code() == 401) {
+                    Toast.makeText(requireContext(), "Sesi akun berakhir. Silakan masuk kembali.", Toast.LENGTH_SHORT).show()
+                    checkSessionAndLoadOrders()
                 } else {
                     binding.rvPesanan.visibility = View.GONE
                     binding.layoutEmptyPesanan.visibility = View.VISIBLE
@@ -242,6 +231,56 @@ class PesananFragment : Fragment() {
             putExtra(DetailPesananActivity.EXTRA_PESANAN_ID, id)
         }
         startActivity(intent)
+    }
+
+    private fun pesanLagiDariRiwayat(transaksi: Transaksi) {
+        val ctx = context ?: return
+        val items = transaksi.items ?: emptyList()
+        if (items.isEmpty()) {
+            openDetailPesanan(transaksi.id)
+            return
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val api = ApiClient.getService(ctx)
+                val res = api.getBarang()
+                val catalogMap = (res.body()?.data ?: emptyList()).associateBy { it.id }
+
+                val groupedSlop = linkedMapOf<Long, Int>()
+                for (detail in items) {
+                    val barang = catalogMap[detail.barangId] ?: continue
+                    val slopQty = if (detail.satuan.equals("Bal", ignoreCase = true)) {
+                        detail.jumlah * (if (barang.slopPerBal > 0) barang.slopPerBal else 20)
+                    } else {
+                        detail.jumlah
+                    }
+                    groupedSlop[barang.id] = (groupedSlop[barang.id] ?: 0) + slopQty
+                }
+
+                val cartPairs = groupedSlop.mapNotNull { (bId, qty) ->
+                    val barang = catalogMap[bId]
+                    if (barang != null && barang.stok > 0 && qty > 0) barang to qty else null
+                }
+
+                if (cartPairs.isEmpty()) {
+                    Toast.makeText(ctx, "Produk pada pesanan ini sedang habis atau tidak aktif.", Toast.LENGTH_LONG).show()
+                    return@launch
+                }
+
+                CartManager.getInstance(ctx).replaceWithSlopItems(cartPairs)
+                if (groupedSlop.values.sum() > Barang.MAX_SLOP_PER_ORDER) {
+                    Toast.makeText(
+                        ctx,
+                        "Keranjang diisi maksimal ${Barang.MAX_SLOP_PER_ORDER} Slop sesuai aturan pemesanan online.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                startActivity(Intent(ctx, CartActivity::class.java))
+            } catch (e: Exception) {
+                Toast.makeText(ctx, "Gagal memuat ulang keranjang: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun showDialogBatalPesanan(id: Long) {

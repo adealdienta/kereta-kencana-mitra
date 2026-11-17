@@ -54,8 +54,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardBackgroundColor="@color/surface_white"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="3dp">
+                app:cardCornerRadius="4dp"
+                app:cardElevation="2dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -332,7 +332,7 @@
                         android:background="@drawable/bg_dashed_line"
                         android:layerType="software" />
 
-                    <!-- Bagian QR Code Verifikasi Kurir -->
+                    <!-- Bagian Kode & Validasi Faktur Resmi (Tanpa QR Code) -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -340,36 +340,13 @@
                         android:orientation="vertical">
 
                         <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Tunjukkan ke kurir saat barang tiba"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="12sp" />
-
-                        <FrameLayout
-                            android:layout_width="150dp"
-                            android:layout_height="150dp"
-                            android:layout_marginTop="10dp"
-                            android:background="@drawable/bg_rounded_card_selected"
-                            android:padding="6dp">
-
-                            <ImageView
-                                android:id="@+id/iv_faktur_qr"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:contentDescription="QR Code Faktur"
-                                android:scaleType="fitCenter" />
-                        </FrameLayout>
-
-                        <TextView
                             android:id="@+id/tv_faktur_inv_code"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
                             android:letterSpacing="0.05"
                             android:text="INV-2026-0930-0012"
                             android:textColor="@color/text_primary"
-                            android:textSize="11sp"
+                            android:textSize="12sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -377,9 +354,9 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="NPPBKC 0821.1.2.00482"
+                            android:text="NPPBKC 750******-070700-221221******* • PR KERETA KENCANA"
                             android:textColor="@color/text_muted"
-                            android:textSize="10sp" />
+                            android:textSize="10.5sp" />
                     </LinearLayout>
 
                 </LinearLayout>

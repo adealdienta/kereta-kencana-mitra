@@ -62,6 +62,15 @@ class UbahSandiActivity : AppCompatActivity() {
                     setLoading(false)
 
                     if (response.isSuccessful && response.body()?.success == true) {
+                        com.keretakencana.mitra.data.local.SessionManager.getInstance(this@UbahSandiActivity).addSecurityNotification(
+                            com.keretakencana.mitra.data.model.NotifikasiItem(
+                                id = "sec_${System.currentTimeMillis()}",
+                                judul = "Keamanan Akun: Kata Sandi Berhasil Diperbarui",
+                                pesan = "Kata sandi akun toko Anda telah berhasil diperbarui. Jika bukan Anda yang melakukan perubahan ini, segera hubungi admin pabrik.",
+                                waktu = com.keretakencana.mitra.utils.DateHelper.getCurrentWibDateTime(),
+                                kategori = "keamanan"
+                            )
+                        )
                         Toast.makeText(this@UbahSandiActivity, "✓ Kata sandi berhasil diperbarui.", Toast.LENGTH_SHORT).show()
                         finish()
                     } else {

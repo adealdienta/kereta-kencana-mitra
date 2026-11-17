@@ -16,7 +16,7 @@ class UserSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'owner@keretakencana.com'],
             [
-                'name' => 'Bapak Komari Yaman (Owner)',
+                'name' => 'Owner PR. Kereta Kencana',
                 'password' => $defaultPassword,
                 'role' => 'owner',
             ]

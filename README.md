@@ -1,19 +1,22 @@
 # PR. KERETA KENCANA — Portal B2B & Manajemen Operasional Pabrik
-**Sistem Informasi Berbasis Web Pabrik Rokok (SKM & SKT) Ponggok, Kabupaten Blitar**  
+**Sistem Informasi Berbasis Web & API Pabrik Rokok Sigaret Kretek Tangan (SKT) Ponggok, Kabupaten Blitar**  
 *Dibangun Menggunakan Framework Laravel Sesuai Kurikulum Modul BKPM (Workshop Sistem Informasi Berbasis Web 2)*
 
 ---
 
 ## 1. Ikhtisar Sistem
-Website resmi dan sistem operasional B2B untuk pabrik rokok **PR. KERETA KENCANA** (berlokasi di Dusun Subontoro, Desa Kebonduren, Kec. Ponggok, Kabupaten Blitar, Jawa Timur):
-- **Age Gate & Regulasi (18+)**: Sesuai hukum dan ketentuan industri hasil tembakau RI.
-- **Company Profile**: Sejarah lintingan tradisional hingga modern, Visi-Misi, standar mutu tembakau Jawa & cengkeh Zanzibar, tabel perizinan cukai resmi (NPPBKC, NIB, IUI, Hak Merek DJKI), dan embed peta interaktif Google Maps pabrik.
-- **Katalog Produk B2B**: Varian Sigaret Kretek Mesin (SKM) dan Sigaret Kretek Tangan (SKT) dengan spesifikasi tar/nikotin, rincian kemasan (batang/bungkus, slop, bal), serta filter dinamis.
-- **Sistem Pemesanan Grosir**: Formulir order distributor B2B dengan kalkulasi harga dinamis real-time, validasi batas minimum order bal, pengurangan stok otomatis, dan penerbitan faktur resmi yang terintegrasi dengan WhatsApp pabrik.
+Website resmi dan sistem operasional B2B untuk pabrik rokok **PR. KERETA KENCANA** (berlokasi di Dusun Subontoro RT. 001 RW. 015, Desa Kebonduren, Kec. Ponggok, Kabupaten Blitar, Jawa Timur):
+- **Age Gate & Regulasi (21+)**: Sesuai ketentuan PP 28/2024 tentang pembatasan usia informasi produk hasil tembakau.
+- **Company Profile & Legalitas**: Profil pabrik kretek tangan, proses produksi SKT, daftar dokumen legalitas resmi (NPPBKC tersensor untuk pencegahan penyalahgunaan), dan integrasi peta lokasi pabrik.
+- **Katalog Produk SKT**: 3 varian Sigaret Kretek Tangan (**SEMBADA 12**, **KERETA KENCANA 12**, dan **SEMBADA Cethe 12**) dengan rincian kemasan (batang/bungkus, slop), profil rasa, serta filter & pencarian dinamis.
+- **Sistem Pemesanan Online (Slop) & Pelacakan**:
+  - Formulir order online multi-varian hingga total maksimal **19 Slop gabungan** dengan tarif bertingkat otomatis (`1–5 Slop`: Rp 70.000, `6–10 Slop`: Rp 65.000, `>10 Slop`: Rp 60.000). Pembelian skala Bal diarahkan ke WhatsApp Admin pabrik (`+62 857-9062-7104`).
+  - Mendukung pembayaran **Bayar di Tempat (COD)** dan **Transfer Bank** (konfirmasi rekening resmi via WhatsApp Admin + unggah bukti transfer di menu *Pesanan Saya*).
+  - Dilengkapi penerbitan faktur resmi, mekanisme **Order Lock**, dan konfirmasi penerimaan barang dengan foto bukti.
 - **Panel Dashboard Manajemen (Multi-Role RBAC)**:
-  - **Owner**: Ringkasan metrik bisnis, omzet distribusi, CRUD produk, manajemen staf/admin, dan dokumen perizinan.
-  - **Super Admin**: Pengelolaan teknis sistem, manajemen akun pengguna, dan audit trail log.
-  - **Staff**: Pengelolaan operasional pesanan distributor, penerbitan **Nomor DO (Delivery Order)** dan **Nomor Resi Truk Ekspedisi**, serta cetak invoice.
+  - **Owner** & **Super Admin**: Ringkasan metrik stok & transaksi, CRUD produk & kategori, verifikasi pembayaran & verifikasi manual surat jalan fisik, manajemen akun staf, dokumen legalitas, serta Log Audit Trail.
+  - **Staff / Admin Gudang**: Pengelolaan operasional pesanan distributor, kasir penjualan langsung (offline), penerbitan **Nomor DO** dan **Nomor Resi**, serta cetak faktur Delivery Order.
+- **REST API Mobile (`/api/v1/*`)**: Layanan API Sanctum untuk aplikasi mobile mitra B2B (autentikasi, katalog, order lock, pemesanan idempotent, pelacakan, dan unggah bukti).
 
 ---
 
@@ -21,23 +24,23 @@ Website resmi dan sistem operasional B2B untuk pabrik rokok **PR. KERETA KENCANA
 
 | Acara BKPM | Materi / Fitur yang Diterapkan |
 | :--- | :--- |
-| **Acara 5 - 6** | Instalasi framework Laravel 11/12, arsitektur MVC, konfigurasi `.env`, dan database MySQL di Laragon. |
-| **Acara 7, 13, 15, 17, 20** | Model Eloquent, Relasi (`hasMany`, `belongsTo`, pivot `barang_user`), Database Migrations, dan Database Seeders (`UserSeeder`, `KategoriSeeder`, `BarangSeeder`, `LegalitasSeeder`, `TransaksiSeeder`). |
-| **Acara 8 - 10** | Autentikasi berbasis session, Middleware `CheckRole`, pengamanan rute dashboard, dan hierarki peran (Owner, Super Admin, Staff). |
-| **Acara 11 - 12** | Blade Layouts terstruktur (`layouts/app.blade.php`, `layouts/admin.blade.php`), komponen navigasi, alert flash messages, dan modal 18+. |
-| **Acara 13 - 16** | CRUD Kategori Sigaret (`SKM` & `SKT`), CRUD Produk Rokok lengkap dengan fitur upload foto/gambar produk (`storage/app/public`). |
-| **Acara 17 - 19** | CRUD Transaksi Pemesanan Distributor B2B, otomatisasi pengurangan stok (Acara 18), pemulihan stok saat pesanan dibatalkan (Stok Recovery), serta relasi antar tabel. |
-| **Acara 21 - 23** | API endpoint JSON untuk log pesanan WhatsApp, Filter pencarian status pesanan dan kategori produk. |
-| **Acara 24 - 26** | Lembar cetak faktur / Delivery Order siap print (`window.print()`), audit trail activity logging. |
-| **Acara 27** | Pengujian otomatis Unit & Feature Test (`php artisan test`) — **100% Passed (7 tests, 20 assertions)**. |
+| **Acara 5 - 6** | Instalasi framework Laravel `^13.17` (PHP `^8.3`), arsitektur MVC, konfigurasi `.env`, database MySQL di Laragon, dan kontrol versi Git/GitHub. |
+| **Acara 7, 19, 20** | Model Eloquent, Relasi (`hasMany`, `belongsTo`, `belongsToMany` via pivot `barang_user`), Database Migrations, dan Seeders (`UserSeeder`, `KategoriSeeder`, `BarangSeeder`, `LegalitasSeeder`, `TransaksiSeeder`). |
+| **Acara 8 - 10** | Autentikasi session web & Sanctum API, Middleware [`CheckRole`](app/Http/Middleware/CheckRole.php) & [`EnsurePelangganRole`](app/Http/Middleware/EnsurePelangganRole.php), dan hierarki peran (`owner`, `superadmin`, `staff`, `pelanggan`). |
+| **Acara 11 - 12** | Blade Layouts terstruktur (`layouts/app.blade.php`, `layouts/admin.blade.php`), navigasi responsif, flash messages, serta modal verifikasi usia 21+ dan pratinjau varian. |
+| **Acara 13 - 16** | CRUD Kategori Sigaret (SKT) & CRUD Produk Rokok lengkap dengan unggah gambar ke `storage/app/public`. |
+| **Acara 17 - 18** | CRUD Transaksi Pemesanan, kasir offline pabrik, pengurangan stok otomatis, serta pemulihan stok (*stock recovery*) saat pesanan dibatalkan/dihapus. |
+| **Acara 21 - 23** | Endpoint JSON REST API (`/api/v1/*`), filter pencarian status pesanan, saluran order, kategori produk, dan paginasi `withQueryString()`. |
+| **Acara 24 - 26** | Lembar cetak Invoice Mitra & Faktur Delivery Order siap print (`@media print` / `window.print()`), serta audit trail logging (`ActivityLogger`). |
+| **Acara 27** | Pengujian otomatis Unit & Feature Test (`php artisan test`) — **41 tests, 246 assertions**. |
 
 ---
 
 ## 3. Cara Menjalankan Aplikasi di Laragon / VSCode
 
 ### Opsi A: Menggunakan Artisan Server (Rekomendasi Cepat)
-1. Buka terminal di folder proyek (`c:\laragon\www\kereta-kencana-mitra`).
-2. Jalankan perintah:
+1. Buka terminal di folder proyek (`d:\kereta-kencana-mitra`).
+2. Pastikan layanan MySQL aktif dan jalankan perintah:
    ```bash
    php artisan serve
    ```
@@ -55,25 +58,24 @@ Website resmi dan sistem operasional B2B untuk pabrik rokok **PR. KERETA KENCANA
 
 ---
 
-## 4. Akun Login Bawaan untuk Evaluasi Sistem
+## 4. Akun Login Bawaan (`UserSeeder`)
 
-Akses halaman login di: `http://127.0.0.1:8000/login`  
-*(Tersedia tombol klik instan Demo Role di halaman login tanpa perlu mengetik manual)*
+Akses halaman login di: `http://127.0.0.1:8000/login`
 
 1. **Role Owner (Pemilik Pabrik)**
    - **Email:** `owner@keretakencana.com`
    - **Password:** `password123`
-   - **Akses:** Akses penuh seluruh metrik, omzet distribusi, CRUD produk, manajemen staf, dan legalitas.
+   - **Akses:** Akses penuh seluruh metrik, pengelolaan transaksi, verifikasi manual, produk, manajemen staf/akun, legalitas, dan audit log.
 
-2. **Role Staff (Operasional Gudang & Pemesanan)**
-   - **Email:** `staff@keretakencana.com`
-   - **Password:** `password123`
-   - **Akses:** Memproses pesanan distributor B2B, update nomor DO / Resi, dan mencetak faktur invoice.
-
-3. **Role Super Admin (Teknis / Web Dev)**
+2. **Role Super Admin (Teknis / Web Dev)**
    - **Email:** `superadmin@keretakencana.com`
    - **Password:** `password123`
-   - **Akses:** Manajemen akun, pemeliharaan sistem, dan jejak rekam audit trail log.
+   - **Akses:** Pengelolaan penuh operasional, verifikasi manual, manajemen akun, pemeliharaan sistem, dan audit trail log.
+
+3. **Role Staff / Admin Gudang & Pemesanan**
+   - **Email:** `admin@keretakencana.com`
+   - **Password:** `password123`
+   - **Akses:** Memproses pesanan distributor, kasir offline pabrik, update nomor DO / Resi, cetak faktur, dan pengelolaan katalog/legalitas.
 
 ---
 
@@ -82,12 +84,4 @@ Untuk menjalankan seluruh suite pengujian otomatis:
 ```bash
 php artisan test
 ```
-Hasil pengujian:
-```text
-Pass: 7 tests, 20 assertions
-- test_halaman_publik_dapat_diakses
-- test_halaman_detail_produk
-- test_alur_pemesanan_b2b_mengurangi_stok
-- test_role_owner_dapat_membuka_dashboard
-- test_role_staff_dibatasi_dari_menu_users
-```
+Cakupan pengujian meliputi **41 test (246 assertions)** di `tests/Unit/` dan `tests/Feature/` (akses publik, pemesanan B2B multi-item, harga slop bertingkat, upload bukti Transfer Bank, proteksi invoice, RBAC admin, stok recovery, legalitas, dan API Mobile `/api/v1/*`).

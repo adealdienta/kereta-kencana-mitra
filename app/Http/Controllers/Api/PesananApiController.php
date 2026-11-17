@@ -139,6 +139,15 @@ class PesananApiController extends ApiController
 
         $itemsPayload = $request->input('items', []);
 
+        // Batasi pemesanan online maksimal 19 Slop gabungan seluruh varian (skala Bal via Admin WA)
+        $totalSlopRequested = collect($itemsPayload)->sum(fn ($item) => (int) ($item['jumlah'] ?? 0));
+        if ($totalSlopRequested < 1 || $totalSlopRequested > 19) {
+            return $this->errorResponse(
+                "Total pemesanan online maksimal 19 Slop gabungan seluruh varian (pilihan Anda saat ini: {$totalSlopRequested} Slop). Untuk pembelian skala Bal (20 Slop ke atas), silakan hubungi Admin via WhatsApp.",
+                422
+            );
+        }
+
         // 3. Jalankan Database Transaction dengan Pesimistic Lock & Agregasi Stok (Aturan B2)
         try {
             $transaksi = DB::transaction(function () use ($request, $user, $itemsPayload, $idempotencyKey) {
@@ -204,6 +213,11 @@ class PesananApiController extends ApiController
                     $b->decrement('stok', $totalBalNeeded);
                 }
 
+                // Hitung total Slop pesanan untuk penentuan harga bertingkat
+                $totalSlopInOrder = collect($itemsPayload)
+                    ->where('satuan', 'Slop')
+                    ->sum(fn ($item) => (int) $item['jumlah']);
+
                 // Hitung total dan persiapkan data detail transaksi
                 $grandTotal = 0;
                 $totalUnitQty = 0;
@@ -216,7 +230,9 @@ class PesananApiController extends ApiController
                     $qty = (int)$item['jumlah'];
 
                     // Snapshot harga satuan saat pesanan dibuat (Aturan B7)
-                    $hargaSatuan = ($satuan === 'Slop') ? (float)$b->harga_per_slop : (float)$b->harga_per_bal;
+                    $hargaSatuan = ($satuan === 'Slop')
+                        ? Barang::hargaSlopByQty((int) $totalSlopInOrder)
+                        : (float)$b->harga_per_bal;
                     $subtotal = $qty * $hargaSatuan;
 
                     $grandTotal += $subtotal;
@@ -237,8 +253,8 @@ class PesananApiController extends ApiController
                 $namaMitra = $user->nama_toko ? "{$user->nama_toko} ({$user->name})" : $user->name;
 
                 $metodeRaw = (string)$request->input('metode_pembayaran', 'COD');
-                $metodePembayaran = (stripos($metodeRaw, 'qris') !== false)
-                    ? 'QRIS'
+                $metodePembayaran = (stripos($metodeRaw, 'transfer') !== false || stripos($metodeRaw, 'bca') !== false)
+                    ? 'Transfer Bank'
                     : 'Bayar di Tempat (COD)';
 
                 // Buat Transaksi Header
@@ -388,42 +404,45 @@ class PesananApiController extends ApiController
     }
 
     /**
-     * Simulasi Pembayaran & Verifikasi Scan QRIS
-     * POST /api/v1/pesanan/{id}/simulasi-qris
+     * Upload Bukti Transfer Bank
+     * POST /api/v1/pesanan/{id}/upload-bukti-transfer
      */
-    public function simulasiQris(Request $request, $id)
+    public function uploadBuktiTransfer(Request $request, $id)
     {
-        $user = $request->user();
+        $request->validate([
+            'bukti_transfer' => 'required|image|mimes:jpeg,png,jpg|max:5120',
+        ]);
 
-        $transaksi = Transaksi::with(['details.barang.kategori', 'barang'])
-            ->where('user_id', $user->id)
-            ->find($id);
+        $user = $request->user();
+        $transaksi = Transaksi::where('user_id', $user->id)->find($id);
 
         if (!$transaksi) {
-            return $this->errorResponse('Pesanan tidak ditemukan.', 404);
+            return $this->errorResponse('Pesanan tidak ditemukan atau bukan milik akun Anda.', 404);
         }
 
         if ($transaksi->status === 'Dibatalkan') {
-            return $this->errorResponse('Pesanan yang telah dibatalkan tidak dapat diproses pembayarannya.', 422);
+            return $this->errorResponse('Pesanan yang telah dibatalkan tidak dapat diunggah bukti transfernya.', 422);
         }
 
-        if ($transaksi->status_pembayaran === 'Lunas') {
-            return $this->successResponse($this->formatTransaksi($transaksi, true), 'Pembayaran QRIS untuk pesanan ini telah terverifikasi lunas sebelumnya.');
-        }
+        $file = $request->file('bukti_transfer');
+        $filename = 'bukti_transfer_' . $transaksi->kode_transaksi . '_' . time() . '.' . $file->getClientOriginalExtension();
+        $path = $file->storeAs('bukti_transfer', $filename, 'public');
 
         $transaksi->update([
-            'metode_pembayaran' => 'QRIS',
-            'status_pembayaran' => 'Lunas',
+            'bukti_transfer' => $path,
+            'ditransfer_pada' => now(),
+            'metode_pembayaran' => 'Transfer Bank',
+            'status_pembayaran' => 'Menunggu Verifikasi',
         ]);
 
-        ActivityLogger::log('API QRIS Lunas', "Pembayaran QRIS untuk {$transaksi->kode_transaksi} sebesar {$transaksi->formatted_total} berhasil diverifikasi sistem.");
+        ActivityLogger::log('API Upload Bukti Transfer', "Bukti transfer bank diunggah untuk pesanan {$transaksi->kode_transaksi} oleh {$user->name}");
 
         $transaksi->refresh();
         $transaksi->load(['details.barang.kategori']);
 
         return $this->successResponse(
             $this->formatTransaksi($transaksi, true),
-            "✓ Pembayaran QRIS berhasil diverifikasi! Tagihan sebesar {$transaksi->formatted_total} telah lunas."
+            "Bukti transfer berhasil diunggah. Pembayaran Anda kini sedang menunggu verifikasi oleh bagian keuangan pabrik."
         );
     }
 
@@ -454,11 +473,17 @@ class PesananApiController extends ApiController
             $buktiUrl = asset('storage/' . $t->bukti_penerimaan);
         }
 
+        $buktiTransferUrl = null;
+        if ($t->bukti_transfer) {
+            $buktiTransferUrl = asset('storage/' . $t->bukti_transfer);
+        }
+
         return [
             'id' => $t->id,
             'kode_transaksi' => $t->kode_transaksi,
             'status' => $t->status, // 'Baru Masuk', 'Diproses', 'Dikirim', 'Selesai', 'Dibatalkan'
             'total_harga' => (float)$t->total_harga,
+            'formatted_total' => $t->formatted_total,
             'total_bungkus' => (int)$t->total_bungkus,
             'nama_mitra' => $t->nama_mitra,
             'telepon' => $t->telepon,
@@ -472,6 +497,8 @@ class PesananApiController extends ApiController
             'boleh_batal' => $t->status === 'Baru Masuk',
             'boleh_konfirmasi' => $t->status === 'Dikirim',
             'bukti_penerimaan_url' => $buktiUrl,
+            'bukti_transfer_url' => $buktiTransferUrl,
+            'ditransfer_pada' => $t->ditransfer_pada?->toIso8601String(),
             'diterima_pada' => $t->diterima_pada?->toIso8601String(),
             'catatan_penerima' => $t->catatan_penerima,
             'created_at' => $t->created_at?->toIso8601String(),

@@ -31,23 +31,24 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:paddingHorizontal="14dp"
+            android:paddingTop="12dp"
             android:paddingBottom="100dp">
 
             <!-- Card 1: Informasi Header Pesanan & Kode TRX -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="16dp"
                 app:cardBackgroundColor="@color/surface_white"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                app:cardCornerRadius="4dp"
+                app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@drawable/bg_card_sharp"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="14dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -62,7 +63,7 @@
                             android:layout_weight="1"
                             android:text="TRX-20261013-0001"
                             android:textColor="@color/text_primary"
-                            android:textSize="16sp"
+                            android:textSize="15sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -71,10 +72,10 @@
                             android:layout_height="wrap_content"
                             android:background="@drawable/bg_chip_gray"
                             android:paddingHorizontal="10dp"
-                            android:paddingVertical="4dp"
+                            android:paddingVertical="3dp"
                             android:text="Dikirim"
                             android:textColor="@color/brand_brown_dark"
-                            android:textSize="12sp"
+                            android:textSize="11.5sp"
                             android:textStyle="bold" />
                     </LinearLayout>
 
@@ -85,46 +86,47 @@
                         android:layout_marginTop="4dp"
                         android:text="Dipesan pada 13 Okt 2026, 14:30 WIB"
                         android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
+                        android:textSize="11.5sp" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Card 2: Stepper Status Tracking Pengiriman (S25, S27, S31) -->
+            <!-- Card 2: Stepper Status Tracking Pengiriman -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_tracking_stepper"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="8dp"
                 app:cardBackgroundColor="@color/surface_white"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                app:cardCornerRadius="4dp"
+                app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@drawable/bg_card_sharp"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="14dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Lacak Pengantaran Pesanan"
                         android:textColor="@color/text_primary"
-                        android:textSize="14sp"
+                        android:textSize="13.5sp"
                         android:textStyle="bold" />
 
                     <!-- Step 1: Dipesan -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="10dp"
                         android:orientation="horizontal">
 
                         <ImageView
                             android:id="@+id/iv_step_1_icon"
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:contentDescription="Step 1"
                             android:src="@drawable/ic_check_circle"
                             app:tint="@color/status_green" />
 
@@ -139,7 +141,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Pesanan Berhasil Dibuat"
                                 android:textColor="@color/text_primary"
-                                android:textSize="13sp"
+                                android:textSize="12.5sp"
                                 android:textStyle="bold" />
 
                             <TextView
@@ -156,13 +158,14 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="10dp"
                         android:orientation="horizontal">
 
                         <ImageView
                             android:id="@+id/iv_step_2_icon"
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:contentDescription="Step 2"
                             android:src="@drawable/ic_check_circle"
                             app:tint="@color/text_muted" />
 
@@ -177,7 +180,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Disiapkan di Gudang Pabrik"
                                 android:textColor="@color/text_primary"
-                                android:textSize="13sp"
+                                android:textSize="12.5sp"
                                 android:textStyle="bold" />
 
                             <TextView
@@ -194,13 +197,14 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="10dp"
                         android:orientation="horizontal">
 
                         <ImageView
                             android:id="@+id/iv_step_3_icon"
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:contentDescription="Step 3"
                             android:src="@drawable/ic_truck"
                             app:tint="@color/text_muted" />
 
@@ -215,7 +219,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Sedang Diantar oleh Kurir Resmi Pabrik"
                                 android:textColor="@color/text_primary"
-                                android:textSize="13sp"
+                                android:textSize="12.5sp"
                                 android:textStyle="bold" />
 
                             <TextView
@@ -232,13 +236,14 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="10dp"
                         android:orientation="horizontal">
 
                         <ImageView
                             android:id="@+id/iv_step_4_icon"
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:contentDescription="Step 4"
                             android:src="@drawable/ic_check_circle"
                             app:tint="@color/text_muted" />
 
@@ -253,7 +258,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Pesanan Selesai &amp; Diterima"
                                 android:textColor="@color/text_primary"
-                                android:textSize="13sp"
+                                android:textSize="12.5sp"
                                 android:textStyle="bold" />
 
                             <TextView
@@ -269,234 +274,191 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Banner Dibatalkan (S33) -->
+            <!-- Banner Dibatalkan -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_banner_dibatalkan"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="8dp"
                 android:visibility="gone"
                 app:cardBackgroundColor="@color/surface_white"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                app:cardCornerRadius="4dp"
+                app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@drawable/bg_card_sharp"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="14dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="⚠️ Pesanan Dibatalkan"
                         android:textColor="@color/status_red"
-                        android:textSize="14sp"
+                        android:textSize="13.5sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/tv_alasan_pembatalan"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
+                        android:layout_marginTop="4dp"
                         android:text="Pesanan ini telah dibatalkan dan kuota stok gudang telah dikembalikan."
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Card 3: Rincian Muatan Produk -->
+            <!-- Card 3: Alamat Pengiriman & Kontak Toko (ala Shopee) -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="8dp"
                 app:cardBackgroundColor="@color/surface_white"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                app:cardCornerRadius="4dp"
+                app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@drawable/bg_card_sharp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="12dp">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:contentDescription="Lokasi"
+                        android:src="@drawable/ic_pin_drop" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tv_detail_nama_toko"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Nama Toko Mitra"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13.5sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tv_detail_penerima_wa"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Pemilik • WhatsApp"
+                            android:textColor="@color/text_primary"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/tv_detail_alamat_toko"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:lineSpacingExtra="1dp"
+                            android:text="Jl. Merdeka No. 45, Wlingi, Kab. Blitar"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Card 4: Rincian Muatan Produk & Catatan -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:cardBackgroundColor="@color/surface_white"
+                app:cardCornerRadius="4dp"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_card_sharp"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="14dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Rincian Muatan Produk"
                         android:textColor="@color/text_primary"
-                        android:textSize="14sp"
+                        android:textSize="13.5sp"
                         android:textStyle="bold" />
 
                     <LinearLayout
                         android:id="@+id/layout_detail_items"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="8dp"
                         android:orientation="vertical" />
 
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:layout_marginVertical="12dp"
+                        android:layout_marginVertical="8dp"
                         android:background="@color/border_light" />
 
-                    <!-- Catatan Pengiriman / Kurir -->
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Catatan Pengiriman:"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tv_detail_catatan_kurir"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="-"
-                        android:textColor="@color/text_primary"
-                        android:textSize="12sp" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- Card 4: Bukti Penerimaan Barang (Foto Fisik S28/S31) -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/card_bukti_penerimaan"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="12dp"
-                android:visibility="gone"
-                app:cardBackgroundColor="@color/surface_white"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:id="@+id/tv_detail_label_bukti"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Foto Bukti Penerimaan Fisik"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <ImageView
-                        android:id="@+id/iv_detail_foto_bukti"
+                    <!-- Catatan Pengiriman -->
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="180dp"
-                        android:layout_marginTop="10dp"
-                        android:background="@drawable/bg_rounded_card"
-                        android:contentDescription="Foto Bukti Terima"
-                        android:scaleType="centerCrop" />
-
-                    <TextView
-                        android:id="@+id/tv_detail_waktu_terima"
-                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Diterima pada: -"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="11sp" />
+                        android:orientation="vertical">
 
-                    <TextView
-                        android:id="@+id/tv_detail_catatan_penerima"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="11sp"
-                        android:visibility="gone" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Catatan Pengiriman:"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11.5sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tv_detail_catatan_kurir"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="-"
+                            android:textColor="@color/text_primary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Card 5: Alamat Pengiriman & Kontak Toko -->
+            <!-- Card 5: Rincian Pembayaran & Aksi Transfer Bank -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="8dp"
                 app:cardBackgroundColor="@color/surface_white"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                app:cardCornerRadius="4dp"
+                app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@drawable/bg_card_sharp"
                     android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Toko Tujuan &amp; Penerima"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tv_detail_nama_toko"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Toko Berkah Barokah"
-                        android:textColor="@color/text_primary"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tv_detail_penerima_wa"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="Pak Budi • 081234567890"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:id="@+id/tv_detail_alamat_toko"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Jl. Merdeka No. 45, Wlingi, Kab. Blitar"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- Card 6: Ringkasan Pembayaran COD -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="12dp"
-                app:cardBackgroundColor="@color/surface_white"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="14dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Rincian Pembayaran"
                         android:textColor="@color/text_primary"
-                        android:textSize="14sp"
+                        android:textSize="13.5sp"
                         android:textStyle="bold" />
 
+                    <!-- Metode Pembayaran -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -509,7 +471,7 @@
                             android:layout_weight="1"
                             android:text="Metode Pembayaran"
                             android:textColor="@color/text_secondary"
-                            android:textSize="12sp" />
+                            android:textSize="12.5sp" />
 
                         <TextView
                             android:id="@+id/tv_detail_metode_pembayaran"
@@ -517,10 +479,11 @@
                             android:layout_height="wrap_content"
                             android:text="Bayar di Tempat (COD)"
                             android:textColor="@color/text_primary"
-                            android:textSize="12sp"
+                            android:textSize="12.5sp"
                             android:textStyle="bold" />
                     </LinearLayout>
 
+                    <!-- Status Pembayaran -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -534,21 +497,19 @@
                             android:layout_weight="1"
                             android:text="Status Pembayaran"
                             android:textColor="@color/text_secondary"
-                            android:textSize="12sp" />
+                            android:textSize="12.5sp" />
 
                         <TextView
                             android:id="@+id/tv_detail_status_pembayaran"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:background="@drawable/bg_badge_belum_bayar"
-                            android:paddingHorizontal="8dp"
-                            android:paddingVertical="2dp"
                             android:text="Belum Dibayar"
-                            android:textColor="@color/brand_gold"
-                            android:textSize="11sp"
+                            android:textColor="@color/text_primary"
+                            android:textSize="12.5sp"
                             android:textStyle="bold" />
                     </LinearLayout>
 
+                    <!-- Ongkos Kirim -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -556,17 +517,20 @@
                         android:orientation="horizontal">
 
                         <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Ongkos Kirim"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="12sp" />
-
-                        <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Gratis (Kurir Pabrik)"
+                            android:text="Ongkos Kirim"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12.5sp" />
+
+                        <TextView
+                            android:id="@+id/tv_detail_ongkir"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:gravity="end"
+                            android:text="Area Blitar Gratis (Jarak jauh hubungi Admin)"
                             android:textColor="@color/status_green"
                             android:textSize="12sp"
                             android:textStyle="bold" />
@@ -575,12 +539,14 @@
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:layout_marginVertical="10dp"
+                        android:layout_marginVertical="8dp"
                         android:background="@color/border_light" />
 
+                    <!-- Total Tagihan -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
                         android:orientation="horizontal">
 
                         <TextView
@@ -590,96 +556,163 @@
                             android:layout_weight="1"
                             android:text="Total Tagihan"
                             android:textColor="@color/text_primary"
-                            android:textSize="14sp"
+                            android:textSize="13.5sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/tv_detail_grand_total"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Rp 2.300.000"
+                            android:text="Rp 0"
                             android:textColor="@color/price_red"
                             android:textSize="16sp"
                             android:textStyle="bold" />
                     </LinearLayout>
+
+                    <!-- Card Aksi Transfer Bank -->
+                    <LinearLayout
+                        android:id="@+id/card_detail_qris_action"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/bg_card_sharp"
+                        android:backgroundTint="@color/surface_cream_card"
+                        android:orientation="vertical"
+                        android:padding="12dp"
+                        android:visibility="gone">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/tv_detail_qris_title"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Menunggu Pembayaran Transfer Bank"
+                                android:textColor="@color/brand_brown_dark"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tv_detail_qris_badge"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Belum Bayar"
+                                android:textColor="@color/text_primary"
+                                android:textSize="11.5sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tv_detail_qris_desc"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="Hubungi Admin via WhatsApp untuk meminta nomor rekening resmi pabrik, lalu unggah bukti transfer."
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11.5sp" />
+
+                        <androidx.appcompat.widget.AppCompatButton
+                            android:id="@+id/btn_detail_buka_qris"
+                            android:layout_width="match_parent"
+                            android:layout_height="40dp"
+                            android:layout_marginTop="10dp"
+                            android:background="@drawable/bg_button_sharp"
+                            android:text="Unggah Bukti Transfer"
+                            android:textAllCaps="false"
+                            android:textColor="@color/white"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Card Aksi QRIS Dinamis (Muncul jika Pesanan QRIS) -->
+            <!-- Card 6: Foto Bukti Penerimaan Fisik (Jika Selesai) -->
             <androidx.cardview.widget.CardView
-                android:id="@+id/card_detail_qris_action"
+                android:id="@+id/card_bukti_penerimaan"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="8dp"
                 android:visibility="gone"
-                app:cardBackgroundColor="@color/surface_cream_card"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="1dp">
+                app:cardBackgroundColor="@color/surface_white"
+                app:cardCornerRadius="4dp"
+                app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@drawable/bg_card_sharp"
                     android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:src="@drawable/ic_qr_code"
-                            app:tint="@color/brand_brown_dark" />
-
-                        <TextView
-                            android:id="@+id/tv_detail_qris_title"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_weight="1"
-                            android:text="Pembayaran QRIS Instan"
-                            android:textColor="@color/brand_brown_dark"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tv_detail_qris_badge"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/bg_badge_belum_bayar"
-                            android:paddingHorizontal="6dp"
-                            android:paddingVertical="2dp"
-                            android:text="Menunggu Scan"
-                            android:textColor="@color/status_orange"
-                            android:textSize="10sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
+                    android:padding="14dp">
 
                     <TextView
-                        android:id="@+id/tv_detail_qris_desc"
+                        android:id="@+id/tv_detail_label_bukti"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Foto Bukti Penerimaan Fisik"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13.5sp"
+                        android:textStyle="bold" />
+
+                    <ImageView
+                        android:id="@+id/iv_detail_foto_bukti"
+                        android:layout_width="match_parent"
+                        android:layout_height="180dp"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_card_sharp"
+                        android:contentDescription="Foto Bukti Terima"
+                        android:scaleType="centerCrop" />
+
+                    <TextView
+                        android:id="@+id/tv_detail_waktu_terima"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:text="Buka barcode QRIS untuk melakukan pembayaran instan melalui aplikasi m-Banking atau dompet digital Anda."
+                        android:text="Diterima pada: -"
                         android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
+                        android:textSize="11sp" />
 
-                    <androidx.appcompat.widget.AppCompatButton
-                        android:id="@+id/btn_detail_buka_qris"
-                        android:layout_width="match_parent"
-                        android:layout_height="44dp"
-                        android:layout_marginTop="12dp"
-                        android:background="@drawable/bg_button_primary"
-                        android:text="⚡ Buka Kode QRIS / Bayar Sekarang"
-                        android:textAllCaps="false"
-                        android:textColor="@color/white"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/tv_detail_catatan_penerima"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp"
+                        android:visibility="gone" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
+
+            <!-- Link Hubungi Admin WhatsApp (Bagian Bawah Halaman) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:id="@+id/tv_hubungi_wa_link"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="8dp"
+                    android:text="Butuh bantuan? Hubungi Admin WhatsApp"
+                    android:textColor="@color/whatsapp_green"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    app:drawableStartCompat="@drawable/ic_whatsapp_small"
+                    android:drawablePadding="6dp" />
+            </LinearLayout>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
@@ -691,34 +724,34 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:background="@color/surface_white"
-        android:elevation="8dp"
+        android:elevation="6dp"
         android:orientation="horizontal"
-        android:padding="16dp">
+        android:padding="14dp">
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btn_detail_secondary_action"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="44dp"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_rounded_card"
+            android:background="@drawable/bg_card_sharp"
             android:text="Batalkan"
             android:textAllCaps="false"
             android:textColor="@color/brand_brown_dark"
-            android:textSize="14sp"
+            android:textSize="13.5sp"
             android:textStyle="bold"
             android:visibility="gone" />
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btn_detail_primary_action"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="44dp"
             android:layout_weight="2"
-            android:background="@drawable/bg_button_primary"
+            android:background="@drawable/bg_button_sharp"
             android:text="Konfirmasi Terima"
             android:textAllCaps="false"
             android:textColor="@color/white"
-            android:textSize="14sp"
+            android:textSize="13.5sp"
             android:textStyle="bold"
             android:visibility="gone" />
     </LinearLayout>

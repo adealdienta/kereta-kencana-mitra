@@ -39,12 +39,13 @@ class PemesananController extends Controller
 
         $produks = Barang::aktif()->orderBy('urutan')->get();
         $preselectedSlug = $request->query('produk');
+        $bankInfo = $this->getBankInfo();
 
-        return view('front.pesan', compact('produks', 'user', 'isLocked', 'lockedOrder', 'preselectedSlug'));
+        return view('front.pesan', compact('produks', 'user', 'isLocked', 'lockedOrder', 'preselectedSlug', 'bankInfo'));
     }
 
     /**
-     * Simpan pemesanan baru (Mendukung Multi-Produk dan Satuan Independen Slop / Bal per produk)
+     * Simpan pemesanan baru (Online khusus Slop, total maksimal 19 Slop gabungan seluruh varian)
      */
     public function store(Request $request)
     {
@@ -72,6 +73,7 @@ class PemesananController extends Controller
             'nama_mitra' => ['required', 'string', 'max:150'],
             'telepon' => ['required', 'string', 'max:30'],
             'alamat' => ['required', 'string'],
+            'metode_pembayaran' => ['nullable', 'string', 'max:60'],
             'catatan' => ['nullable', 'string'],
         ], [
             'nama_mitra.required' => 'Nama mitra/toko wajib diisi.',
@@ -79,65 +81,79 @@ class PemesananController extends Controller
             'alamat.required' => 'Alamat pengiriman tujuan wajib diisi lengkap.',
         ]);
 
-        // Kumpulkan item pesanan (Mendukung Multi-Item via 'items' atau Fallback Single Item)
+        // Kumpulkan item pesanan (Khusus Pemesanan Satuan Slop di Website; Skala Bal lewat Admin)
         $rawItems = [];
 
         if ($request->has('items') && is_array($request->items)) {
             foreach ($request->items as $barangId => $data) {
                 $qty = isset($data['jumlah']) ? (int)$data['jumlah'] : 0;
-                $satuan = isset($data['satuan']) && in_array($data['satuan'], ['Slop', 'Bal']) ? $data['satuan'] : 'Slop';
 
                 if ($qty > 0) {
                     $rawItems[] = [
                         'barang_id' => (int)$barangId,
-                        'satuan' => $satuan,
+                        'satuan' => 'Slop',
                         'jumlah' => $qty,
                     ];
                 }
             }
         } elseif ($request->filled('barang_id') && $request->filled('jumlah')) {
-            // Fallback kompatibilitas jika dikirim sebagai single item (misal pengujian API/unit test lama)
+            // Fallback kompatibilitas jika dikirim sebagai single item
             $rawItems[] = [
                 'barang_id' => (int)$request->barang_id,
-                'satuan' => $request->input('satuan', 'Bal'),
+                'satuan' => 'Slop',
                 'jumlah' => (int)$request->jumlah,
             ];
         }
 
         if (empty($rawItems)) {
             return back()->withInput()->withErrors([
-                'items' => 'Silakan tentukan minimal 1 varian rokok dengan kuantitas pesanan di atas 0 (Slop atau Bal).',
+                'items' => 'Silakan tentukan minimal 1 varian rokok dengan total pesanan 1 hingga 19 Slop.',
             ]);
         }
 
+        $totalOrderSlop = array_sum(array_column($rawItems, 'jumlah'));
+        if ($totalOrderSlop > 19) {
+            return back()->withInput()->withErrors([
+                'items' => "Total pemesanan online maksimal 19 Slop gabungan seluruh varian (pilihan Anda saat ini: {$totalOrderSlop} Slop). Untuk pembelian skala Bal (20 Slop ke atas), silakan hubungi Admin via WhatsApp.",
+            ]);
+        }
+
+        $metodeRaw = (string)$request->input('metode_pembayaran', 'Bayar di Tempat (COD)');
+        $metodePembayaran = (stripos($metodeRaw, 'transfer') !== false || stripos($metodeRaw, 'bca') !== false)
+            ? 'Transfer Bank'
+            : 'Bayar di Tempat (COD)';
+
         // Jalankan Database Transaction untuk menjaga integritas data & pemotongan stok
         try {
-            $transaksi = DB::transaction(function () use ($request, $user, $rawItems) {
+            $transaksi = DB::transaction(function () use ($request, $user, $rawItems, $totalOrderSlop, $metodePembayaran) {
                 $kode_transaksi = 'TRX-' . date('Ymd') . '-' . strtoupper(Str::random(4));
                 $grandTotal = 0;
                 $totalUnitQty = 0;
                 $processedDetails = [];
 
+                $hargaSatuanTier = Barang::hargaSlopByQty((int) $totalOrderSlop);
+
                 foreach ($rawItems as $itemData) {
                     $barang = Barang::findOrFail($itemData['barang_id']);
-                    $satuan = $itemData['satuan'];
+                    $satuan = 'Slop';
                     $qty = $itemData['jumlah'];
 
-                    // Cek minimum order
-                    $minOrder = ($satuan === 'Slop') ? ($barang->min_order_slop ?: 1) : ($barang->min_order_bal ?: 1);
+                    // Cek minimum order satuan Slop (Total gabungan <= 19 Slop sudah divalidasi di atas)
+                    $slopPerBal = $barang->slop_per_bal ?: 20;
+                    $minOrder = $barang->min_order_slop ?: 1;
+
                     if ($qty < $minOrder) {
-                        throw new Exception("Minimum pemesanan untuk {$barang->nama} satuan {$satuan} adalah {$minOrder} {$satuan}.");
+                        throw new Exception("Minimum pemesanan untuk {$barang->nama} adalah {$minOrder} Slop.");
                     }
 
                     // Cek & Kurangi Stok Gudang (Stok dihitung dalam satuan Bal)
-                    $slopPerBal = $barang->slop_per_bal ?: 20;
-                    $balDeduct = ($satuan === 'Bal') ? $qty : max(1, (int)ceil($qty / $slopPerBal));
+                    $balDeduct = max(1, (int)ceil($qty / $slopPerBal));
 
                     if ($barang->stok < $balDeduct) {
-                        throw new Exception("Stok untuk varian {$barang->nama} tidak mencukupi (Tersedia: {$barang->stok} Bal, dibutuhkan: {$balDeduct} Bal).");
+                        throw new Exception("Permintaan untuk varian {$barang->nama} saat ini belum dapat diproses otomatis. Silakan hubungi Admin via WhatsApp untuk konfirmasi ketersediaan.");
                     }
 
-                    $hargaSatuan = ($satuan === 'Slop') ? $barang->harga_per_slop : $barang->harga_per_bal;
+                    $hargaSatuan = $hargaSatuanTier;
                     $subtotal = $qty * $hargaSatuan;
 
                     $grandTotal += $subtotal;
@@ -167,9 +183,11 @@ class PemesananController extends Controller
                     'telepon' => $request->telepon,
                     'alamat' => $request->alamat,
                     'jumlah' => $totalUnitQty,
-                    'satuan' => count($processedDetails) === 1 ? $firstDetail['satuan'] : 'Campuran',
+                    'satuan' => 'Slop',
                     'total_harga' => $grandTotal,
                     'catatan' => $request->catatan,
+                    'metode_pembayaran' => $metodePembayaran,
+                    'status_pembayaran' => 'Belum Dibayar',
                     'status' => 'Baru Masuk',
                     'sumber' => 'Web B2B Form',
                 ]);
@@ -218,7 +236,54 @@ class PemesananController extends Controller
             ->whereNull('bukti_penerimaan')
             ->first();
 
-        return view('front.pesanan_saya', compact('transaksis', 'user', 'pendingDelivery'));
+        $bankInfo = $this->getBankInfo();
+
+        return view('front.pesanan_saya', compact('transaksis', 'user', 'pendingDelivery', 'bankInfo'));
+    }
+
+    /**
+     * Unggah Bukti Transfer Bank oleh Mitra Web
+     */
+    public function uploadBuktiTransfer(Request $request, $id)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $transaksi = Transaksi::where('user_id', Auth::id())->findOrFail($id);
+
+        if ($transaksi->status === 'Dibatalkan') {
+            return back()->with('error', 'Pesanan yang telah dibatalkan tidak dapat diunggah bukti transfernya.');
+        }
+
+        if ($transaksi->status_pembayaran === 'Lunas') {
+            return back()->with('success', 'Pembayaran untuk pesanan ini sudah terverifikasi lunas.');
+        }
+
+        $request->validate([
+            'bukti_transfer' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+        ], [
+            'bukti_transfer.required' => 'Foto bukti transfer bank wajib diunggah.',
+            'bukti_transfer.image' => 'Berkas harus berupa gambar foto.',
+            'bukti_transfer.mimes' => 'Format gambar yang didukung: JPG, PNG, atau WEBP.',
+            'bukti_transfer.max' => 'Ukuran foto maksimal adalah 5 Megabyte (MB).',
+        ]);
+
+        $file = $request->file('bukti_transfer');
+        $filename = 'bukti_transfer_' . $transaksi->kode_transaksi . '_' . time() . '.' . $file->getClientOriginalExtension();
+        $path = $file->storeAs('bukti_transfer', $filename, 'public');
+
+        $transaksi->update([
+            'bukti_transfer' => $path,
+            'ditransfer_pada' => now(),
+            'metode_pembayaran' => 'Transfer Bank',
+            'status_pembayaran' => 'Menunggu Verifikasi',
+        ]);
+
+        ActivityLogger::log('Upload Bukti Transfer', "Bukti transfer bank diunggah via web untuk pesanan {$transaksi->kode_transaksi} oleh {$transaksi->nama_mitra}");
+
+        return redirect()->route('pesanan.saya')
+            ->with('success', "Bukti transfer bank untuk pesanan {$transaksi->kode_transaksi} berhasil diunggah dan sedang menunggu verifikasi admin pabrik.");
     }
 
     /**
@@ -232,7 +297,7 @@ class PemesananController extends Controller
 
         $transaksi = Transaksi::where('user_id', Auth::id())->findOrFail($id);
 
-        if (!in_array($transaksi->status, ['Dikirim', 'Diproses'])) {
+        if ($transaksi->status !== 'Dikirim') {
             return back()->with('error', 'Pesanan ini tidak berada dalam tahap pengiriman.');
         }
 
@@ -250,6 +315,7 @@ class PemesananController extends Controller
 
         $transaksi->update([
             'status' => 'Selesai',
+            'status_pembayaran' => 'Lunas',
             'bukti_penerimaan' => $path,
             'diterima_pada' => now(),
             'catatan_penerima' => $request->catatan_penerima,
@@ -259,6 +325,15 @@ class PemesananController extends Controller
 
         return redirect()->route('pesanan.saya')
             ->with('success', "Terima kasih! Bukti penerimaan untuk pesanan {$transaksi->kode_transaksi} telah berhasil dikonfirmasi. Status pesanan Anda kini SELESAI dan hak pemesanan baru telah aktif.");
+    }
+
+    private function getBankInfo(): array
+    {
+        return [
+            'nama' => config('pabrik.bank_nama'),
+            'rekening' => config('pabrik.bank_rekening'),
+            'atas_nama' => config('pabrik.bank_atas_nama'),
+        ];
     }
 
     /**
@@ -312,6 +387,10 @@ class PemesananController extends Controller
             ->where('kode_transaksi', $kode_transaksi)
             ->firstOrFail();
 
+        if (Auth::check() && Auth::user()->isPelanggan() && (int) $transaksi->user_id !== (int) Auth::id()) {
+            abort(403, 'Anda tidak memiliki izin untuk mengakses faktur pesanan ini.');
+        }
+
         // Susun teks rincian barang untuk WhatsApp
         $daftarProdukText = "";
         if ($transaksi->details && $transaksi->details->isNotEmpty()) {
@@ -321,8 +400,11 @@ class PemesananController extends Controller
                 $daftarProdukText .= "  {$num}. {$nama} ({$d->jumlah} {$d->satuan}) - {$d->formatted_subtotal}%0A";
             }
         } else {
-            $daftarProdukText = "  • {$transaksi->barang->nama} ({$transaksi->jumlah} {$transaksi->satuan}) - {$transaksi->formatted_total}%0A";
+            $namaProduk = $transaksi->barang?->nama ?? 'Produk';
+            $daftarProdukText = "  • {$namaProduk} ({$transaksi->jumlah} {$transaksi->satuan}) - {$transaksi->formatted_total}%0A";
         }
+
+        $metodePembayaran = $transaksi->metode_pembayaran ?? 'Bayar di Tempat (COD)';
 
         // Format pesan WhatsApp resmi
         $pesanWa = "Halo Tim Manajemen PR. KERETA KENCANA,%0A%0A"
@@ -332,64 +414,13 @@ class PemesananController extends Controller
             . "• Telepon: " . $transaksi->telepon . "%0A"
             . "• Rincian Item Rokok:%0A" . $daftarProdukText
             . "• Total Tagihan: *" . $transaksi->formatted_total . "*%0A"
+            . "• Metode Pembayaran: " . urlencode($metodePembayaran) . "%0A"
             . "• Alamat Tujuan: " . urlencode($transaksi->alamat) . "%0A"
             . ($transaksi->catatan ? ("• Catatan: " . urlencode($transaksi->catatan) . "%0A") : "")
             . "%0AMohon konfirmasi kesiapan pengiriman dan jadwal armada pabrik. Terima kasih.";
 
-        return view('front.invoice', compact('transaksi', 'pesanWa'));
-    }
+        $bankInfo = $this->getBankInfo();
 
-    /**
-     * API Log WhatsApp Modal
-     */
-    public function apiLogWa(Request $request)
-    {
-        $request->validate([
-            'nama_mitra' => ['required', 'string'],
-            'telepon' => ['required', 'string'],
-            'varian_produk' => ['required', 'string'],
-            'jumlah' => ['required', 'integer'],
-        ]);
-
-        $barang = Barang::where('nama', $request->varian_produk)
-            ->orWhere('slug', $request->varian_produk)
-            ->first() ?? Barang::first();
-
-        $satuan = $request->input('satuan', 'Slop');
-        $unitPrice = $satuan === 'Slop' ? ($barang ? $barang->harga_per_slop : 49000) : ($barang ? $barang->harga_per_bal : 980000);
-        $total_harga = (float)($request->total_harga ?? ($request->jumlah * $unitPrice));
-        $kode_transaksi = 'WA-' . date('Ymd') . '-' . strtoupper(Str::random(4));
-
-        $transaksi = Transaksi::create([
-            'kode_transaksi' => $kode_transaksi,
-            'user_id' => Auth::id(),
-            'barang_id' => $barang->id,
-            'nama_mitra' => $request->nama_mitra,
-            'telepon' => $request->telepon,
-            'alamat' => $request->alamat ?? 'Via WhatsApp',
-            'jumlah' => $request->jumlah,
-            'satuan' => $satuan,
-            'total_harga' => $total_harga,
-            'catatan' => $request->catatan,
-            'status' => 'Baru Masuk',
-            'sumber' => 'Web WhatsApp',
-        ]);
-
-        TransaksiDetail::create([
-            'transaksi_id' => $transaksi->id,
-            'barang_id' => $barang->id,
-            'satuan' => $satuan,
-            'jumlah' => $request->jumlah,
-            'harga_satuan' => $unitPrice,
-            'subtotal' => $total_harga,
-        ]);
-
-        ActivityLogger::log('Log Pesanan WhatsApp', "Pemesanan WA dicatat {$kode_transaksi} dari {$request->nama_mitra}");
-
-        return response()->json([
-            'status' => 'success',
-            'kode_transaksi' => $kode_transaksi,
-            'id' => $transaksi->id
-        ]);
+        return view('front.invoice', compact('transaksi', 'pesanWa', 'bankInfo'));
     }
 }

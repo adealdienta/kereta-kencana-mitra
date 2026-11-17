@@ -13,9 +13,9 @@ class PengaturanApiController extends ApiController
         return $this->successResponse([
             'wa_pabrik' => config('pabrik.wa_pabrik'),
             'nppbkc' => config('pabrik.nppbkc'),
-            'bank_nama' => config('pabrik.bank_nama', 'BCA (Bank Central Asia)'),
-            'bank_rekening' => config('pabrik.bank_rekening', '8220918822'),
-            'bank_atas_nama' => config('pabrik.bank_atas_nama', 'PR KERETA KENCANA'),
+            'bank_nama' => config('pabrik.bank_nama'),
+            'bank_rekening' => config('pabrik.bank_rekening'),
+            'bank_atas_nama' => config('pabrik.bank_atas_nama'),
         ], 'Konfigurasi pabrik berhasil dimuat.');
     }
 }

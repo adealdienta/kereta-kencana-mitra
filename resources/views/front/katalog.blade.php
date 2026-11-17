@@ -1,21 +1,21 @@
 @extends('layouts.app')
 
-@section('title', 'Katalog Varian Sigaret Kretek (SKM & SKT)')
+@section('title', 'Katalog Varian Sigaret Kretek Tangan (SKT)')
 
 @section('content')
 <!-- Header Banner -->
 <section class="page-header">
-    <div class="container text-center">
-        <span class="header-badge">KATALOG PRODUK RESMI</span>
-        <h1 class="page-title">VARIAN SIGARET KRETEK RESMI</h1>
-        <p class="page-subtitle">3 Varian Sigaret Kretek Tangan (SKT) 12 Batang Resmi Pabrik PR. KERETA KENCANA Blitar</p>
+    <div class="container">
+        <span class="header-badge">Katalog Produk Resmi</span>
+        <h1 class="page-title">Varian Sigaret Kretek Tangan</h1>
+        <p class="page-subtitle" style="margin: 0;">3 Varian SKT 12 Batang Resmi Pabrik PR. KERETA KENCANA Blitar</p>
     </div>
 </section>
 
 <section class="section-py">
     <div class="container">
-        <!-- Filter & Search Bar (BKPM Acara 23) -->
-        <div class="katalog-filter-bar scroll-reveal reveal-up" style="background: var(--bg-surface); border: 1.5px solid var(--border-light); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 30px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; box-shadow: var(--shadow-sm);">
+        <!-- Filter & Search Bar -->
+        <div class="katalog-filter-bar scroll-reveal reveal-up" style="background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: 2px; padding: 14px 16px; margin-bottom: 28px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px;">
             <div class="filter-categories" style="display: flex; gap: 8px; flex-wrap: wrap;">
                 <a href="{{ route('katalog.index') }}" class="btn btn-sm {{ !request('kategori') ? 'btn-gold' : 'btn-secondary' }}">
                     Semua Varian
@@ -33,7 +33,7 @@
                     <input type="hidden" name="kategori" value="{{ request('kategori') }}">
                 @endif
                 <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari varian atau rasa..." 
-                       style="padding: 8px 14px; background: #ffffff; border: 1px solid var(--border-light); color: var(--text-dark); border-radius: 6px; font-size: 14px;">
+                       style="padding: 8px 14px; background: #ffffff; border: 1px solid var(--border-light); color: var(--text-dark); border-radius: 2px; font-size: 14px;">
                 <button type="submit" class="btn btn-gold btn-sm"><i class="fa-solid fa-magnifying-glass"></i> Cari</button>
             </form>
         </div>
@@ -42,7 +42,7 @@
         @if($produks->count() > 0)
             <div class="products-grid">
                 @foreach($produks as $p)
-                    <div class="product-card scroll-reveal reveal-zoom reveal-delay-{{ ($loop->index % 3) + 1 }}">
+                    <div class="product-card scroll-reveal reveal-zoom reveal-delay-{{ ($loop->index % 3) + 1 }}" style="border-radius: 2px; box-shadow: none;">
                         <!-- Main Product Image Wrapper (1 Foto Mewakili 1 Produk) -->
                         <div class="product-img-wrapper" style="position: relative; display: flex; align-items: center; justify-content: center;">
                             <a href="{{ route('produk.detail', $p->slug) }}" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; text-decoration: none;">
@@ -52,34 +52,33 @@
                             <span class="category-tag category-{{ strtolower($p->kategori->slug) }}">
                                 {{ $p->kategori->nama_kategori }}
                             </span>
-                            <span class="stock-tag stock-{{ Str::slug($p->status_stok) }}">
-                                {{ $p->status_stok }}
-                            </span>
                         </div>
 
                         <div class="product-info">
-                            <div class="product-code">{{ $p->kode_barang }}</div>
+                            <div class="product-code font-mono">{{ $p->kode_barang }}</div>
                             <h3 class="product-title"><a href="{{ route('produk.detail', $p->slug) }}">{{ $p->nama }}</a></h3>
-                            <p class="product-profile"><i class="fa-solid fa-tag"></i> {{ $p->profil_rasa }}</p>
+                            <p class="product-profile">{{ $p->profil_rasa }}</p>
                             
-                            <div class="product-specs-mini">
-                                <span><i class="fa-solid fa-smoking"></i> {{ $p->batang_per_bungkus }} Btg/Bks</span>
-                                <span><i class="fa-solid fa-cubes"></i> {{ $p->bungkus_per_slop }} Bks/Slop</span>
-                                <span><i class="fa-solid fa-boxes-packing"></i> {{ $p->slop_per_bal }} Slop/Bal</span>
+                            <div class="product-specs-mini font-mono" style="font-size: 0.76rem;">
+                                <span>{{ $p->batang_per_bungkus }} Btg/Bks</span>
+                                <span>{{ $p->bungkus_per_slop }} Bks/Slop</span>
                             </div>
 
                             <div class="product-price-row">
                                 <div class="price-val">
-                                    <small>Mulai 1 Slop (10 Bks):</small>
-                                    <strong style="color: var(--gold); font-size: 16px;">{{ $p->formatted_harga_slop }}</strong>
-                                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Grosir: {{ $p->formatted_harga }}/Bal</div>
+                                    <small>Harga per Slop (10 Bks):</small>
+                                    <strong class="font-mono" style="color: var(--text-dark); font-size: 16px;">{{ $p->formatted_harga_slop }}</strong>
+                                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px; line-height: 1.45;">
+                                        1&ndash;5 Slop: Rp 70.000 &bull; 6&ndash;10 Slop: Rp 65.000 &bull; &gt;10 Slop: Rp 60.000.<br>
+                                        Untuk pembelian skala Bal, hubungi admin untuk info lebih lanjut.
+                                    </div>
                                 </div>
-                                <div style="display: flex; gap: 6px;">
+                                <div style="display: flex; gap: 6px; flex-shrink: 0;">
                                     <a href="{{ route('produk.detail', $p->slug) }}" class="btn btn-secondary btn-sm" title="Detail Spesifikasi">
-                                        <i class="fa-solid fa-circle-info"></i>
+                                        Detail
                                     </a>
                                     <a href="{{ route('pesanan.form', ['produk' => $p->slug]) }}" class="btn btn-gold btn-sm">
-                                        <i class="fa-solid fa-cart-shopping"></i> Order
+                                        Order
                                     </a>
                                 </div>
                             </div>

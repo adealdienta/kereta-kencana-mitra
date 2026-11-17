@@ -9,6 +9,9 @@ data class Barang(
     @SerializedName("kategori_id")
     val kategoriId: Long? = null,
 
+    @SerializedName("kategori_nama")
+    val kategoriNama: String? = null,
+
     @SerializedName("kode_barang")
     val kodeBarang: String,
 
@@ -30,6 +33,9 @@ data class Barang(
     @SerializedName("bungkus_per_slop")
     val bungkusPerSlop: Int = 10,
 
+    @SerializedName("batang_per_bungkus")
+    val batangPerBungkus: Int = 12,
+
     @SerializedName("min_order_slop")
     val minOrderSlop: Int = 1,
 
@@ -38,6 +44,9 @@ data class Barang(
 
     @SerializedName("stok")
     val stok: Int = 0, // Stok gudang dalam satuan BAL
+
+    @SerializedName("stok_slop_estimasi")
+    val stokSlopEstimasi: Int? = null,
 
     @SerializedName("status_stok")
     val statusStok: String = "Ready Stock",
@@ -48,14 +57,14 @@ data class Barang(
     @SerializedName("deskripsi")
     val deskripsi: String? = null,
 
-    @SerializedName("kadar_tar")
-    val kadarTar: String? = null,
+    @SerializedName("profil_rasa")
+    val profilRasa: String? = null,
 
-    @SerializedName("kadar_nikotin")
-    val kadarNikotin: String? = null,
+    @SerializedName("tar_mg")
+    val tarMg: Double? = null,
 
-    @SerializedName("isi_batang")
-    val isiBatang: String? = null,
+    @SerializedName("nikotin_mg")
+    val nikotinMg: Double? = null,
 
     @SerializedName("aktif")
     val aktif: Boolean = true,
@@ -68,5 +77,17 @@ data class Barang(
      * Diberi label perkiraan karena stok fisik dihitung dalam satuan Bal.
      */
     val perkiraanSlopTersedia: Int
-        get() = stok * slopPerBal
+        get() = stokSlopEstimasi ?: (stok * slopPerBal)
+
+    companion object {
+        const val MAX_SLOP_PER_ORDER = 19
+
+        fun hargaSlopByQty(totalSlop: Int): Double {
+            return when {
+                totalSlop > 10 -> 60000.0
+                totalSlop >= 6 -> 65000.0
+                else -> 70000.0
+            }
+        }
+    }
 }

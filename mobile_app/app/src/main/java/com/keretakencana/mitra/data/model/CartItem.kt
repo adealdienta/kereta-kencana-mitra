@@ -21,10 +21,18 @@ data class CartItem(
         get() = "${barang.id}_$satuan"
 
     val hargaSatuan: Double
-        get() = if (satuan.equals("Bal", ignoreCase = true)) barang.hargaPerBal else barang.hargaPerSlop
+        get() = if (satuan.equals("Bal", ignoreCase = true)) barang.hargaPerBal else Barang.hargaSlopByQty(jumlah)
 
     val subtotal: Double
         get() = jumlah * hargaSatuan
+
+    fun getTieredSubtotal(totalSlopOrder: Int): Double {
+        return if (satuan.equals("Bal", ignoreCase = true)) {
+            jumlah * barang.hargaPerBal
+        } else {
+            jumlah * Barang.hargaSlopByQty(totalSlopOrder)
+        }
+    }
 
     val minOrder: Int
         get() = if (satuan.equals("Bal", ignoreCase = true)) barang.minOrderBal else barang.minOrderSlop

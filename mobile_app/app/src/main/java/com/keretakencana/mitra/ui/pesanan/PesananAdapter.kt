@@ -29,11 +29,17 @@ class PesananAdapter(
             binding.tvItemTanggal.text = DateHelper.formatIsoToIndonesianDateTime(item.createdAt)
             binding.tvItemTotalHarga.text = CurrencyHelper.formatRupiah(item.totalHarga)
 
-            val isQris = item.metodePembayaran?.contains("qris", ignoreCase = true) == true
+            val isTransfer = item.metodePembayaran?.contains("transfer", ignoreCase = true) == true ||
+                    item.metodePembayaran?.contains("bca", ignoreCase = true) == true
             val isLunas = item.statusPembayaran.equals("Lunas", ignoreCase = true)
+            val isMenunggu = item.statusPembayaran?.contains("Menunggu", ignoreCase = true) == true
+            val isDitolak = item.statusPembayaran?.contains("Ditolak", ignoreCase = true) == true ||
+                    item.statusPembayaran?.contains("Tidak Valid", ignoreCase = true) == true
             binding.tvItemLabelTotal.text = when {
-                isQris && isLunas -> "QRIS (Lunas)"
-                isQris -> "Total QRIS"
+                isTransfer && isLunas -> "Transfer (Lunas)"
+                isTransfer && isDitolak -> "Bukti Ditolak"
+                isTransfer && isMenunggu -> "Verifikasi Transfer"
+                isTransfer -> "Transfer Bank"
                 isLunas -> "COD (Lunas)"
                 else -> "Total COD"
             }

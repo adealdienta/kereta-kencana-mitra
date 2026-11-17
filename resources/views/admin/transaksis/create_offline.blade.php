@@ -63,7 +63,7 @@
                     </label>
                     <select name="satuan" id="selectSatuan" class="form-control" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
                         <option value="Slop" selected>Per Slop (10 Bungkus)</option>
-                        <option value="Bal">Per Bal (20 Slop / 200 Bungkus)</option>
+                        <option value="Bal">Per Bal (Kemasan Bal)</option>
                     </select>
                 </div>
 
@@ -145,7 +145,7 @@
         </div>
 
         <button type="submit" class="btn btn-primary" style="padding: 14px 24px; font-size: 15px; font-weight: 700; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <i class="fa-solid fa-receipt"></i> Simpan Transaksi Lunas & Cetak Faktur Kasir
+            <i class="fa-solid fa-receipt"></i> Simpan Transaksi Lunas &amp; Cetak Faktur Kasir
         </button>
     </form>
 </div>
@@ -157,6 +157,12 @@ const selectSatuan = document.getElementById('selectSatuan');
 const inputJumlah = document.getElementById('inputJumlah');
 const displayTotal = document.getElementById('displayTotal');
 
+function hitungHargaSlopBertingkat(qty) {
+    if (qty > 10) return 60000;
+    if (qty >= 6) return 65000;
+    return 70000;
+}
+
 function hitungTotal() {
     const opt = selectBarang.options[selectBarang.selectedIndex];
     if (!opt || !opt.value) {
@@ -165,8 +171,10 @@ function hitungTotal() {
     }
 
     const satuan = selectSatuan.value;
-    const harga = satuan === 'Slop' ? parseFloat(opt.dataset.hargaSlop || 0) : parseFloat(opt.dataset.hargaBal || 0);
-    const qty = parseInt(inputJumlah.value || 1);
+    const qty = Math.max(1, parseInt(inputJumlah.value || 1) || 1);
+    const harga = satuan === 'Slop'
+        ? hitungHargaSlopBertingkat(qty)
+        : parseFloat(opt.dataset.hargaBal || 0);
     const total = harga * qty;
 
     displayTotal.innerText = 'Rp ' + total.toLocaleString('id-ID');

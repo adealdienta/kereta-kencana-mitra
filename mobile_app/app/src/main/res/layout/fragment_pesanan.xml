@@ -30,9 +30,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
+            android:layout_marginEnd="16dp"
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/iv_pesanan_profile"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/iv_pesanan_logo"
             app:layout_constraintTop_toTopOf="parent">
 
@@ -53,17 +54,6 @@
                 android:textSize="18sp"
                 android:textStyle="bold" />
         </LinearLayout>
-
-        <ImageView
-            android:id="@+id/iv_pesanan_profile"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:contentDescription="Profil Akun"
-            android:src="@drawable/ic_account"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/brand_gold" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

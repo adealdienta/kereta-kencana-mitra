@@ -62,4 +62,38 @@ object DateHelper {
             isoString
         }
     }
+
+    /**
+     * Format notifikasi gaya Shopee dengan zona waktu GMT+7 / WIB:
+     * Contoh: "06-11-2026 10:45 WIB"
+     */
+    fun formatNotificationWib(isoString: String?): String {
+        if (isoString.isNullOrBlank()) return getCurrentWibDateTime()
+
+        return try {
+            val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale("id", "ID")).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }
+            val cleanString = isoString.substringBefore(".").substringBefore("Z").substringBefore("+")
+            val date = parser.parse(cleanString) ?: return isoString
+
+            val formatter = SimpleDateFormat("dd-MM-yyyy HH:mm 'WIB'", Locale("id", "ID")).apply {
+                timeZone = wibTimeZone
+            }
+            formatter.format(date)
+        } catch (_: Exception) {
+            isoString
+        }
+    }
+
+    /**
+     * Mendapatkan waktu saat ini dalam format GMT+7 / WIB:
+     * Contoh: "06-11-2026 10:45 WIB"
+     */
+    fun getCurrentWibDateTime(): String {
+        val formatter = SimpleDateFormat("dd-MM-yyyy HH:mm 'WIB'", Locale("id", "ID")).apply {
+            timeZone = wibTimeZone
+        }
+        return formatter.format(Date())
+    }
 }

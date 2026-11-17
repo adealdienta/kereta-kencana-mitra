@@ -52,29 +52,29 @@ class ForgotPasswordActivity : AppCompatActivity() {
         binding.tvBackToLogin1.setOnClickListener { finish() }
 
         binding.btnSendCode.setOnClickListener {
-            val identifier = binding.etForgotIdentifier.text.toString().trim()
-            if (identifier.isEmpty()) {
-                showError("Masukkan email atau nomor WhatsApp terdaftar.")
+            val email = binding.etForgotIdentifier.text.toString().trim().lowercase()
+            if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                showError("Masukkan alamat email terdaftar yang valid.")
                 return@setOnClickListener
             }
 
             hideError()
             setLoadingStep1(true)
-            currentIdentifier = identifier
+            currentIdentifier = email
 
             lifecycleScope.launch {
                 try {
                     val api = ApiClient.getService(this@ForgotPasswordActivity)
-                    val response = api.forgotPassword(mapOf("login" to identifier))
+                    val response = api.forgotPassword(mapOf("email" to email))
 
                     setLoadingStep1(false)
                     if (response.isSuccessful && response.body()?.success == true) {
-                        binding.tvOtpTargetInfo.text = "Kode dikirim ke $currentIdentifier"
+                        binding.tvOtpTargetInfo.text = "Kode OTP 6-digit dikirim ke $currentIdentifier"
                         startResendTimer()
                         binding.viewFlipperForgot.displayedChild = 1
                         binding.etOtp1.requestFocus()
                     } else {
-                        showError(parseErrorMessage(response.errorBody()?.string()) ?: "Nomor WhatsApp atau Email tidak ditemukan.")
+                        showError(parseErrorMessage(response.errorBody()?.string()) ?: "Alamat email tidak terdaftar.")
                     }
                 } catch (e: Exception) {
                     setLoadingStep1(false)
@@ -109,7 +109,7 @@ class ForgotPasswordActivity : AppCompatActivity() {
                 try {
                     val api = ApiClient.getService(this@ForgotPasswordActivity)
                     val response = api.verifyResetToken(mapOf(
-                        "login" to currentIdentifier,
+                        "email" to currentIdentifier,
                         "token" to otp
                     ))
 
@@ -173,7 +173,7 @@ class ForgotPasswordActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val api = ApiClient.getService(this@ForgotPasswordActivity)
-                api.forgotPassword(mapOf("login" to currentIdentifier))
+                api.forgotPassword(mapOf("email" to currentIdentifier))
                 startResendTimer()
             } catch (_: Exception) {}
         }
@@ -204,7 +204,7 @@ class ForgotPasswordActivity : AppCompatActivity() {
                 try {
                     val api = ApiClient.getService(this@ForgotPasswordActivity)
                     val response = api.resetPassword(mapOf(
-                        "login" to currentIdentifier,
+                        "email" to currentIdentifier,
                         "token" to getOtpCode(),
                         "password" to newPass,
                         "password_confirmation" to confirmPass
@@ -212,6 +212,15 @@ class ForgotPasswordActivity : AppCompatActivity() {
 
                     setLoadingStep3(false)
                     if (response.isSuccessful && response.body()?.success == true) {
+                        com.keretakencana.mitra.data.local.SessionManager.getInstance(this@ForgotPasswordActivity).addSecurityNotification(
+                            com.keretakencana.mitra.data.model.NotifikasiItem(
+                                id = "sec_${System.currentTimeMillis()}",
+                                judul = "Keamanan Akun: Kata Sandi Berhasil Diperbarui",
+                                pesan = "Kata sandi akun toko Anda telah berhasil diperbarui melalui verifikasi kode OTP. Pastikan selalu menjaga kerahasiaan sandi Anda.",
+                                waktu = com.keretakencana.mitra.utils.DateHelper.getCurrentWibDateTime(),
+                                kategori = "keamanan"
+                            )
+                        )
                         binding.viewFlipperForgot.displayedChild = 3
                     } else {
                         showError(parseErrorMessage(response.errorBody()?.string()) ?: "Gagal memperbarui kata sandi.")

@@ -2,6 +2,7 @@ package com.keretakencana.mitra.ui.cart
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.keretakencana.mitra.R
@@ -22,16 +23,14 @@ class CartAdapter(
         fun bind(item: CartItem) {
             val context = binding.root.context
             val barang = item.barang
+            val cartManager = CartManager.getInstance(context)
+            val totalSlopOrder = cartManager.getTotalSlopQty()
 
             binding.tvCartItemName.text = barang.nama
             binding.tvCartItemPriceRow.text =
-                "${item.jumlah} ${item.satuan.lowercase()} • ${CurrencyHelper.formatRupiah(item.subtotal)}"
+                "${item.jumlah} slop • ${CurrencyHelper.formatRupiah(item.getTieredSubtotal(totalSlopOrder))}"
 
-            val isiDeskripsi = if (item.satuan.equals("Bal", ignoreCase = true)) {
-                "Isi: ${barang.slopPerBal} slop (${barang.slopPerBal * barang.bungkusPerSlop} bks) / bal"
-            } else {
-                "Isi: ${barang.bungkusPerSlop} bungkus / slop"
-            }
+            val isiDeskripsi = "Isi: ${barang.bungkusPerSlop} bungkus / slop (${CurrencyHelper.formatRupiah(com.keretakencana.mitra.data.model.Barang.hargaSlopByQty(totalSlopOrder))}/slop)"
             binding.tvCartItemContentDesc.text = isiDeskripsi
             binding.tvCartQty.text = item.jumlah.toString()
 
@@ -55,18 +54,20 @@ class CartAdapter(
 
             // Tombol Plus (+)
             binding.btnCartPlus.setOnClickListener {
-                CartManager.getInstance(context).updateQty(barang.id, item.satuan, item.jumlah + 1)
-                item.jumlah++
-                notifyItemChanged(adapterPosition)
-                onCartChanged()
+                val (ok, msg) = cartManager.tryUpdateSlopQty(barang, item.jumlah + 1)
+                if (ok) {
+                    item.jumlah++
+                    onCartChanged()
+                } else if (!msg.isNullOrBlank()) {
+                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                }
             }
 
             // Tombol Minus (-)
             binding.btnCartMinus.setOnClickListener {
                 if (item.jumlah > item.minOrder) {
-                    CartManager.getInstance(context).updateQty(barang.id, item.satuan, item.jumlah - 1)
+                    cartManager.tryUpdateSlopQty(barang, item.jumlah - 1)
                     item.jumlah--
-                    notifyItemChanged(adapterPosition)
                     onCartChanged()
                 } else {
                     onRequestRemove(item)

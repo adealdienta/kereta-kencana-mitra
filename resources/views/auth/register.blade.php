@@ -8,7 +8,7 @@
         <div class="auth-card scroll-reveal reveal-zoom">
             
             <div style="text-align: center; margin-bottom: 24px;">
-                <img src="{{ asset('assets/img/logo-resmi.png') }}" alt="PR. Kereta Kencana" style="height: 65px; width: auto; object-fit: contain; border-radius: 8px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light); padding: 3px; background: #fff; margin-bottom: 12px;">
+                <img src="{{ asset('assets/img/logo-resmi.png') }}?v={{ filemtime(public_path('assets/img/logo-resmi.png')) }}" alt="PR. Kereta Kencana" style="height: 65px; width: auto; object-fit: contain; margin: 0 auto 12px;">
                 <span class="eyebrow" style="color: var(--gold); display: block; margin-bottom: 4px;"><i class="fa-solid fa-handshake"></i> KEMITRAAN B2B PABRIK</span>
                 <h2 style="font-family: var(--font-serif); color: var(--gold-hover); font-size: 22px; margin-bottom: 6px; font-weight: 800;">PENDAFTARAN AKUN MITRA TOKO</h2>
                 <p style="color: var(--text-muted); font-size: 13.5px; line-height: 1.6;">
@@ -103,6 +103,13 @@
                             </button>
                         </div>
                     </div>
+                </div>
+
+                <div style="background: var(--kk-ivory); border: 1px solid var(--kk-ivory-border); border-radius: 6px; padding: 12px 14px; margin-bottom: 20px;">
+                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 13px; color: var(--text-dark); line-height: 1.5;">
+                        <input type="checkbox" name="usia_21" value="1" required {{ old('usia_21') ? 'checked' : '' }} style="margin-top: 3px; width: 16px; height: 16px; accent-color: var(--text-dark);">
+                        <span>Saya menyatakan telah berusia <strong>21 tahun ke atas</strong> dan memahami ketentuan distribusi produk hasil tembakau (PP No. 28 Tahun 2024). <span style="color: #ef4444;">*</span></span>
+                    </label>
                 </div>
 
                 <button type="submit" class="btn btn-gold" style="width: 100%; padding: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px;">

@@ -24,11 +24,6 @@ Route::get('/', [FrontController::class, 'beranda'])->name('beranda');
 Route::get('/profil', [FrontController::class, 'profil'])->name('profil');
 Route::get('/katalog', [KatalogController::class, 'index'])->name('katalog.index');
 Route::get('/produk/{slug}', [KatalogController::class, 'detail'])->name('produk.detail');
-Route::get('/kontak', [FrontController::class, 'kontak'])->name('kontak');
-Route::post('/kontak', [FrontController::class, 'kirimPesan'])->name('kontak.kirim');
-
-// API Endpoint AJAX pencatatan WhatsApp Modal (BKPM Acara 21)
-Route::post('/api/log-order-wa', [PemesananController::class, 'apiLogWa'])->name('api.log.wa');
 
 // --- 2. RUTE AUTENTIKASI (LOGIN & REGISTER MITRA) ---
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -50,14 +45,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pesanan-saya', [PemesananController::class, 'pelacakan'])->name('pesanan.saya');
     Route::put('/profil-mitra', [AuthController::class, 'updateProfileMitra'])->name('mitra.profile.update');
     Route::post('/pesanan/{id}/konfirmasi-terima', [PemesananController::class, 'konfirmasiTerima'])->name('pesanan.konfirmasi');
+    Route::post('/pesanan/{id}/upload-bukti-transfer', [PemesananController::class, 'uploadBuktiTransfer'])->name('pesanan.upload_transfer');
     Route::post('/pesanan/{id}/batal', [PemesananController::class, 'batalkanPesanan'])->name('pesanan.batal');
+
+    // Halaman Invoice Digital (Hanya pemilik pesanan atau staf internal)
+    Route::get('/invoice/{kode_transaksi}', [PemesananController::class, 'invoice'])->name('pesanan.invoice');
 });
 
-// Halaman Invoice Digital (Bisa dibuka pelanggan/staf via link kode transaksi)
-Route::get('/invoice/{kode_transaksi}', [PemesananController::class, 'invoice'])->name('pesanan.invoice');
-
-// --- 4. RUTE DASHBOARD OPERASIONAL INTERNAL (ROLE STAFF, ADMIN, OWNER) ---
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+// --- 4. RUTE DASHBOARD OPERASIONAL INTERNAL (ROLE STAFF, ADMIN, OWNER, SUPERADMIN) ---
+Route::middleware(['auth', 'role:staff,admin,owner,superadmin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/profil', [AuthController::class, 'profile'])->name('profile');
     Route::put('/profil', [AuthController::class, 'updateProfile'])->name('profile.update');
@@ -75,6 +71,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/transaksis', [TransaksiController::class, 'index'])->name('transaksis.index');
     Route::get('/transaksis/{id}', [TransaksiController::class, 'show'])->name('transaksis.show');
     Route::put('/transaksis/{id}', [TransaksiController::class, 'update'])->name('transaksis.update');
+    Route::post('/transaksis/{id}/verifikasi-pembayaran', [TransaksiController::class, 'verifikasiPembayaran'])->name('transaksis.verifikasi_pembayaran');
     Route::delete('/transaksis/{id}', [TransaksiController::class, 'destroy'])->name('transaksis.destroy');
     Route::get('/transaksis/{id}/faktur', [TransaksiController::class, 'cetakFaktur'])->name('transaksis.faktur');
 

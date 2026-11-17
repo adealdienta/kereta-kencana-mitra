@@ -47,6 +47,7 @@ class AuthController extends Controller
             'telepon' => ['required', 'string', 'max:30'],
             'alamat' => ['required', 'string', 'max:500'],
             'password' => ['required', 'min:6', 'confirmed'],
+            'usia_21' => ['accepted'],
         ], [
             'name.required' => 'Nama lengkap wajib diisi.',
             'nama_toko.required' => 'Nama toko / warung / mitra usaha wajib diisi.',
@@ -57,13 +58,14 @@ class AuthController extends Controller
             'password.required' => 'Kata sandi wajib diisi.',
             'password.min' => 'Kata sandi minimal 6 karakter.',
             'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
+            'usia_21.accepted' => 'Pendaftaran mitra mewajibkan pemilik usaha berusia 21 tahun ke atas.',
         ]);
 
         $user = User::create([
             'name' => $validated['name'],
             'nama_toko' => $validated['nama_toko'],
-            'email' => $validated['email'],
-            'telepon' => $validated['telepon'],
+            'email' => strtolower(trim($validated['email'])),
+            'telepon' => \App\Http\Controllers\Api\AuthApiController::normalizePhoneNumber($validated['telepon']),
             'alamat' => $validated['alamat'],
             'password' => Hash::make($validated['password']),
             'role' => 'pelanggan',
@@ -74,7 +76,7 @@ class AuthController extends Controller
 
         ActivityLogger::log('Registrasi Mitra', "Mitra toko '{$user->nama_toko}' berhasil mendaftar akun baru");
 
-        return redirect()->route('pesanan.form')
+        return redirect()->intended(route('pesanan.form'))
             ->with('success', 'Pendaftaran berhasil! Selamat datang, ' . $user->name . ' (' . $user->nama_toko . '). Silakan lanjutkan formulir pemesanan rokok Anda.');
     }
 

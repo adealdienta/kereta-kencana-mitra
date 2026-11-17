@@ -18,6 +18,7 @@ class LegalDocument extends Model
         'berlaku_sampai',
         'status',
         'catatan',
+        'file_dokumen',
         'urutan',
     ];
 

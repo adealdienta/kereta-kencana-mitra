@@ -1,6 +1,8 @@
 package com.keretakencana.mitra.ui.akun
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -143,7 +145,17 @@ class AkunFragment : Fragment() {
                     Toast.makeText(requireContext(), "✓ Foto profil berhasil diperbarui.", Toast.LENGTH_SHORT).show()
                     updateProfileView()
                 } else {
-                    val errMsg = response.body()?.message ?: "Gagal mengunggah foto profil."
+                    val rawError = response.errorBody()?.string()
+                    val errMsg = try {
+                        if (!rawError.isNullOrBlank()) {
+                            val json = org.json.JSONObject(rawError)
+                            json.optString("message", "Gagal mengunggah foto profil.")
+                        } else {
+                            response.body()?.message ?: "Gagal mengunggah foto profil."
+                        }
+                    } catch (_: Exception) {
+                        response.body()?.message ?: "Gagal mengunggah foto profil."
+                    }
                     Toast.makeText(requireContext(), errMsg, Toast.LENGTH_LONG).show()
                 }
             } catch (e: Exception) {
@@ -159,13 +171,37 @@ class AkunFragment : Fragment() {
             val context = context ?: return null
             val inputStream = context.contentResolver.openInputStream(uri) ?: return null
             val tempFile = File.createTempFile("avatar_mitra_", ".jpg", context.cacheDir)
-            val outputStream = FileOutputStream(tempFile)
-            inputStream.use { input ->
-                outputStream.use { output ->
-                    input.copyTo(output)
+
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            inputStream.close()
+
+            if (bitmap != null) {
+                val maxDim = 1080
+                val width = bitmap.width
+                val height = bitmap.height
+                val (scaledWidth, scaledHeight) = if (width > maxDim || height > maxDim) {
+                    val ratio = width.toFloat() / height.toFloat()
+                    if (ratio > 1) {
+                        Pair(maxDim, (maxDim / ratio).toInt())
+                    } else {
+                        Pair((maxDim * ratio).toInt(), maxDim)
+                    }
+                } else {
+                    Pair(width, height)
                 }
+
+                val scaledBitmap = Bitmap.createScaledBitmap(bitmap, scaledWidth, scaledHeight, true)
+                val fos = FileOutputStream(tempFile)
+                scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 85, fos)
+                fos.flush()
+                fos.close()
+                tempFile
+            } else {
+                val is2 = context.contentResolver.openInputStream(uri) ?: return null
+                val fos = FileOutputStream(tempFile)
+                is2.use { input -> fos.use { output -> input.copyTo(output) } }
+                tempFile
             }
-            tempFile
         } catch (_: Exception) {
             null
         }
@@ -231,7 +267,9 @@ class AkunFragment : Fragment() {
     }
 
     private fun hubungiWaPabrik() {
-        val targetWa = waPabrikNumber ?: "6285735064152"
+        val targetWa = waPabrikNumber?.takeIf { it.isNotBlank() }
+            ?: SessionManager.getInstance(requireContext()).getPengaturan().waPabrik
+            ?: SessionManager.DEFAULT_WA_PABRIK
         val cleanPhone = targetWa.replace("+", "").replace("-", "").replace(" ", "").trim()
 
         val textMessage = "Halo Admin PR. Kereta Kencana, saya ingin menanyakan informasi pemesanan produk grosir tembakau."

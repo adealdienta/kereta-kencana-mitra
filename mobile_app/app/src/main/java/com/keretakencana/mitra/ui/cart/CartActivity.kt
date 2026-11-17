@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.keretakencana.mitra.data.api.ApiClient
 import com.keretakencana.mitra.data.local.CartManager
 import com.keretakencana.mitra.data.local.SessionManager
+import com.keretakencana.mitra.data.model.Barang
 import com.keretakencana.mitra.data.model.CartItem
 import com.keretakencana.mitra.databinding.ActivityCartBinding
 import com.keretakencana.mitra.ui.auth.LoginBottomSheetFragment
@@ -89,19 +90,11 @@ class CartActivity : AppCompatActivity() {
 
             cartAdapter.updateData(items)
 
-            var totalQtySlopEquivalent = 0
-            var subtotal = 0.0
+            val totalSlop = cartManager.getTotalSlopQty()
+            val subtotal = cartManager.getEstimatedSubtotal()
+            val tierPrice = Barang.hargaSlopByQty(totalSlop)
 
-            for (it in items) {
-                if (it.satuan.equals("Slop", ignoreCase = true)) {
-                    totalQtySlopEquivalent += it.jumlah
-                } else {
-                    totalQtySlopEquivalent += (it.jumlah * it.barang.slopPerBal)
-                }
-                subtotal += it.subtotal
-            }
-
-            binding.tvRingkasanSubtotalLabel.text = "Subtotal Produk ($totalQtySlopEquivalent slop)"
+            binding.tvRingkasanSubtotalLabel.text = "Subtotal ($totalSlop/${Barang.MAX_SLOP_PER_ORDER} slop • ${CurrencyHelper.formatRupiah(tierPrice)}/slop)"
             binding.tvRingkasanSubtotalValue.text = CurrencyHelper.formatRupiah(subtotal)
             binding.tvCartBottomTotal.text = CurrencyHelper.formatRupiah(subtotal)
         }

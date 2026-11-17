@@ -10,7 +10,7 @@
     </a>
 </div>
 
-<div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px;">
+<div class="admin-grid-2col" style="grid-template-columns: 1.2fr 1fr;">
     <!-- Rincian Pesanan -->
     <div style="background: #fff; border-radius: 8px; border: 1px solid #e2e8f0; padding: 24px;">
         <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px;">
@@ -116,6 +116,52 @@
             </div>
         @endif
 
+        <!-- Bukti Transfer Bank -->
+        @if($transaksi->bukti_transfer)
+            <div style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 6px; padding: 16px; margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-file-invoice-dollar" style="color: #0284c7; font-size: 18px;"></i>
+                        <h4 style="font-size: 14px; color: #0f172a; margin: 0; font-weight: 700;">Bukti Transfer Bank</h4>
+                    </div>
+                    <span style="font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 700;
+                        background: {{ $transaksi->status_pembayaran === 'Lunas' ? '#dcfce7; color: #166534;' : ($transaksi->status_pembayaran === 'Menunggu Verifikasi' ? '#fef3c7; color: #92400e;' : '#fee2e2; color: #991b1b;') }}">
+                        {{ $transaksi->status_pembayaran }}
+                    </span>
+                </div>
+                <p style="color: #64748b; font-size: 12px; margin: 0 0 10px 0;">
+                    Waktu Diunggah: {{ $transaksi->ditransfer_pada ? $transaksi->ditransfer_pada->format('d F Y, H:i') : '-' }} WIB
+                </p>
+                <div style="margin-bottom: 12px;">
+                    <a href="{{ asset('storage/' . $transaksi->bukti_transfer) }}" target="_blank">
+                        <img src="{{ asset('storage/' . $transaksi->bukti_transfer) }}" alt="Foto Struk Transfer Bank" 
+                             style="max-width: 100%; max-height: 260px; border-radius: 6px; border: 1px solid #cbd5e1; object-fit: contain;">
+                    </a>
+                </div>
+
+                @if($transaksi->status_pembayaran !== 'Lunas')
+                    <div style="display: flex; gap: 8px;">
+                        <form action="{{ route('admin.transaksis.verifikasi_pembayaran', $transaksi->id) }}" method="POST" style="flex: 1;">
+                            @csrf
+                            <input type="hidden" name="action" value="terima">
+                            <button type="submit" onclick="return confirm('Apakah Anda yakin dana transfer bank telah masuk ke rekening perusahaan?')"
+                                    style="width: 100%; background: #16a34a; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;">
+                                <i class="fa-solid fa-check"></i> Verifikasi Lunas
+                            </button>
+                        </form>
+                        <form action="{{ route('admin.transaksis.verifikasi_pembayaran', $transaksi->id) }}" method="POST" style="flex: 1;">
+                            @csrf
+                            <input type="hidden" name="action" value="tolak">
+                            <button type="submit" onclick="return confirm('Tolak bukti transfer ini?')"
+                                    style="width: 100%; background: #dc2626; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;">
+                                <i class="fa-solid fa-xmark"></i> Tolak Bukti
+                            </button>
+                        </form>
+                    </div>
+                @endif
+            </div>
+        @endif
+
         <!-- Bukti Penerimaan Barang -->
         @if($transaksi->bukti_penerimaan)
             <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; padding: 16px;">
@@ -162,7 +208,7 @@
                     @endif
                     <option value="Dibatalkan" {{ $transaksi->status === 'Dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
                 </select>
-                <small style="color: #64748b; font-size: 11px;">*Status 'Dikirim' akan memicu notifikasi konfirmasi di HP pembeli.</small>
+                <small style="color: #64748b; font-size: 11px;">*Status 'Dikirim' akan memicu tombol konfirmasi penerimaan di Website (Pesanan Saya) dan Aplikasi Mobile mitra.</small>
             </div>
 
             <div style="margin-bottom: 16px;">
@@ -207,7 +253,7 @@
 
                             <div style="margin-bottom: 14px;">
                                 <label style="display: block; font-weight: 600; font-size: 12px; margin-bottom: 4px; color: #14532d;">
-                                    Alasan Verifikasi Manual & Catatan Audit <span style="color: #dc2626;">*</span>
+                                    Alasan Verifikasi Manual &amp; Catatan Audit <span style="color: #dc2626;">*</span>
                                 </label>
                                 <input type="text" name="alasan_bypass" required placeholder="Contoh: Surat Jalan #SJ-2026-0901 basah diterima, uang COD Rp 1.500.000 sudah disetor kasir."
                                        style="width: 100%; padding: 9px; border: 1px solid #86efac; border-radius: 6px; font-size: 12px;">
@@ -215,16 +261,16 @@
 
                             <button type="submit" onclick="return confirm('Apakah Anda yakin dokumen fisik Surat Jalan dan setoran uang COD pesanan ini telah valid dan lengkap?')"
                                     style="background: #16a34a; color: #fff; border: none; padding: 10px 16px; border-radius: 6px; font-size: 12.5px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                                <i class="fa-solid fa-stamp"></i> Otorisasi & Selesaikan Pesanan (Arsipkan Bukti Fisik)
+                                <i class="fa-solid fa-stamp"></i> Otorisasi &amp; Selesaikan Pesanan (Arsipkan Bukti Fisik)
                             </button>
                         </form>
                     </div>
                 @else
                     <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; font-size: 12px; color: #64748b; line-height: 1.5;">
                         <strong style="color: #334155; display: block; margin-bottom: 4px;">
-                            <i class="fa-solid fa-lock" style="color: #eab308;"></i> Proteksi Audit & Pencegahan Fraud:
+                            <i class="fa-solid fa-lock" style="color: #eab308;"></i> Proteksi Audit &amp; Pencegahan Fraud:
                         </strong>
-                        Staf operasional tidak memiliki hak menyelesaikan pesanan secara langsung. Konfirmasi pesanan harus dilakukan oleh mitra toko melalui aplikasi mobile, atau diotorisasi oleh <strong>Owner / Super Admin</strong> dengan mengunggah foto Surat Jalan fisik asli.
+                        Staf operasional tidak memiliki hak menyelesaikan pesanan secara langsung. Konfirmasi pesanan harus dilakukan oleh mitra toko melalui Website / Aplikasi Mobile, atau diotorisasi oleh <strong>Owner / Super Admin</strong> dengan mengunggah foto Surat Jalan fisik asli.
                     </div>
                 @endif
             </div>

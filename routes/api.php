@@ -59,6 +59,6 @@ Route::prefix('v1')->group(function () {
         Route::post('/pesanan', [PesananApiController::class, 'store']);
         Route::post('/pesanan/{id}/batal', [PesananApiController::class, 'batalkan']);
         Route::post('/pesanan/{id}/konfirmasi-terima', [PesananApiController::class, 'konfirmasiTerima']);
-        Route::post('/pesanan/{id}/simulasi-qris', [PesananApiController::class, 'simulasiQris']);
+        Route::post('/pesanan/{id}/upload-bukti-transfer', [PesananApiController::class, 'uploadBuktiTransfer']);
     });
 });

@@ -4,9 +4,9 @@
 @section('header_title', 'Manajemen Pengguna & Hak Akses Berjenjang (RBAC)')
 
 @section('content')
-<div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px;">
+<div class="admin-grid-2col">
     <!-- Tabel Pengguna -->
-    <div style="background: #fff; border-radius: 8px; border: 1px solid #e2e8f0; padding: 24px;">
+    <div style="background: #fff; border-radius: 8px; border: 1px solid #e2e8f0; padding: 24px; overflow-x: auto;">
         <h3 style="font-size: 16px; color: #1e293b; margin-bottom: 16px;">
             <i class="fa-solid fa-users-gear"></i> Daftar Akun Pengguna Terdaftar
         </h3>
@@ -36,17 +36,21 @@
                             </span>
                         </td>
                         <td style="padding: 10px; text-align: center;">
-                            @if($u->id !== auth()->id())
-                                <form action="{{ route('admin.users.destroy', $u->id) }}" method="POST" onsubmit="return confirm('Hapus akun {{ $u->name }}?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" style="background: none; border: none; color: #dc2626; cursor: pointer;">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </form>
-                            @else
-                                <span style="color: #cbd5e1;">-</span>
-                            @endif
+                            <div style="display: inline-flex; gap: 6px; align-items: center;">
+                                <button type="button" onclick='openEditUserModal(@json($u->id), @json($u->name), @json($u->email), @json($u->role))'
+                                        style="background: none; border: none; color: #0284c7; cursor: pointer; padding: 4px;" title="Ubah Akun">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                @if($u->id !== auth()->id())
+                                    <form action="{{ route('admin.users.destroy', $u->id) }}" method="POST" onsubmit="return confirm('Hapus akun {{ $u->name }}?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" style="background: none; border: none; color: #dc2626; cursor: pointer; padding: 4px;" title="Hapus Akun">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                 @endforeach
@@ -64,13 +68,13 @@
             @csrf
             <div style="margin-bottom: 14px;">
                 <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px;">Nama Lengkap <span style="color: #dc2626;">*</span></label>
-                <input type="text" name="name" required placeholder="Contoh: Ahmad Fauzi"
+                <input type="text" name="name" required placeholder="Contoh: Staf Operasional Gudang"
                        style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
             </div>
 
             <div style="margin-bottom: 14px;">
                 <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px;">Alamat Email <span style="color: #dc2626;">*</span></label>
-                <input type="email" name="email" required placeholder="staf@keretakencana.com"
+                <input type="email" name="email" required placeholder="nama@email-staf.com"
                        style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
             </div>
 
@@ -83,9 +87,9 @@
             <div style="margin-bottom: 20px;">
                 <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px;">Tingkatan Akses / Role <span style="color: #dc2626;">*</span></label>
                 <select name="role" required style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
-                    <option value="staff">Staff (Operasional Pesanan & Pengiriman)</option>
-                    <option value="superadmin">Super Admin (Teknis & Web Developer)</option>
-                    <option value="owner">Owner (Hak Akses Penuh Sistem & Bisnis)</option>
+                    <option value="staff">Staff (Operasional Pesanan &amp; Pengiriman)</option>
+                    <option value="superadmin">Super Admin (Teknis &amp; Pengelola Sistem)</option>
+                    <option value="owner">Owner (Hak Akses Penuh Sistem &amp; Bisnis)</option>
                 </select>
             </div>
 
@@ -95,4 +99,69 @@
         </form>
     </div>
 </div>
+
+<!-- Modal Edit Akun Pengguna -->
+<div id="editUserModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
+    <div style="background: #fff; border-radius: 8px; width: 100%; max-width: 460px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+            <h3 style="font-size: 16px; font-weight: 700; color: #1e293b; margin: 0;">
+                <i class="fa-solid fa-user-pen" style="color: var(--admin-gold); margin-right: 6px;"></i> Edit Akun Staf
+            </h3>
+            <button type="button" onclick="closeEditUserModal()" style="background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer;">&times;</button>
+        </div>
+
+        <form id="formEditUser" method="POST">
+            @csrf
+            @method('PUT')
+
+            <div style="margin-bottom: 12px;">
+                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px;">Nama Lengkap <span style="color: #dc2626;">*</span></label>
+                <input type="text" name="name" id="editUserName" required style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px;">Alamat Email <span style="color: #dc2626;">*</span></label>
+                <input type="email" name="email" id="editUserEmail" required style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px;">Tingkatan Role <span style="color: #dc2626;">*</span></label>
+                <select name="role" id="editUserRole" required style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+                    <option value="staff">Staff</option>
+                    <option value="superadmin">Super Admin</option>
+                    <option value="owner">Owner</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px;">Kata Sandi Baru (Opsional)</label>
+                <input type="password" name="password" placeholder="Kosongkan jika tidak diganti" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" onclick="closeEditUserModal()" style="padding: 9px 16px; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 6px; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;">
+                    Batal
+                </button>
+                <button type="submit" style="padding: 9px 18px; border: none; background: var(--admin-gold); border-radius: 6px; font-size: 13px; font-weight: 700; color: #fff; cursor: pointer;">
+                    Simpan Perubahan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+function openEditUserModal(id, name, email, role) {
+    document.getElementById('formEditUser').action = '/admin/users/' + id;
+    document.getElementById('editUserName').value = name || '';
+    document.getElementById('editUserEmail').value = email || '';
+    document.getElementById('editUserRole').value = role || 'staff';
+    document.getElementById('editUserModal').style.display = 'flex';
+}
+function closeEditUserModal() {
+    document.getElementById('editUserModal').style.display = 'none';
+}
+</script>
+@endpush
 @endsection

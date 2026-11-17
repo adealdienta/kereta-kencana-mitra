@@ -19,7 +19,7 @@
                                 PR. KERETA KENCANA
                             </div>
                             <div style="font-size: 11px; letter-spacing: 1.5px; color: #cbd5e1; text-transform: uppercase;">
-                                Pabrik Sigaret Kretek Mesin & Tangan &bull; Ponggok, Blitar
+                                Pabrik Sigaret Kretek Tangan (SKT) &bull; Ponggok, Blitar
                             </div>
                         </td>
                     </tr>
@@ -78,7 +78,7 @@
                         <td style="background-color: #f1f5f9; padding: 20px 30px; text-align: center; font-size: 11.5px; color: #64748b; border-top: 1px solid #e2e8f0;">
                             <div>&copy; {{ date('Y') }} PR. KERETA KENCANA. Hak Cipta Dilindungi Undang-Undang.</div>
                             <div style="margin-top: 4px; color: #94a3b8;">
-                                Dusun Subontoro, Desa Kebonduren, Kec. Ponggok, Kabupaten Blitar, Jawa Timur
+                                Dusun Subontoro RT. 001 RW. 015, Desa Kebonduren, Kec. Ponggok, Kabupaten Blitar, Jawa Timur
                             </div>
                         </td>
                     </tr>

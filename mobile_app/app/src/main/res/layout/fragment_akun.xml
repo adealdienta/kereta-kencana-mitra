@@ -94,7 +94,7 @@
                             android:id="@+id/tv_akun_nama_toko"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Toko Berkah Barokah"
+                            android:text="Akun Mitra"
                             android:textColor="@color/brand_brown_dark"
                             android:textSize="16sp"
                             android:textStyle="bold" />
@@ -104,7 +104,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="Pak Budi • 081234567890"
+                            android:text="Pemilik • WhatsApp"
                             android:textColor="@color/text_secondary"
                             android:textSize="12sp" />
 

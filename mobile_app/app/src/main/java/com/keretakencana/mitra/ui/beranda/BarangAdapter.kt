@@ -3,6 +3,7 @@ package com.keretakencana.mitra.ui.beranda
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.keretakencana.mitra.R
@@ -26,7 +27,11 @@ class BarangAdapter(
 
             binding.tvBarangNama.text = barang.nama
             binding.tvBarangHarga.text = CurrencyHelper.formatRupiah(barang.hargaPerSlop)
-            binding.tvBarangSatuanSub.text = "per slop (${barang.bungkusPerSlop} bks)"
+            binding.tvBarangSatuanSub.text = if (barang.stok > 0) {
+                "per slop (${barang.bungkusPerSlop} bks)"
+            } else {
+                "Stok Gudang Habis • Hubungi Admin"
+            }
 
             // Muat Gambar Produk (Glide dengan Fallback Aset Lokal)
             val localDrawableRes = when {
@@ -68,23 +73,31 @@ class BarangAdapter(
 
             // Event Tombol Tambah
             binding.btnTambahSlop.setOnClickListener {
-                cartManager.addItem(barang, "Slop", barang.minOrderSlop)
-                notifyItemChanged(adapterPosition)
-                onCartUpdated()
+                val qty = if (barang.minOrderSlop > 0) barang.minOrderSlop else 1
+                val (ok, msg) = cartManager.tryAddSlop(barang, qty)
+                if (ok) {
+                    notifyItemChanged(adapterPosition)
+                    onCartUpdated()
+                } else if (!msg.isNullOrBlank()) {
+                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                }
             }
 
             // Event Tombol Plus (+)
             binding.btnPlusQty.setOnClickListener {
-                val newQty = currentQty + 1
-                cartManager.updateQty(barang.id, "Slop", newQty)
-                notifyItemChanged(adapterPosition)
-                onCartUpdated()
+                val (ok, msg) = cartManager.tryUpdateSlopQty(barang, currentQty + 1)
+                if (ok) {
+                    notifyItemChanged(adapterPosition)
+                    onCartUpdated()
+                } else if (!msg.isNullOrBlank()) {
+                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                }
             }
 
             // Event Tombol Minus (-)
             binding.btnMinusQty.setOnClickListener {
                 val newQty = currentQty - 1
-                cartManager.updateQty(barang.id, "Slop", newQty)
+                cartManager.tryUpdateSlopQty(barang, newQty)
                 notifyItemChanged(adapterPosition)
                 onCartUpdated()
             }

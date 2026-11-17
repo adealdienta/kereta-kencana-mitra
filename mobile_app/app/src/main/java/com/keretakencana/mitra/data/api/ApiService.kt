@@ -123,8 +123,10 @@ interface ApiService {
         @Part("catatan_penerima") catatanPenerima: RequestBody? = null
     ): Response<ApiResponse<Transaksi>>
 
-    @POST("pesanan/{id}/simulasi-qris")
-    suspend fun simulasiBayarQris(
-        @Path("id") id: Long
+    @Multipart
+    @POST("pesanan/{id}/upload-bukti-transfer")
+    suspend fun uploadBuktiTransfer(
+        @Path("id") id: Long,
+        @Part buktiTransfer: MultipartBody.Part
     ): Response<ApiResponse<Transaksi>>
 }

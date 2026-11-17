@@ -15,6 +15,9 @@ import com.bumptech.glide.Glide
 import com.keretakencana.mitra.R
 import com.keretakencana.mitra.data.api.ApiClient
 import com.keretakencana.mitra.data.local.CartManager
+import com.keretakencana.mitra.data.local.SessionManager
+import com.keretakencana.mitra.data.model.Barang
+import com.keretakencana.mitra.data.model.Pengaturan
 import com.keretakencana.mitra.data.model.Transaksi
 import com.keretakencana.mitra.databinding.ActivityDetailPesananBinding
 import com.keretakencana.mitra.ui.cart.CartActivity
@@ -27,6 +30,7 @@ class DetailPesananActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDetailPesananBinding
     private var pesananId: Long = -1L
     private var currentTransaksi: Transaksi? = null
+    private lateinit var currentPengaturan: Pengaturan
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,15 +38,31 @@ class DetailPesananActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         pesananId = intent.getLongExtra(EXTRA_PESANAN_ID, -1L)
+        currentPengaturan = SessionManager.getInstance(this).getPengaturan()
 
         setSupportActionBar(binding.toolbarDetailPesanan)
         binding.toolbarDetailPesanan.setNavigationOnClickListener { finish() }
 
         if (pesananId > 0) {
+            fetchPengaturanTerbaru()
             loadPesananDetail()
         } else {
             Toast.makeText(this, "ID pesanan tidak valid.", Toast.LENGTH_SHORT).show()
             finish()
+        }
+    }
+
+    private fun fetchPengaturanTerbaru() {
+        lifecycleScope.launch {
+            try {
+                val res = ApiClient.getService(this@DetailPesananActivity).getPengaturan()
+                val cfg = res.body()?.data
+                if (res.isSuccessful && res.body()?.success == true && cfg != null) {
+                    SessionManager.getInstance(this@DetailPesananActivity).savePengaturan(cfg)
+                    currentPengaturan = SessionManager.getInstance(this@DetailPesananActivity).getPengaturan()
+                    currentTransaksi?.let { renderPesanan(it) }
+                }
+            } catch (_: Exception) {}
         }
     }
 
@@ -65,6 +85,9 @@ class DetailPesananActivity : AppCompatActivity() {
                         currentTransaksi = data
                         renderPesanan(data)
                     }
+                } else if (response.code() == 401) {
+                    Toast.makeText(this@DetailPesananActivity, "Sesi akun berakhir. Silakan masuk kembali.", Toast.LENGTH_SHORT).show()
+                    finish()
                 } else {
                     Toast.makeText(this@DetailPesananActivity, "Gagal memuat detail pesanan.", Toast.LENGTH_SHORT).show()
                 }
@@ -88,45 +111,93 @@ class DetailPesananActivity : AppCompatActivity() {
         // Rincian Muatan Produk
         populateItemRows(t)
 
-        // Catatan Kurir
+        // Catatan Kurir / Pengiriman & Label Ongkir
+        val isAmbilMandiri = t.catatan?.contains("ambil", ignoreCase = true) == true ||
+                t.alamat.contains("Ambil Mandiri", ignoreCase = true)
         binding.tvDetailCatatanKurir.text = if (!t.catatan.isNullOrBlank()) t.catatan else "Tidak ada catatan khusus."
+        binding.tvDetailOngkir.text = if (isAmbilMandiri) {
+            "Rp 0 (Ambil Mandiri)"
+        } else {
+            "Area Blitar Gratis (Jarak jauh hubungi Admin)"
+        }
+        binding.tvStep3Desc.text = if (isAmbilMandiri) {
+            "Pesanan disiapkan untuk diambil langsung di gudang pabrik"
+        } else {
+            "Kurir / ekspedisi mengantar pesanan ke tujuan toko"
+        }
 
         // Status & Metode Pembayaran
-        val isQris = t.metodePembayaran?.contains("qris", ignoreCase = true) == true
+        val isTransfer = t.metodePembayaran?.contains("transfer", ignoreCase = true) == true ||
+                t.metodePembayaran?.contains("bca", ignoreCase = true) == true
         val isLunas = t.statusPembayaran.equals("Lunas", ignoreCase = true)
+        val isMenungguVerifikasi = t.statusPembayaran?.contains("Menunggu", ignoreCase = true) == true
+        val isDitolak = t.statusPembayaran?.contains("Ditolak", ignoreCase = true) == true ||
+                t.statusPembayaran?.contains("Tidak Valid", ignoreCase = true) == true ||
+                t.statusPembayaran?.contains("Belum Valid", ignoreCase = true) == true
 
-        binding.tvDetailMetodePembayaran.text = if (isQris) "QRIS (Instan & Otomatis)" else (t.metodePembayaran ?: "Bayar di Tempat (COD)")
-        binding.tvDetailStatusPembayaran.text = if (isLunas) "Lunas" else "Belum Dibayar"
-        binding.tvDetailStatusPembayaran.setBackgroundResource(if (isLunas) R.drawable.bg_badge_lunas else R.drawable.bg_badge_belum_bayar)
-        binding.tvDetailStatusPembayaran.setTextColor(ContextCompat.getColor(this, if (isLunas) R.color.status_green else R.color.brand_gold))
-        binding.tvDetailLabelTotal.text = if (isQris) "Total Tagihan QRIS" else "Total Tagihan COD"
+        binding.tvDetailMetodePembayaran.text = if (isTransfer) "Transfer Bank" else (t.metodePembayaran ?: "Bayar di Tempat (COD)")
+        binding.tvDetailStatusPembayaran.text = t.statusPembayaran ?: (if (isLunas) "Lunas" else "Belum Dibayar")
+        binding.tvDetailStatusPembayaran.background = null
+        binding.tvDetailStatusPembayaran.setPadding(0, 0, 0, 0)
+        binding.tvDetailStatusPembayaran.setTextColor(
+            ContextCompat.getColor(this, 
+                if (isLunas) R.color.status_green 
+                else if (isDitolak) R.color.status_red
+                else R.color.text_primary
+            )
+        )
+        binding.tvDetailLabelTotal.text = if (isTransfer) "Total Tagihan Transfer" else "Total Tagihan COD"
 
-        // Card Aksi QRIS Dinamis
+        // Card Aksi Transfer Bank
         val isDibatalkan = t.status.equals("Dibatalkan", ignoreCase = true)
-        if (isQris && !isDibatalkan) {
+        if (isTransfer && !isDibatalkan) {
             binding.cardDetailQrisAction.visibility = View.VISIBLE
             if (isLunas) {
-                binding.tvDetailQrisTitle.text = "Pembayaran QRIS Lunas"
+                binding.tvDetailQrisTitle.text = "Pembayaran Transfer Bank Lunas"
                 binding.tvDetailQrisBadge.text = "✓ Terverifikasi"
-                binding.tvDetailQrisBadge.setBackgroundResource(R.drawable.bg_badge_lunas)
+                binding.tvDetailQrisBadge.background = null
+                binding.tvDetailQrisBadge.setPadding(0, 0, 0, 0)
                 binding.tvDetailQrisBadge.setTextColor(ContextCompat.getColor(this, R.color.status_green))
-                binding.tvDetailQrisDesc.text = "Pembayaran telah berhasil diverifikasi oleh sistem gateway pabrik."
-                binding.btnDetailBukaQris.text = "Lihat Kode QRIS"
+                binding.tvDetailQrisDesc.text = "Dana transfer telah diverifikasi lunas oleh bagian keuangan pabrik."
+                binding.btnDetailBukaQris.text = "Lihat Bukti Transfer"
+            } else if (isDitolak) {
+                binding.tvDetailQrisTitle.text = "Bukti Transfer Ditolak / Belum Valid"
+                binding.tvDetailQrisBadge.text = "Ditolak"
+                binding.tvDetailQrisBadge.background = null
+                binding.tvDetailQrisBadge.setPadding(0, 0, 0, 0)
+                binding.tvDetailQrisBadge.setTextColor(ContextCompat.getColor(this, R.color.status_red))
+                binding.tvDetailQrisDesc.text = "Bukti transfer Anda ditolak oleh admin pabrik. Silakan periksa mutasi rekening dan unggah ulang bukti transfer yang sah."
+                binding.btnDetailBukaQris.text = "Unggah Ulang Bukti Transfer"
+            } else if (isMenungguVerifikasi || !t.buktiTransferUrl.isNullOrBlank()) {
+                binding.tvDetailQrisTitle.text = "Bukti Transfer Sedang Diverifikasi"
+                binding.tvDetailQrisBadge.text = "Menunggu Verifikasi"
+                binding.tvDetailQrisBadge.background = null
+                binding.tvDetailQrisBadge.setPadding(0, 0, 0, 0)
+                binding.tvDetailQrisBadge.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
+                binding.tvDetailQrisDesc.text = "Bukti transfer telah diterima dan sedang diperiksa oleh bagian keuangan pabrik."
+                binding.btnDetailBukaQris.text = "Lihat / Kirim Ulang Bukti Transfer"
             } else {
-                binding.tvDetailQrisTitle.text = "Pembayaran QRIS Menunggu Pelunasan"
-                binding.tvDetailQrisBadge.text = "Menunggu Scan"
-                binding.tvDetailQrisBadge.setBackgroundResource(R.drawable.bg_badge_belum_bayar)
-                binding.tvDetailQrisBadge.setTextColor(ContextCompat.getColor(this, R.color.status_orange))
-                binding.tvDetailQrisDesc.text = "Pesanan ini belum dibayar. Buka kode QRIS untuk melakukan scan dan simulasi pelunasan instan."
-                binding.btnDetailBukaQris.text = "⚡ Buka Kode QRIS / Bayar Sekarang"
+                binding.tvDetailQrisTitle.text = "Menunggu Pembayaran Transfer Bank"
+                binding.tvDetailQrisBadge.text = "Belum Bayar"
+                binding.tvDetailQrisBadge.background = null
+                binding.tvDetailQrisBadge.setPadding(0, 0, 0, 0)
+                binding.tvDetailQrisBadge.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
+                val bankRek = currentPengaturan.bankRekening?.trim()
+                val bankNama = currentPengaturan.bankNama?.trim()
+                binding.tvDetailQrisDesc.text = if (!bankRek.isNullOrBlank()) {
+                    "Silakan transfer ke ${bankNama ?: "Bank"} $bankRek (a.n. ${currentPengaturan.bankAtasNama ?: "PR. Kereta Kencana"}) lalu unggah foto bukti transfer."
+                } else {
+                    "Hubungi Admin via WhatsApp untuk meminta nomor rekening resmi pabrik, lalu unggah foto bukti transfer."
+                }
+                binding.btnDetailBukaQris.text = "Bayar / Unggah Bukti Transfer"
             }
 
             binding.btnDetailBukaQris.setOnClickListener {
-                val intent = Intent(this, PembayaranQrisActivity::class.java).apply {
-                    putExtra(PembayaranQrisActivity.EXTRA_PESANAN_ID, t.id)
-                    putExtra(PembayaranQrisActivity.EXTRA_KODE_TRX, t.kodeTransaksi)
-                    putExtra(PembayaranQrisActivity.EXTRA_TOTAL_HARGA, t.totalHarga)
-                    putExtra(PembayaranQrisActivity.EXTRA_FORMATTED_TOTAL, CurrencyHelper.formatRupiah(t.totalHarga))
+                val intent = Intent(this, PembayaranTransferActivity::class.java).apply {
+                    putExtra(PembayaranTransferActivity.EXTRA_PESANAN_ID, t.id)
+                    putExtra(PembayaranTransferActivity.EXTRA_KODE_TRX, t.kodeTransaksi)
+                    putExtra(PembayaranTransferActivity.EXTRA_TOTAL_HARGA, t.totalHarga)
+                    putExtra(PembayaranTransferActivity.EXTRA_FORMATTED_TOTAL, CurrencyHelper.formatRupiah(t.totalHarga))
                 }
                 startActivity(intent)
             }
@@ -173,8 +244,44 @@ class DetailPesananActivity : AppCompatActivity() {
         binding.tvDetailPenerimaWa.text = "${t.namaMitra} • ${t.telepon}"
         binding.tvDetailAlamatToko.text = t.alamat
 
+        // Aksi WhatsApp Admin
+        setupWhatsAppAction(t)
+
         // Bottom Action Buttons
         setupBottomActions(t)
+    }
+
+    private fun setupWhatsAppAction(t: Transaksi) {
+        binding.tvHubungiWaLink.setOnClickListener {
+            val isAmbilPabrik = t.catatan?.contains("ambil", ignoreCase = true) == true ||
+                    t.alamat.contains("ponggok", ignoreCase = true)
+
+            val metodeText = if (isAmbilPabrik) {
+                "Metode: Ambil Langsung di Pabrik.\nSaya berencana mengambil muatan langsung ke pabrik sekarang, mohon dibantu siapkan pesanan di loket gudang ya Admin."
+            } else {
+                "Metode: Diantar Kurir Pabrik ke Toko."
+            }
+
+            val pesanWa = "Halo Admin PR KERETA KENCANA, saya ingin konfirmasi pesanan:\n" +
+                    "• No. Transaksi: ${t.kodeTransaksi}\n" +
+                    "• Pemesan: ${t.namaMitra}\n" +
+                    "• Total: ${CurrencyHelper.formatRupiah(t.totalHarga)}\n" +
+                    "• Status Bayar: ${t.statusPembayaran ?: "Belum Dibayar"}\n" +
+                    "$metodeText\n\n" +
+                    "(Tangkapan layar rincian pesanan saya lampirkan berikut ini). Terima kasih!"
+
+            try {
+                val waRaw = currentPengaturan.waPabrik?.takeIf { it.isNotBlank() } ?: SessionManager.DEFAULT_WA_PABRIK
+                val adminPhone = waRaw.replace("+", "").replace("-", "").replace(" ", "").trim()
+                val url = "https://api.whatsapp.com/send?phone=$adminPhone&text=${java.net.URLEncoder.encode(pesanWa, "UTF-8")}"
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    data = android.net.Uri.parse(url)
+                }
+                startActivity(intent)
+            } catch (_: Exception) {
+                Toast.makeText(this, "Tidak dapat membuka aplikasi WhatsApp.", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun setupBadgeStatus(status: String) {
@@ -299,6 +406,7 @@ class DetailPesananActivity : AppCompatActivity() {
                     val intent = Intent(this, KonfirmasiPenerimaanActivity::class.java).apply {
                         putExtra(KonfirmasiPenerimaanActivity.EXTRA_PESANAN_ID, t.id)
                         putExtra(KonfirmasiPenerimaanActivity.EXTRA_KODE_TRX, t.kodeTransaksi)
+                        putExtra(KonfirmasiPenerimaanActivity.EXTRA_METODE_PEMBAYARAN, t.metodePembayaran ?: "COD")
                     }
                     startActivity(intent)
                 }
@@ -364,10 +472,49 @@ class DetailPesananActivity : AppCompatActivity() {
 
         AlertDialog.Builder(this)
             .setTitle("Pesan Lagi?")
-            .setMessage("Muatan dari pesanan ini akan ditambahkan kembali ke keranjang belanja Anda.")
+            .setMessage("Muatan dari pesanan ini akan ditambahkan ke keranjang belanja Anda (maks. ${Barang.MAX_SLOP_PER_ORDER} Slop online).")
             .setPositiveButton("Ya, Tambah ke Keranjang") { _, _ ->
-                val intent = Intent(this, CartActivity::class.java)
-                startActivity(intent)
+                lifecycleScope.launch {
+                    try {
+                        val api = ApiClient.getService(this@DetailPesananActivity)
+                        val res = api.getBarang()
+                        val catalogMap = (res.body()?.data ?: emptyList()).associateBy { it.id }
+
+                        val groupedSlop = linkedMapOf<Long, Int>()
+                        for (detail in items) {
+                            val barang = catalogMap[detail.barangId] ?: continue
+                            val slopQty = if (detail.satuan.equals("Bal", ignoreCase = true)) {
+                                detail.jumlah * (if (barang.slopPerBal > 0) barang.slopPerBal else 20)
+                            } else {
+                                detail.jumlah
+                            }
+                            groupedSlop[barang.id] = (groupedSlop[barang.id] ?: 0) + slopQty
+                        }
+
+                        val cartPairs = groupedSlop.mapNotNull { (bId, qty) ->
+                            val barang = catalogMap[bId]
+                            if (barang != null && barang.stok > 0 && qty > 0) barang to qty else null
+                        }
+
+                        if (cartPairs.isEmpty()) {
+                            Toast.makeText(this@DetailPesananActivity, "Produk pada pesanan ini sedang kosong atau tidak aktif.", Toast.LENGTH_LONG).show()
+                            return@launch
+                        }
+
+                        CartManager.getInstance(this@DetailPesananActivity).replaceWithSlopItems(cartPairs)
+                        val totalRequested = groupedSlop.values.sum()
+                        if (totalRequested > Barang.MAX_SLOP_PER_ORDER) {
+                            Toast.makeText(
+                                this@DetailPesananActivity,
+                                "Keranjang diisi maksimal ${Barang.MAX_SLOP_PER_ORDER} Slop sesuai aturan pemesanan online.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                        startActivity(Intent(this@DetailPesananActivity, CartActivity::class.java))
+                    } catch (e: Exception) {
+                        Toast.makeText(this@DetailPesananActivity, "Gagal memuat katalog produk: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
             .setNegativeButton("Batal", null)
             .show()

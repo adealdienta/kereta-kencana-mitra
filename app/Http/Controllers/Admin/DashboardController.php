@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Barang;
 use App\Models\Transaksi;
-use App\Models\User;
-use App\Models\LegalDocument;
 use App\Models\ActivityLog;
 
 class DashboardController extends Controller
@@ -17,26 +15,33 @@ class DashboardController extends Controller
         $totalPesanan = Transaksi::count();
         $totalOmzet = Transaksi::where('status', '!=', 'Dibatalkan')->sum('total_harga');
 
-        // Hitung total kuantitas rokok presisi dalam satuan Slop & Bal
+        // Hitung total kuantitas rokok presisi dalam satuan Slop & Bungkus
         $activeTransaksis = Transaksi::with(['details.barang', 'barang'])
             ->where('status', '!=', 'Dibatalkan')
             ->get();
 
         $totalSlop = 0;
+        $totalBungkus = 0;
         foreach ($activeTransaksis as $t) {
             if ($t->details && $t->details->isNotEmpty()) {
                 foreach ($t->details as $d) {
-                    $totalSlop += $d->total_slop;
+                    $slopPerBal = $d->barang?->slop_per_bal ?: 20;
+                    $bungkusPerSlop = $d->barang?->bungkus_per_slop ?: 10;
+                    $itemSlop = ($d->satuan === 'Bal') ? ($d->jumlah * $slopPerBal) : $d->jumlah;
+                    $totalSlop += $itemSlop;
+                    $totalBungkus += $itemSlop * $bungkusPerSlop;
                 }
             } else {
                 $slopPerBal = $t->barang?->slop_per_bal ?: 20;
-                $totalSlop += ($t->satuan === 'Bal') ? ($t->jumlah * $slopPerBal) : $t->jumlah;
+                $bungkusPerSlop = $t->barang?->bungkus_per_slop ?: 10;
+                $itemSlop = ($t->satuan === 'Bal') ? ($t->jumlah * $slopPerBal) : $t->jumlah;
+                $totalSlop += $itemSlop;
+                $totalBungkus += $itemSlop * $bungkusPerSlop;
             }
         }
 
         $balCount = intdiv($totalSlop, 20);
         $slopSisa = $totalSlop % 20;
-        $totalBungkus = $totalSlop * 10;
 
         if ($balCount > 0 && $slopSisa > 0) {
             $volumeDistribusi = "{$balCount} Bal, {$slopSisa} Slop";
@@ -45,12 +50,12 @@ class DashboardController extends Controller
         } elseif ($slopSisa > 0) {
             $volumeDistribusi = "{$slopSisa} Slop";
         } else {
-            $volumeDistribusi = "0 Bal";
+            $volumeDistribusi = "0 Slop";
         }
 
         $totalBal = $balCount; // Backward compatibility
 
-        $pesananTerbaru = Transaksi::with('barang')->latest()->take(5)->get();
+        $pesananTerbaru = Transaksi::with(['details.barang', 'barang'])->latest()->take(5)->get();
         $stokMenipis = Barang::where('stok', '<=', 20)->take(5)->get();
         $aktivitasTerbaru = ActivityLog::latest()->take(6)->get();
 

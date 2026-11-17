@@ -22,7 +22,7 @@
             </div>
             <div>
                 <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px;">Kode Barang <span style="color: #dc2626;">*</span></label>
-                <input type="text" name="kode_barang" value="{{ old('kode_barang') }}" required placeholder="Contoh: SKM-KM12"
+                <input type="text" name="kode_barang" value="{{ old('kode_barang') }}" required placeholder="Contoh: SKT-SM12"
                        style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
             </div>
         </div>
@@ -50,7 +50,7 @@
         </div>
 
         <div style="margin-bottom: 20px;">
-            <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px;">Profil Rasa & Karakteristik</label>
+            <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px;">Profil Rasa &amp; Karakteristik</label>
             <input type="text" name="profil_rasa" value="{{ old('profil_rasa') }}" placeholder="Contoh: Full flavour, manis cengkeh pekat, after taste hangat..."
                    style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
         </div>
@@ -63,7 +63,7 @@
 
         <!-- Spesifikasi Kemasan & Harga -->
         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 16px; margin-bottom: 20px;">
-            <h4 style="font-size: 14px; margin-bottom: 12px; color: #1e293b;">Spesifikasi Kemasan & Harga Bal</h4>
+            <h4 style="font-size: 14px; margin-bottom: 12px; color: #1e293b;">Spesifikasi Kemasan &amp; Harga</h4>
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px;">
                 <div>
                     <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Batang / Bungkus</label>
@@ -85,14 +85,14 @@
             <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px;">
                 <div>
                     <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Harga Bal (Rp)</label>
-                    <input type="number" name="harga_per_bal" id="inputHargaBal" value="{{ old('harga_per_bal', 1000000) }}" required min="0"
+                    <input type="number" name="harga_per_bal" id="inputHargaBal" value="{{ old('harga_per_bal', 1200000) }}" required min="0"
                            style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
                 </div>
                 <div>
-                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Harga Slop (Rp)</label>
-                    <input type="number" name="harga_per_slop" id="inputHargaSlop" value="{{ old('harga_per_slop', 50000) }}" min="0" placeholder="Otomatis"
+                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Harga Dasar Slop (Rp)</label>
+                    <input type="number" name="harga_per_slop" id="inputHargaSlop" value="{{ old('harga_per_slop', 70000) }}" min="0" placeholder="70000"
                            style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
-                    <small style="font-size: 10px; color: #64748b;">(Otomatis = Bal / Slop)</small>
+                    <small style="font-size: 10px; color: #64748b;">(Tarif bertingkat 70k / 65k / 60k)</small>
                 </div>
                 <div>
                     <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Min. Order Slop</label>
@@ -115,19 +115,19 @@
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
             <div>
-                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px;">Kadar Tar (mg)</label>
-                <input type="number" step="0.1" name="tar_mg" value="{{ old('tar_mg', 28.0) }}"
+                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px;">Kadar Tar (mg) &ndash; Opsional</label>
+                <input type="number" step="0.1" name="tar_mg" value="{{ old('tar_mg') }}" placeholder="Isi sesuai hasil uji lab resmi"
                        style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
             </div>
             <div>
-                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px;">Kadar Nikotin (mg)</label>
-                <input type="number" step="0.1" name="nikotin_mg" value="{{ old('nikotin_mg', 1.8) }}"
+                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px;">Kadar Nikotin (mg) &ndash; Opsional</label>
+                <input type="number" step="0.1" name="nikotin_mg" value="{{ old('nikotin_mg') }}" placeholder="Isi sesuai hasil uji lab resmi"
                        style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
             </div>
         </div>
 
         <div style="margin-bottom: 24px;">
-            <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px;">Foto Produk (Upload Gambar - BKPM Acara 16)</label>
+            <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px;">Foto Produk (Upload Gambar Resmi)</label>
             <input type="file" name="gambar" accept="image/*" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff;">
             <small style="color: #64748b; font-size: 11px;">Format: JPG, PNG, WEBP (Maksimal 2MB).</small>
         </div>

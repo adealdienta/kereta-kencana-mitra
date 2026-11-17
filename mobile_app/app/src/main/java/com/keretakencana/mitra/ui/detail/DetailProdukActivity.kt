@@ -1,5 +1,7 @@
 package com.keretakencana.mitra.ui.detail
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -10,17 +12,18 @@ import com.google.gson.Gson
 import com.keretakencana.mitra.R
 import com.keretakencana.mitra.data.api.ApiClient
 import com.keretakencana.mitra.data.local.CartManager
+import com.keretakencana.mitra.data.local.SessionManager
 import com.keretakencana.mitra.data.model.Barang
 import com.keretakencana.mitra.databinding.ActivityDetailProdukBinding
 import com.keretakencana.mitra.utils.CurrencyHelper
 import kotlinx.coroutines.launch
+import java.net.URLEncoder
 
 class DetailProdukActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityDetailProdukBinding
 
     private var currentBarang: Barang? = null
-    private var selectedSatuan: String = "Slop"
     private var selectedQty: Int = 1
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,16 +69,22 @@ class DetailProdukActivity : AppCompatActivity() {
         binding.tvDetailNama.text = barang.nama
         binding.tvDetailSku.text = barang.kodeBarang
 
-        // Deskripsi
-        if (!barang.deskripsi.isNullOrBlank()) {
-            binding.tvDetailDeskripsi.text = barang.deskripsi
+        // Deskripsi / Profil Rasa
+        val descParts = mutableListOf<String>()
+        if (!barang.deskripsi.isNullOrBlank()) descParts.add(barang.deskripsi)
+        if (!barang.profilRasa.isNullOrBlank()) descParts.add("Karakter rasa: ${barang.profilRasa}")
+        if (descParts.isNotEmpty()) {
+            binding.tvDetailDeskripsi.text = descParts.joinToString("\n")
         }
 
-        // Spesifikasi Tar, Nikotin
-        val tar = barang.kadarTar ?: "30 mg"
-        val nikotin = barang.kadarNikotin ?: "2 mg"
-        val batang = barang.isiBatang ?: "${barang.bungkusPerSlop + 2} batang"
-        binding.tvDetailSpesifikasi.text = "Tar $tar • Nikotin $nikotin • $batang per bungkus"
+        // Spesifikasi Resmi SKT (tanpa Tar/Nikotin dummy)
+        val specParts = mutableListOf<String>()
+        if (barang.tarMg != null && barang.nikotinMg != null) {
+            specParts.add("Tar ${barang.tarMg} mg • Nikotin ${barang.nikotinMg} mg")
+        }
+        val kategoriLabel = barang.kategoriNama ?: barang.kategori?.namaKategori ?: "SKT"
+        specParts.add("$kategoriLabel • ${barang.batangPerBungkus} batang/bks • ${barang.bungkusPerSlop} bks/slop")
+        binding.tvDetailSpesifikasi.text = specParts.joinToString(" • ")
 
         // Gambar
         val localRes = when {
@@ -95,91 +104,122 @@ class DetailProdukActivity : AppCompatActivity() {
             binding.ivDetailFoto.setImageResource(localRes)
         }
 
-        // Harga Satuan
+        // Harga Satuan & Info Grosir
         binding.tvSatuanSlopHarga.text = CurrencyHelper.formatRupiah(barang.hargaPerSlop)
-        binding.tvSatuanBalHarga.text = CurrencyHelper.formatRupiah(barang.hargaPerBal)
-        binding.tvSatuanBalIsi.text = "${barang.slopPerBal} slop (${barang.slopPerBal * barang.bungkusPerSlop} bks)"
+        binding.tvSatuanBalHarga.text = "Hubungi Admin"
+        binding.tvSatuanBalIsi.text = "${barang.slopPerBal} slop (${barang.slopPerBal * barang.bungkusPerSlop} bks) • Order Bal via WA"
 
-        // Keterangan Perkiraan Stok Slop Tersedia (Aturan B2)
-        binding.tvDetailStokTersedia.text = "Tersedia ${barang.perkiraanSlopTersedia} Slop (Perkiraan)"
+        binding.tvDetailStokTersedia.text = if (barang.stok > 0) {
+            "Tersedia ${barang.perkiraanSlopTersedia} Slop (Maks. ${Barang.MAX_SLOP_PER_ORDER} Slop/order)"
+        } else {
+            "Stok gudang kosong"
+        }
 
-        // Default Satuan Slop
-        selectUnit("Slop")
+        selectedQty = if (barang.minOrderSlop > 0) barang.minOrderSlop else 1
+        selectSlopUnit()
     }
 
     private fun setupListeners() {
         binding.btnBackDetail.setOnClickListener { finish() }
 
+        binding.ivProfileDetail.setOnClickListener {
+            val intent = Intent(this, com.keretakencana.mitra.ui.main.MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+                putExtra(com.keretakencana.mitra.ui.main.MainActivity.EXTRA_NAV_TAB, R.id.menu_akun)
+            }
+            startActivity(intent)
+        }
+
         binding.cardSatuanSlop.setOnClickListener {
-            selectUnit("Slop")
+            selectSlopUnit()
         }
 
         binding.cardSatuanBal.setOnClickListener {
-            selectUnit("Bal")
+            openWhatsAppBulkBal()
         }
 
-        // Counter Plus
+        // Counter Plus dengan batas 19 Slop & ketersediaan stok
         binding.btnDetailPlus.setOnClickListener {
-            selectedQty++
-            updateCounterAndSubtotal()
+            val barang = currentBarang ?: return@setOnClickListener
+            val cartManager = CartManager.getInstance(this)
+            val totalInCart = cartManager.getTotalSlopQty()
+            val maxOrderAllowed = (Barang.MAX_SLOP_PER_ORDER - totalInCart).coerceAtLeast(0)
+            val existingForBarang = cartManager.getItems()
+                .find { it.barang.id == barang.id }?.jumlah ?: 0
+            val maxStockAllowed = (barang.perkiraanSlopTersedia - existingForBarang).coerceAtLeast(0)
+            val maxAdd = minOf(maxOrderAllowed, maxStockAllowed)
+
+            if (selectedQty < maxAdd) {
+                selectedQty++
+                updateCounterAndSubtotal()
+            } else if (totalInCart + selectedQty >= Barang.MAX_SLOP_PER_ORDER) {
+                Toast.makeText(
+                    this,
+                    "Maksimal ${Barang.MAX_SLOP_PER_ORDER} Slop gabungan per pesanan online. Pembelian skala Bal (20+ Slop) via WhatsApp Admin.",
+                    Toast.LENGTH_LONG
+                ).show()
+            } else {
+                Toast.makeText(this, "Stok gudang untuk ${barang.nama} tidak mencukupi.", Toast.LENGTH_SHORT).show()
+            }
         }
 
-        // Counter Minus (Aturan B3: Patuhi minimum order)
+        // Counter Minus (Patuhi minimum order)
         binding.btnDetailMinus.setOnClickListener {
-            val minOrder = if (selectedSatuan == "Bal") currentBarang?.minOrderBal ?: 1 else currentBarang?.minOrderSlop ?: 1
+            val minOrder = currentBarang?.minOrderSlop?.coerceAtLeast(1) ?: 1
             if (selectedQty > minOrder) {
                 selectedQty--
                 updateCounterAndSubtotal()
             } else {
                 Toast.makeText(
                     this,
-                    "Minimal pemesanan untuk satuan $selectedSatuan adalah $minOrder.",
+                    "Minimal pemesanan untuk satuan Slop adalah $minOrder.",
                     Toast.LENGTH_SHORT
                 ).show()
             }
         }
 
-        // Tombol Tambah ke Keranjang
+        // Tombol Tambah ke Keranjang (khusus Slop)
         binding.btnTambahKeKeranjangBottom.setOnClickListener {
             val barang = currentBarang ?: return@setOnClickListener
-            CartManager.getInstance(this).addItem(barang, selectedSatuan, selectedQty)
-            Toast.makeText(
-                this,
-                "✓ Berhasil menambahkan $selectedQty $selectedSatuan ${barang.nama} ke keranjang",
-                Toast.LENGTH_SHORT
-            ).show()
-            finish()
+            val (ok, msg) = CartManager.getInstance(this).tryAddSlop(barang, selectedQty)
+            if (ok) {
+                Toast.makeText(
+                    this,
+                    "✓ Berhasil menambahkan $selectedQty Slop ${barang.nama} ke keranjang",
+                    Toast.LENGTH_SHORT
+                ).show()
+                finish()
+            } else {
+                Toast.makeText(this, msg ?: "Gagal menambahkan ke keranjang.", Toast.LENGTH_LONG).show()
+            }
         }
     }
 
-    private fun selectUnit(satuan: String) {
+    private fun openWhatsAppBulkBal() {
         val barang = currentBarang ?: return
-        selectedSatuan = satuan
-
-        if (satuan == "Slop") {
-            binding.cardSatuanSlop.setBackgroundResource(R.drawable.bg_rounded_card_selected)
-            binding.ivCheckSlop.visibility = View.VISIBLE
-            binding.tvSatuanSlopHarga.setTextColor(getColor(R.color.price_red))
-
-            binding.cardSatuanBal.setBackgroundResource(R.drawable.bg_rounded_card)
-            binding.ivCheckBal.visibility = View.GONE
-            binding.tvSatuanBalHarga.setTextColor(getColor(R.color.text_primary))
-
-            binding.tvDetailHarga.text = "${CurrencyHelper.formatRupiah(barang.hargaPerSlop)} / slop"
-            if (selectedQty < barang.minOrderSlop) selectedQty = barang.minOrderSlop
-        } else {
-            binding.cardSatuanBal.setBackgroundResource(R.drawable.bg_rounded_card_selected)
-            binding.ivCheckBal.visibility = View.VISIBLE
-            binding.tvSatuanBalHarga.setTextColor(getColor(R.color.price_red))
-
-            binding.cardSatuanSlop.setBackgroundResource(R.drawable.bg_rounded_card)
-            binding.ivCheckSlop.visibility = View.GONE
-            binding.tvSatuanSlopHarga.setTextColor(getColor(R.color.text_primary))
-
-            binding.tvDetailHarga.text = "${CurrencyHelper.formatRupiah(barang.hargaPerBal)} / bal"
-            if (selectedQty < barang.minOrderBal) selectedQty = barang.minOrderBal
+        val waRaw = SessionManager.getInstance(this).getPengaturan().waPabrik
+            ?: SessionManager.DEFAULT_WA_PABRIK
+        val cleanPhone = waRaw.replace("+", "").replace("-", "").replace(" ", "").trim()
+        val msg = "Halo Admin PR. Kereta Kencana, saya berminat memesan produk *${barang.nama}* (${barang.kodeBarang}) dalam satuan *Bal* (${barang.slopPerBal} Slop/Bal). Mohon info stok & penawarannya."
+        try {
+            val url = "https://api.whatsapp.com/send?phone=$cleanPhone&text=${URLEncoder.encode(msg, "UTF-8")}"
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        } catch (e: Exception) {
+            Toast.makeText(this, "Tidak dapat membuka WhatsApp: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
         }
+    }
 
+    private fun selectSlopUnit() {
+        val barang = currentBarang ?: return
+        binding.cardSatuanSlop.setBackgroundResource(R.drawable.bg_rounded_card_selected)
+        binding.ivCheckSlop.visibility = View.VISIBLE
+        binding.tvSatuanSlopHarga.setTextColor(getColor(R.color.price_red))
+
+        binding.cardSatuanBal.setBackgroundResource(R.drawable.bg_rounded_card)
+        binding.ivCheckBal.visibility = View.GONE
+        binding.tvSatuanBalHarga.setTextColor(getColor(R.color.brand_brown_dark))
+
+        if (selectedQty < barang.minOrderSlop) selectedQty = barang.minOrderSlop.coerceAtLeast(1)
         updateCounterAndSubtotal()
     }
 
@@ -187,11 +227,14 @@ class DetailProdukActivity : AppCompatActivity() {
         val barang = currentBarang ?: return
         binding.tvDetailQty.text = selectedQty.toString()
 
-        val unitPrice = if (selectedSatuan == "Bal") barang.hargaPerBal else barang.hargaPerSlop
-        val subtotal = selectedQty * unitPrice
+        val currentCartSlop = CartManager.getInstance(this).getTotalSlopQty()
+        val projectedTotalSlop = currentCartSlop + selectedQty
+        val effectivePrice = Barang.hargaSlopByQty(projectedTotalSlop)
+        val subtotal = selectedQty * effectivePrice
 
+        binding.tvDetailHarga.text = "${CurrencyHelper.formatRupiah(effectivePrice)} / slop (1–5: 70rb • 6–10: 65rb • 11–19: 60rb)"
         binding.btnTambahKeKeranjangBottom.text =
-            "Tambah ke Keranjang • ${CurrencyHelper.formatRupiah(subtotal)}"
+            "Tambah $selectedQty Slop • ${CurrencyHelper.formatRupiah(subtotal)}"
     }
 
     companion object {

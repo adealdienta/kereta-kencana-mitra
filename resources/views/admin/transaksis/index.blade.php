@@ -4,10 +4,10 @@
 @section('header_title', 'Manajemen Pesanan & Distribusi Armada B2B')
 
 @section('content')
-<div style="background: #fff; border-radius: 8px; border: 1px solid #e2e8f0; padding: 24px;">
+<div class="admin-card" style="background: #fff; border-radius: 8px; border: 1px solid #e2e8f0; padding: 24px;">
     <!-- Filter & Tombol Aksi -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 16px;">
-        <form action="{{ route('admin.transaksis.index') }}" method="GET" style="display: flex; gap: 8px; flex-wrap: wrap;">
+    <div class="admin-filter-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 16px;">
+        <form class="admin-filter-form" action="{{ route('admin.transaksis.index') }}" method="GET" style="display: flex; gap: 8px; flex-wrap: wrap;">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari kode, mitra, no. DO, resi..." 
                    style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; min-width: 220px;">
             
@@ -23,24 +23,27 @@
             <select name="sumber" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
                 <option value="">-- Semua Saluran --</option>
                 <option value="Web" {{ request('sumber') === 'Web' ? 'selected' : '' }}>Pesanan Online Web</option>
+                <option value="Mobile App" {{ request('sumber') === 'Mobile App' ? 'selected' : '' }}>Aplikasi Mobile</option>
                 <option value="Offline" {{ request('sumber') === 'Offline' ? 'selected' : '' }}>Langsung Pabrik (Offline)</option>
             </select>
 
-            <button type="submit" class="btn btn-secondary btn-sm"><i class="fa-solid fa-filter"></i> Saring Data</button>
+            <button type="submit" class="btn btn-secondary btn-sm" style="padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                <i class="fa-solid fa-filter"></i> Saring Data
+            </button>
         </form>
 
-        <div style="display: flex; gap: 8px;">
+        <div class="admin-action-buttons" style="display: flex; gap: 8px; flex-wrap: wrap;">
             <a href="{{ route('admin.transaksis.offline') }}" style="background: #10b981; color: #fff; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
                 <i class="fa-solid fa-cash-register"></i> + Transaksi Langsung di Pabrik (Offline)
             </a>
-            <a href="{{ route('pesanan.form') }}" target="_blank" style="background: #121619; color: #fff; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600;">
+            <a href="{{ route('pesanan.form') }}" target="_blank" style="background: #121619; color: #fff; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
                 <i class="fa-solid fa-cart-plus"></i> Form Order Web
             </a>
         </div>
     </div>
 
     <!-- Tabel Pesanan -->
-    <div style="overflow-x: auto;">
+    <div class="table-wrap" style="overflow-x: auto;">
         <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
             <thead>
                 <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left; color: #475569;">
@@ -73,6 +76,21 @@
                                     </span>
                                 @endif
                             </div>
+                            <div style="font-size: 10.5px; margin-top: 3px;">
+                                @if($t->metode_pembayaran && stripos($t->metode_pembayaran, 'transfer') !== false)
+                                    <span style="background: #e0f2fe; color: #0369a1; padding: 1px 5px; border-radius: 3px; font-weight: 600;">
+                                        Transfer: {{ $t->status_pembayaran ?? 'Belum Dibayar' }}
+                                    </span>
+                                @elseif(str_contains($t->sumber, 'Offline') || ($t->metode_pembayaran && stripos($t->metode_pembayaran, 'tunai') !== false))
+                                    <span style="background: #dcfce7; color: #166534; padding: 1px 5px; border-radius: 3px; font-weight: 600;">
+                                        Tunai: {{ $t->status_pembayaran ?? 'Lunas' }}
+                                    </span>
+                                @else
+                                    <span style="background: #fef3c7; color: #92400e; padding: 1px 5px; border-radius: 3px; font-weight: 600;">
+                                        COD &bull; {{ $t->status_pembayaran ?? ($t->status === 'Selesai' ? 'Lunas' : 'Belum Dibayar') }}
+                                    </span>
+                                @endif
+                            </div>
                         </td>
                         <td style="padding: 12px; color: #64748b;">{{ $t->created_at->format('d/m/y H:i') }}</td>
                         <td style="padding: 12px;">
@@ -80,11 +98,15 @@
                             <div style="font-size: 11px; color: #64748b;">{{ $t->telepon }}</div>
                         </td>
                         <td style="padding: 12px;">
-                            {{ $t->barang->nama }}
-                            <div style="font-size: 11px; color: #94a3b8;">{{ $t->barang->kategori->nama_kategori }}</div>
+                            {{ $t->ringkasan_item }}
+                            @if($t->barang && (!$t->details || $t->details->count() <= 1))
+                                <div style="font-size: 11px; color: #94a3b8;">{{ $t->barang->kategori?->nama_kategori }}</div>
+                            @elseif($t->details && $t->details->count() > 1)
+                                <div style="font-size: 11px; color: #94a3b8;">{{ $t->details->count() }} Varian Campuran</div>
+                            @endif
                         </td>
                         <td style="padding: 12px; text-align: center; font-weight: 700;">
-                            {{ $t->jumlah }} <span style="font-size: 11px; font-weight: normal; color: #64748b;">{{ $t->satuan ?? 'Bal' }}</span>
+                            {{ $t->jumlah }} <span style="font-size: 11px; font-weight: normal; color: #64748b;">{{ $t->satuan ?? 'Slop' }}</span>
                         </td>
                         <td style="padding: 12px; text-align: right; font-weight: 700; color: #0f1316;">
                             {{ $t->formatted_total }}
@@ -100,7 +122,7 @@
                                         <i class="fa-solid fa-stamp"></i> Verif Surat Jalan
                                     </a>
                                 @else
-                                    <span style="color: #94a3b8; font-size: 11px;" title="Menunggu konfirmasi penerimaan dari mitra via aplikasi mobile">
+                                    <span style="color: #94a3b8; font-size: 11px;" title="Menunggu konfirmasi penerimaan dari mitra melalui website atau aplikasi mobile">
                                         <i class="fa-solid fa-clock"></i> Tunggu Mitra
                                     </span>
                                 @endif

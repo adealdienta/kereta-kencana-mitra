@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Kelola Produk Rokok SKM & SKT')
+@section('title', 'Kelola Produk Rokok SKT')
 @section('header_title', 'Katalog & Manajemen Produk Rokok')
 
 @section('content')

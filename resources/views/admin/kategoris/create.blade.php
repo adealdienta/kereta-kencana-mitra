@@ -15,7 +15,7 @@
         @csrf
         <div style="margin-bottom: 16px;">
             <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px;">Nama Kategori <span style="color: #dc2626;">*</span></label>
-            <input type="text" name="nama_kategori" value="{{ old('nama_kategori') }}" required placeholder="Contoh: Sigaret Kretek Mesin (SKM)"
+            <input type="text" name="nama_kategori" value="{{ old('nama_kategori') }}" required placeholder="Contoh: Sigaret Kretek Tangan (SKT)"
                    style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
         </div>
 

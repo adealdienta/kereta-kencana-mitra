@@ -1,14 +1,14 @@
 @extends('layouts.admin')
 
 @section('title', 'Kelola Kategori Produk')
-@section('header_title', 'Kategori Sigaret Kretek (SKM / SKT)')
+@section('header_title', 'Kategori Sigaret Kretek (SKT)')
 
 @section('content')
 <div style="background: #fff; border-radius: 8px; border: 1px solid #e2e8f0; padding: 24px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <div>
             <h3 style="font-size: 16px; color: #1e293b;">Daftar Kategori Produk</h3>
-            <p style="color: #64748b; font-size: 13px;">Klasifikasi jenis rokok kretek mesin & kretek tangan</p>
+            <p style="color: #64748b; font-size: 13px;">Klasifikasi varian produk Sigaret Kretek Tangan (SKT)</p>
         </div>
         <a href="{{ route('admin.kategoris.create') }}" style="background: var(--admin-gold); color: #fff; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 13px;">
             <i class="fa-solid fa-plus"></i> Tambah Kategori

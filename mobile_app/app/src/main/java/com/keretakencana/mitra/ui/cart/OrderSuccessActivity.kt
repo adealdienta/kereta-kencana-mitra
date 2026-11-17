@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.keretakencana.mitra.R
 import com.keretakencana.mitra.data.api.ApiClient
+import com.keretakencana.mitra.data.local.SessionManager
 import com.keretakencana.mitra.databinding.ActivityOrderSuccessBinding
 import com.keretakencana.mitra.ui.main.MainActivity
 import kotlinx.coroutines.launch
@@ -28,6 +29,7 @@ class OrderSuccessActivity : AppCompatActivity() {
 
         kodeTransaksi = intent.getStringExtra(EXTRA_KODE_TRANSAKSI) ?: "TRX-BERHASIL"
         formattedTotal = intent.getStringExtra(EXTRA_FORMATTED_TOTAL) ?: "Rp 0"
+        waPabrik = SessionManager.getInstance(this).getPengaturan().waPabrik
 
         binding.tvSuccessKodeTrx.text = "No. $kodeTransaksi"
         binding.tvSuccessTotalBayar.text = formattedTotal
@@ -41,8 +43,10 @@ class OrderSuccessActivity : AppCompatActivity() {
             try {
                 val api = ApiClient.getService(this@OrderSuccessActivity)
                 val response = api.getPengaturan()
-                if (response.isSuccessful && response.body()?.success == true) {
-                    waPabrik = response.body()?.data?.waPabrik
+                val cfg = response.body()?.data
+                if (response.isSuccessful && response.body()?.success == true && cfg != null) {
+                    waPabrik = cfg.waPabrik
+                    SessionManager.getInstance(this@OrderSuccessActivity).savePengaturan(cfg)
                 }
             } catch (_: Exception) {}
         }
@@ -59,7 +63,7 @@ class OrderSuccessActivity : AppCompatActivity() {
         }
 
         binding.btnWaPabrik.setOnClickListener {
-            val targetWa = waPabrik ?: "6285735064152"
+            val targetWa = waPabrik?.takeIf { it.isNotBlank() } ?: SessionManager.DEFAULT_WA_PABRIK
             val cleanPhone = targetWa.replace("+", "").replace("-", "").replace(" ", "").trim()
 
             val textMessage = "Halo Admin PR. Kereta Kencana, saya mitra grosir baru saja membuat pesanan dengan nomor *${kodeTransaksi}* senilai *${formattedTotal}*. Mohon konfirmasi dan diproses pengirimannya. Terima kasih."
