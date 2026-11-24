@@ -147,10 +147,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
       const submitBtn = this.querySelector('button[type="submit"]');
       if (submitBtn && !submitBtn.classList.contains('no-loader')) {
-        submitBtn.classList.add('is-loading');
-        submitBtn.style.pointerEvents = 'none';
-        submitBtn.style.opacity = '0.85';
-        submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Memproses...';
+        setTimeout(() => {
+          if (e.defaultPrevented) return;
+          submitBtn.classList.add('is-loading');
+          submitBtn.style.pointerEvents = 'none';
+          submitBtn.style.opacity = '0.85';
+          submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Memproses...';
+        }, 0);
       }
     });
   });

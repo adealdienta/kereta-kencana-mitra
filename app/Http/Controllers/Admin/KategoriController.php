@@ -28,7 +28,7 @@ class KategoriController extends Controller
             'deskripsi' => ['nullable', 'string'],
         ]);
 
-        $validated['slug'] = Str::slug($request->nama_kategori);
+        $validated['slug'] = $this->generateUniqueSlug($request->nama_kategori);
 
         $kategori = Kategori::create($validated);
 
@@ -52,13 +52,31 @@ class KategoriController extends Controller
             'deskripsi' => ['nullable', 'string'],
         ]);
 
-        $validated['slug'] = Str::slug($request->nama_kategori);
+        $validated['slug'] = $this->generateUniqueSlug($request->nama_kategori, $kategori->id);
 
         $kategori->update($validated);
 
         ActivityLogger::log('Ubah Kategori', "Memperbarui kategori: {$kategori->nama_kategori}");
 
         return redirect()->route('admin.kategoris.index')->with('success', 'Kategori berhasil diperbarui.');
+    }
+
+    private function generateUniqueSlug(string $namaKategori, ?int $ignoreId = null): string
+    {
+        $baseSlug = Str::slug($namaKategori) ?: 'kategori';
+        $slug = $baseSlug;
+        $counter = 2;
+
+        while (
+            Kategori::where('slug', $slug)
+                ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
+                ->exists()
+        ) {
+            $slug = "{$baseSlug}-{$counter}";
+            $counter++;
+        }
+
+        return $slug;
     }
 
     public function destroy($id)

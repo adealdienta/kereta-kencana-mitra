@@ -249,10 +249,11 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tv_checkout_jam_operasional"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
-                            android:text="Buka: 08.00 - 16.00 WIB (Senin - Sabtu)"
+                            android:text="Buka: 09.00 - 16.00 WIB (Senin - Sabtu)"
                             android:textColor="@color/brand_brown_dark"
                             android:textSize="11.5sp"
                             android:textStyle="bold" />

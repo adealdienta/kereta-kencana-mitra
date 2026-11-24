@@ -135,7 +135,7 @@ class MobileApiTest extends TestCase
         $admin = User::factory()->create([
             'email' => 'admin_' . Str::random(5) . '@keretakencana.com',
             'password' => Hash::make('password123'),
-            'role' => 'staff',
+            'role' => 'admin',
         ]);
 
         $response = $this->postJson('/api/v1/login', [
@@ -193,7 +193,7 @@ class MobileApiTest extends TestCase
         $token = $mitra->createToken('test')->plainTextToken;
         $barang = Barang::aktif()->first();
 
-        $stokAwal = $barang->stok; // dalam Bal
+        $stokAwal = $barang->stok; // dalam Slop
 
         // Pesan 5 Slop dan 6 Slop (Total 11 Slop -> tier Rp 60.000/slop = Rp 660.000)
         $response = $this->withHeader('Authorization', 'Bearer ' . $token)
@@ -212,8 +212,8 @@ class MobileApiTest extends TestCase
             ->assertJsonPath('data.metode_pembayaran', 'Transfer Bank')
             ->assertJsonPath('data.total_harga', 660000);
 
-        // Pengurangan stok: ceil(11/20) = 1 Bal
-        $this->assertEquals($stokAwal - 1, $barang->fresh()->stok);
+        // Pengurangan stok presisi Slop: 5 + 6 = 11 Slop
+        $this->assertEquals($stokAwal - 11, $barang->fresh()->stok);
     }
 
     public function test_pembuatan_pesanan_gagal_jika_stok_tidak_cukup(): void
@@ -338,7 +338,7 @@ class MobileApiTest extends TestCase
 
         $stokAwal = $barang->stok;
 
-        // Buat pesanan 5 Slop (memotong 1 Bal)
+        // Buat pesanan 5 Slop (memotong tepat 5 Slop)
         $resOrder = $this->withHeader('Authorization', 'Bearer ' . $token)
             ->postJson('/api/v1/pesanan', [
                 'items' => [
@@ -346,7 +346,7 @@ class MobileApiTest extends TestCase
                 ],
             ]);
         $orderId = $resOrder->json('data.id');
-        $this->assertEquals($stokAwal - 1, $barang->fresh()->stok);
+        $this->assertEquals($stokAwal - 5, $barang->fresh()->stok);
 
         // Batalkan pesanan
         $resBatal = $this->withHeader('Authorization', 'Bearer ' . $token)

@@ -1,364 +1,37 @@
-﻿-- =======================================================
--- SKEMA DATABASE: PR. KERETA KENCANA (Laravel Version)
--- Sesuai dengan progres produk resmi: Dwipantara, Sembada, Kereta Kencana
--- =======================================================
+-- ================================================================
+-- PR. KERETA KENCANA - Hostinger Production Database (prkeretakencana.com)
+-- Dibuat pada: 2026-11-24 04:03:22 WIB
+-- Catatan: Tanpa CREATE DATABASE / USE agar siap langsung import di phpMyAdmin Hostinger.
+-- Satuan stok barangs sudah dikonversi presisi ke SLOP (Opsi B).
+-- ================================================================
 
-CREATE DATABASE IF NOT EXISTS db_kereta_kencana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE db_kereta_kencana;
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS=0;
+SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 
--- MySQL dump 10.13  Distrib 8.4.3, for Win64 (x86_64)
---
--- Host: localhost    Database: db_kereta_kencana
--- ------------------------------------------------------
--- Server version	8.4.3
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8mb4 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-
---
--- Table structure for table `users`
---
-
-DROP TABLE IF EXISTS `users`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `users` (
+-- --------------------------------------------------------
+-- Struktur tabel `activity_logs`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `activity_logs`;
+CREATE TABLE `activity_logs` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `email_verified_at` timestamp NULL DEFAULT NULL,
-  `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `role` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'staff',
-  `remember_token` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `users_email_unique` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `users`
---
-
-LOCK TABLES `users` WRITE;
-/*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Owner PR. Kereta Kencana','owner@keretakencana.com',NULL,'$2y$12$Z6X7w2XlMDgLsTZJm6mIpuTPawSaHjWttCD20O4xmxC.DyQz2JyUm','owner',NULL,'2026-09-17 01:58:20','2026-09-17 01:58:20'),(2,'Super Admin (Web Dev)','superadmin@keretakencana.com',NULL,'$2y$12$Z6X7w2XlMDgLsTZJm6mIpuTPawSaHjWttCD20O4xmxC.DyQz2JyUm','superadmin',NULL,'2026-09-17 01:58:20','2026-09-17 01:58:20'),(3,'Staf Operasional Pabrik','staff@keretakencana.com',NULL,'$2y$12$Z6X7w2XlMDgLsTZJm6mIpuTPawSaHjWttCD20O4xmxC.DyQz2JyUm','staff',NULL,'2026-09-17 01:58:20','2026-09-17 01:58:20'),(4,'Admin Gudang & Pemesanan','admin@keretakencana.com',NULL,'$2y$12$Z6X7w2XlMDgLsTZJm6mIpuTPawSaHjWttCD20O4xmxC.DyQz2JyUm','staff',NULL,'2026-09-17 01:58:20','2026-09-17 01:58:20');
-/*!40000 ALTER TABLE `users` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `password_reset_tokens`
---
-
-DROP TABLE IF EXISTS `password_reset_tokens`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `password_reset_tokens` (
-  `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `token` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `password_reset_tokens`
---
-
-LOCK TABLES `password_reset_tokens` WRITE;
-/*!40000 ALTER TABLE `password_reset_tokens` DISABLE KEYS */;
-/*!40000 ALTER TABLE `password_reset_tokens` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `sessions`
---
-
-DROP TABLE IF EXISTS `sessions`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `sessions` (
-  `id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `user_id` bigint unsigned DEFAULT NULL,
-  `ip_address` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `user_agent` text COLLATE utf8mb4_unicode_ci,
-  `payload` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  `last_activity` int NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `sessions_user_id_index` (`user_id`),
-  KEY `sessions_last_activity_index` (`last_activity`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `sessions`
---
-
-LOCK TABLES `sessions` WRITE;
-/*!40000 ALTER TABLE `sessions` DISABLE KEYS */;
-INSERT INTO `sessions` VALUES ('4TPxuvBBowHSKbKPgZPdfc7RQfZiZ4QdY8L0BlUv',NULL,'127.0.0.1','Symfony','eyJfdG9rZW4iOiJ1VFo1eWxacHZIY3lOOFRqRG1sVzhaOVdwemZFOXY3U3I0WWsxclR5IiwiX3ByZXZpb3VzIjp7InVybCI6Imh0dHA6XC9cL2xvY2FsaG9zdCIsInJvdXRlIjoiYmVyYW5kYSJ9LCJfZmxhc2giOnsib2xkIjpbXSwibmV3IjpbXX19',1790047487),('DCUNde4PheIGgpRQIeEefRsXdVAYWCz7vNl5Wwon',NULL,'127.0.0.1','Symfony','eyJfdG9rZW4iOiJpTmxoeWtEWjFtWldXdjBGTld0Z0V5VEo2V1RmeUx0U09PYXZaVDZhIiwiX3ByZXZpb3VzIjp7InVybCI6Imh0dHA6XC9cL2xvY2FsaG9zdCIsInJvdXRlIjoiYmVyYW5kYSJ9LCJfZmxhc2giOnsib2xkIjpbXSwibmV3IjpbXX19',1790049050),('n2GaA81QM4KdHodj5hliPCgwKb7fOqM7W9HyITru',NULL,'127.0.0.1','Symfony','eyJfdG9rZW4iOiJ3SmM5WUNlZHlwNHRlVXFPRW9Oa05PT0E3VUVUTkphRENOWWpBdE1sIiwiX3ByZXZpb3VzIjp7InVybCI6Imh0dHA6XC9cL2xvY2FsaG9zdCIsInJvdXRlIjoiYmVyYW5kYSJ9LCJfZmxhc2giOnsib2xkIjpbXSwibmV3IjpbXX19',1790048650),('RKVo050S77kdlQm7M5qyvFvUgKbZsXlDMisaxDM0',NULL,'127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36','eyJfdG9rZW4iOiJNZmV1OFo3OXlvQjRPYXRkb0JSQzVLa3lBdnFPNHJUamM4T0w0eGROIiwiX2ZsYXNoIjp7Im5ldyI6W10sIm9sZCI6W119LCJfcHJldmlvdXMiOnsidXJsIjoiaHR0cDpcL1wvMTI3LjAuMC4xOjgwMDAiLCJyb3V0ZSI6ImJlcmFuZGEifX0=',1790050745);
-/*!40000 ALTER TABLE `sessions` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `cache`
---
-
-DROP TABLE IF EXISTS `cache`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `cache` (
-  `key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `value` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  `expiration` bigint NOT NULL,
-  PRIMARY KEY (`key`),
-  KEY `cache_expiration_index` (`expiration`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `cache`
---
-
-LOCK TABLES `cache` WRITE;
-/*!40000 ALTER TABLE `cache` DISABLE KEYS */;
-/*!40000 ALTER TABLE `cache` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `cache_locks`
---
-
-DROP TABLE IF EXISTS `cache_locks`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `cache_locks` (
-  `key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `owner` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `expiration` bigint NOT NULL,
-  PRIMARY KEY (`key`),
-  KEY `cache_locks_expiration_index` (`expiration`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `cache_locks`
---
-
-LOCK TABLES `cache_locks` WRITE;
-/*!40000 ALTER TABLE `cache_locks` DISABLE KEYS */;
-/*!40000 ALTER TABLE `cache_locks` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `jobs`
---
-
-DROP TABLE IF EXISTS `jobs`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `jobs` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `queue` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `payload` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  `attempts` smallint unsigned NOT NULL,
-  `reserved_at` int unsigned DEFAULT NULL,
-  `available_at` int unsigned NOT NULL,
-  `created_at` int unsigned NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `jobs_queue_index` (`queue`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `jobs`
---
-
-LOCK TABLES `jobs` WRITE;
-/*!40000 ALTER TABLE `jobs` DISABLE KEYS */;
-/*!40000 ALTER TABLE `jobs` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `job_batches`
---
-
-DROP TABLE IF EXISTS `job_batches`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `job_batches` (
-  `id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `total_jobs` int NOT NULL,
-  `pending_jobs` int NOT NULL,
-  `failed_jobs` int NOT NULL,
-  `failed_job_ids` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  `options` mediumtext COLLATE utf8mb4_unicode_ci,
-  `cancelled_at` int DEFAULT NULL,
-  `created_at` int NOT NULL,
-  `finished_at` int DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `job_batches`
---
-
-LOCK TABLES `job_batches` WRITE;
-/*!40000 ALTER TABLE `job_batches` DISABLE KEYS */;
-/*!40000 ALTER TABLE `job_batches` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `failed_jobs`
---
-
-DROP TABLE IF EXISTS `failed_jobs`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `failed_jobs` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `uuid` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `connection` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `queue` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `payload` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  `exception` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  `failed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `failed_jobs_uuid_unique` (`uuid`),
-  KEY `failed_jobs_connection_queue_failed_at_index` (`connection`,`queue`,`failed_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `failed_jobs`
---
-
-LOCK TABLES `failed_jobs` WRITE;
-/*!40000 ALTER TABLE `failed_jobs` DISABLE KEYS */;
-/*!40000 ALTER TABLE `failed_jobs` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `migrations`
---
-
-DROP TABLE IF EXISTS `migrations`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `migrations` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `migration` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `batch` int NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `migrations`
---
-
-LOCK TABLES `migrations` WRITE;
-/*!40000 ALTER TABLE `migrations` DISABLE KEYS */;
-INSERT INTO `migrations` VALUES (1,'0001_01_01_000000_create_users_table',1),(2,'0001_01_01_000001_create_cache_table',1),(3,'0001_01_01_000002_create_jobs_table',1),(4,'2026_09_17_000001_create_kategoris_table',1),(5,'2026_09_17_000002_create_barangs_table',1),(6,'2026_09_17_000003_create_transaksis_table',1),(7,'2026_09_17_000004_create_barang_user_table',1),(8,'2026_09_17_000005_create_legal_documents_table',1),(9,'2026_09_17_000006_create_activity_logs_table',1),(10,'2026_09_17_000007_create_company_settings_table',1),(11,'2026_09_17_090633_add_slop_pricing_to_barangs_table',2);
-/*!40000 ALTER TABLE `migrations` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `kategoris`
---
-
-DROP TABLE IF EXISTS `kategoris`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `kategoris` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `nama_kategori` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `slug` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `deskripsi` text COLLATE utf8mb4_unicode_ci,
+  `user_nama` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `role` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'admin',
+  `action` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `details` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `ip_address` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `kategoris_slug_unique` (`slug`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+  KEY `activity_logs_user_id_foreign` (`user_id`),
+  CONSTRAINT `activity_logs_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=2919 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `kategoris`
---
-
-LOCK TABLES `kategoris` WRITE;
-/*!40000 ALTER TABLE `kategoris` DISABLE KEYS */;
-INSERT INTO `kategoris` VALUES (1,'Sigaret Kretek Mesin (SKM)','skm','Rokok kretek yang diproduksi menggunakan mesin modern berstandar tinggi dengan tarikan halus dan filter presisi.','2026-09-17 01:58:20','2026-09-17 01:58:20'),(2,'Sigaret Kretek Tangan (SKT)','skt','Kretek linting tangan tradisional dengan racikan tembakau asli dan cengkeh pilihan warisan nusantara.','2026-09-17 01:58:20','2026-09-17 01:58:20');
-/*!40000 ALTER TABLE `kategoris` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `barangs`
---
-
-DROP TABLE IF EXISTS `barangs`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `barangs` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `kategori_id` bigint unsigned NOT NULL,
-  `kode_barang` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `nama` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `slug` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `deskripsi` text COLLATE utf8mb4_unicode_ci,
-  `profil_rasa` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `tar_mg` decimal(5,1) DEFAULT NULL,
-  `nikotin_mg` decimal(5,1) DEFAULT NULL,
-  `batang_per_bungkus` int NOT NULL DEFAULT '12',
-  `bungkus_per_slop` int NOT NULL DEFAULT '10',
-  `slop_per_bal` int NOT NULL DEFAULT '20',
-  `harga_per_bal` decimal(14,2) NOT NULL DEFAULT '0.00',
-  `harga_per_slop` decimal(14,2) DEFAULT NULL,
-  `min_order_bal` int NOT NULL DEFAULT '5',
-  `min_order_slop` int NOT NULL DEFAULT '1',
-  `stok` int NOT NULL DEFAULT '100',
-  `status_stok` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Ready Stock',
-  `gambar` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `aktif` tinyint(1) NOT NULL DEFAULT '1',
-  `urutan` int NOT NULL DEFAULT '0',
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `barangs_kode_barang_unique` (`kode_barang`),
-  UNIQUE KEY `barangs_slug_unique` (`slug`),
-  KEY `barangs_kategori_id_foreign` (`kategori_id`),
-  CONSTRAINT `barangs_kategori_id_foreign` FOREIGN KEY (`kategori_id`) REFERENCES `kategoris` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `barangs`
---
-
-LOCK TABLES `barangs` WRITE;
-/*!40000 ALTER TABLE `barangs` DISABLE KEYS */;
-INSERT INTO `barangs` VALUES (7,2,'SKT-DH12','DWIPANTARA Hitam 12','dwipantara-hitam-12','Sigaret Kretek Tangan Dwipantara varian Hitam dengan racikan tembakau pilihan berkarakter mantap, pembakaran lambat, dan aroma rempah khas nusantara.','Kuat, mantap, gurih rempah pilihan',31.0,2.0,12,10,20,980000.00,49000.00,1,1,200,'Ready Stock','assets/img/hero-pabrik.jpg',1,1,'2026-09-21 21:31:39','2026-09-21 21:31:39'),(8,2,'SKT-DK12','DWIPANTARA Kuning 12','dwipantara-kuning-12','Sigaret Kretek Tangan Dwipantara varian Kuning dengan paduan tembakau Jawa dan cengkeh harum, menghadirkan tarikan yang halus dan seimbang.','Seimbang, wangi manis cengkeh, tarikan halus',29.0,1.9,12,10,20,1050000.00,52500.00,1,1,180,'Ready Stock','assets/img/tembakau-cengkeh.jpg',1,2,'2026-09-21 21:31:39','2026-09-21 21:31:39'),(9,2,'SKT-DHJ12','DWIPANTARA Hijau 12','dwipantara-hijau-12','Sigaret Kretek Tangan Dwipantara varian Hijau dengan sentuhan saus racikan segar dan tembakau alami, cocok untuk penggemar kretek beraroma bersih.','Segar, aroma herbal alami, tarikan enteng',28.0,1.8,12,10,20,1050000.00,52500.00,1,1,150,'Ready Stock','assets/img/gudang-distribusi.jpg',1,3,'2026-09-21 21:31:39','2026-09-21 21:31:39'),(10,2,'SKT-SM12','SEMBADA 12','sembada-12','Sigaret Kretek Tangan Sembada 12 batang dengan racikan tembakau tradisi luhur, cita rasa klasik untuk pecinta kretek sejati.','Klasik, berbobot, aroma tembakau matang',32.0,2.1,12,10,20,950000.00,47500.00,1,1,220,'Ready Stock','assets/img/produksi-skt.jpg',1,4,'2026-09-21 21:31:39','2026-09-21 21:31:39'),(11,2,'SKT-KK12','KERETA KENCANA 12','kereta-kencana-12','Sigaret Kretek Tangan Kereta Kencana 12, kretek unggulan mahakarya lintingan tangan terlatih dari pabrik Ponggok Blitar dengan tembakau dan cengkeh pilihan.','Full flavour, kaya rempah, pembakaran nikmat',30.0,2.0,12,10,20,1150000.00,57500.00,1,1,239,'Ready Stock','assets/img/hero-pabrik.jpg',1,5,'2026-09-21 21:31:39','2026-09-21 21:47:26');
-/*!40000 ALTER TABLE `barangs` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `barang_user`
---
-
+-- --------------------------------------------------------
+-- Struktur tabel `barang_user`
+-- --------------------------------------------------------
 DROP TABLE IF EXISTS `barang_user`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `barang_user` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `user_id` bigint unsigned NOT NULL,
@@ -371,40 +44,395 @@ CREATE TABLE `barang_user` (
   CONSTRAINT `barang_user_barang_id_foreign` FOREIGN KEY (`barang_id`) REFERENCES `barangs` (`id`) ON DELETE CASCADE,
   CONSTRAINT `barang_user_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `barang_user`
---
+-- --------------------------------------------------------
+-- Struktur tabel `barangs`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `barangs`;
+CREATE TABLE `barangs` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `kategori_id` bigint unsigned NOT NULL,
+  `kode_barang` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `nama` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `slug` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `deskripsi` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `profil_rasa` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `tar_mg` decimal(5,1) DEFAULT NULL,
+  `nikotin_mg` decimal(5,1) DEFAULT NULL,
+  `batang_per_bungkus` int NOT NULL DEFAULT '12',
+  `bungkus_per_slop` int NOT NULL DEFAULT '10',
+  `slop_per_bal` int NOT NULL DEFAULT '20',
+  `harga_per_bal` decimal(14,2) NOT NULL DEFAULT '0.00',
+  `harga_per_slop` decimal(14,2) DEFAULT NULL,
+  `min_order_bal` int NOT NULL DEFAULT '5',
+  `min_order_slop` int NOT NULL DEFAULT '1',
+  `stok` int NOT NULL DEFAULT '100',
+  `status_stok` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Ready Stock',
+  `gambar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `aktif` tinyint(1) NOT NULL DEFAULT '1',
+  `best_seller` tinyint(1) NOT NULL DEFAULT '0',
+  `urutan` int NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `barangs_kode_barang_unique` (`kode_barang`),
+  UNIQUE KEY `barangs_slug_unique` (`slug`),
+  KEY `barangs_kategori_id_foreign` (`kategori_id`),
+  CONSTRAINT `barangs_kategori_id_foreign` FOREIGN KEY (`kategori_id`) REFERENCES `kategoris` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-LOCK TABLES `barang_user` WRITE;
-/*!40000 ALTER TABLE `barang_user` DISABLE KEYS */;
-/*!40000 ALTER TABLE `barang_user` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `barangs` (`id`, `kategori_id`, `kode_barang`, `nama`, `slug`, `deskripsi`, `profil_rasa`, `tar_mg`, `nikotin_mg`, `batang_per_bungkus`, `bungkus_per_slop`, `slop_per_bal`, `harga_per_bal`, `harga_per_slop`, `min_order_bal`, `min_order_slop`, `stok`, `status_stok`, `gambar`, `aktif`, `best_seller`, `urutan`, `created_at`, `updated_at`) VALUES
+('10', '2', 'SKT-SM12', 'SEMBADA 12', 'sembada-12', 'Sigaret Kretek Tangan Sembada 12 batang dengan racikan tembakau tradisi luhur Blitar, berkarakter mantap, dan aroma gurih klasik untuk pecinta kretek sejati.', 'Klasik, berbobot, aroma tembakau matang dan rempah pilihan', NULL, NULL, '12', '10', '20', '1200000.00', '70000.00', '1', '1', '5020', 'Ready Stock', 'images/Sembada Putih 12.jpg', '1', '1', '1', '2026-09-22 04:31:39', '2026-11-18 06:58:04'),
+('11', '2', 'SKT-KK12', 'KERETA KENCANA 12', 'kereta-kencana-12', 'Sigaret Kretek Tangan Kereta Kencana 12, kretek unggulan mahakarya lintingan tangan terlatih dari pabrik Ponggok Blitar dalam balutan kemasan merah emas yang elegan.', 'Full flavour, kaya rempah, pembakaran halus dan nikmat', NULL, NULL, '12', '10', '20', '1200000.00', '70000.00', '1', '1', '5000', 'Ready Stock', 'images/Kereta Kencana Merah 12.jpg', '1', '0', '2', '2026-09-22 04:31:39', '2026-11-17 11:01:37'),
+('12', '2', 'SKT-SC12', 'SEMBADA Cethe 12', 'sembada-cethe-12', 'Sigaret Kretek Tangan Sembada Cethe 12 batang dengan racikan istimewa khas tradisi nyethe / cangkrukan Jawa Timur, beraroma harum dan tarikan mantap.', 'Khas aroma cethe kopi, manis gurih seimbang, tarikan mantap', NULL, NULL, '12', '10', '20', '1200000.00', '70000.00', '1', '1', '4960', 'Ready Stock', 'images/Sembada Cethe 12.jpg', '1', '0', '3', '2026-09-29 00:58:38', '2026-11-18 06:54:26');
 
---
--- Table structure for table `transaksis`
---
+-- --------------------------------------------------------
+-- Struktur tabel `cache`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `cache`;
+CREATE TABLE `cache` (
+  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `value` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `expiration` bigint NOT NULL,
+  PRIMARY KEY (`key`),
+  KEY `cache_expiration_index` (`expiration`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- Struktur tabel `cache_locks`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `cache_locks`;
+CREATE TABLE `cache_locks` (
+  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `owner` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `expiration` bigint NOT NULL,
+  PRIMARY KEY (`key`),
+  KEY `cache_locks_expiration_index` (`expiration`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Struktur tabel `company_settings`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `company_settings`;
+CREATE TABLE `company_settings` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `setting_key` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `setting_value` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `company_settings_setting_key_unique` (`setting_key`)
+) ENGINE=InnoDB AUTO_INCREMENT=187 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `company_settings` (`id`, `setting_key`, `setting_value`, `created_at`, `updated_at`) VALUES
+('51', 'media_file_hero_2', 'pabrik-media/3gMzoLrjoxkzK7bRzsnYN6he8iFL8IpNLUS8IEnn.jpg', '2026-11-24 08:54:08', '2026-11-24 08:58:20'),
+('52', 'media_updated_at_hero_2', '2026-11-24', '2026-11-24 08:54:08', '2026-11-24 08:54:08'),
+('53', 'media_caption_hero_2', 'Racikan Tembakau & Cengkeh Pilihan', '2026-11-24 08:54:08', '2026-11-24 08:54:08'),
+('54', 'media_file_hero_3', 'pabrik-media/2OW8wzbUZJg2Wi0CjdEziAwAFKPfUrPR9Pe8vOuh.jpg', '2026-11-24 08:54:32', '2026-11-24 08:54:32'),
+('55', 'media_caption_hero_3', 'Kualitas tembakau', '2026-11-24 08:54:32', '2026-11-24 08:55:01'),
+('56', 'media_updated_at_hero_3', '2026-11-24', '2026-11-24 08:54:32', '2026-11-24 08:54:32'),
+('57', 'hero_extra_keys', '[\"hero_3\"]', '2026-11-24 08:54:32', '2026-11-24 08:54:32'),
+('58', 'media_file_hero_1', 'pabrik-media/vpTGJ7u6LhD60qUrnXrTBGql9XDcirGt71bcrlaA.jpg', '2026-11-24 08:57:33', '2026-11-24 08:57:33'),
+('59', 'media_updated_at_hero_1', '2026-11-24', '2026-11-24 08:57:33', '2026-11-24 08:57:33'),
+('60', 'media_caption_hero_1', 'Tembakau fresh', '2026-11-24 08:57:33', '2026-11-24 08:57:33'),
+('124', 'media_file_login-banner', 'pabrik-media/0C8eRVwFlkqeGDBd5TC1E2fpiW1vO5Ytr5nLqa90.jpg', '2026-11-24 09:21:34', '2026-11-24 09:21:34'),
+('125', 'media_updated_at_login-banner', '2026-11-24', '2026-11-24 09:21:35', '2026-11-24 09:21:35'),
+('126', 'media_caption_login-banner', 'Portal Resmi Distribusi Sigaret Kretek Tangan • Ponggok, Kab. Blitar', '2026-11-24 09:21:35', '2026-11-24 09:21:35'),
+('142', 'media_updated_at_pabrik-ponggok', '2026-11-20', '2026-11-24 09:33:39', '2026-11-24 09:33:39'),
+('143', 'media_caption_pabrik-ponggok', 'Pabrik PR. KERETA KENCANA • Ponggok, Kab. Blitar', '2026-11-24 09:33:39', '2026-11-24 09:33:39'),
+('144', 'media_file_proses-bahan-baku', 'pabrik-media/JsK3Qcm5ROfoyZVJMLPrQPX1wev79KCde6vkXvJT.jpg', '2026-11-24 09:34:02', '2026-11-24 09:34:02'),
+('145', 'media_updated_at_proses-bahan-baku', '2026-11-20', '2026-11-24 09:34:02', '2026-11-24 09:34:02'),
+('146', 'media_caption_proses-bahan-baku', 'Gudang Bahan Baku Tembakau & Cengkeh', '2026-11-24 09:34:02', '2026-11-24 09:34:02'),
+('147', 'media_file_proses-gudang-distribusi', 'pabrik-media/uLzsj7jgleQwDv75PD2fbV9xmnHJXe78yZQrps0N.jpg', '2026-11-24 09:48:14', '2026-11-24 09:48:14'),
+('148', 'media_updated_at_proses-gudang-distribusi', '2026-11-20', '2026-11-24 09:48:14', '2026-11-24 09:48:14'),
+('149', 'media_caption_proses-gudang-distribusi', 'Kemasan Produk Resmi Siap Distribusi', '2026-11-24 09:48:14', '2026-11-24 09:48:14'),
+('165', 'media_file_fasilitas-tembakau', 'pabrik-media/TQEIQ8OACEbLMAcM2kSFzcC364EvuACwqaez4YoZ.jpg', '2026-11-24 10:03:14', '2026-11-24 10:03:14'),
+('166', 'media_updated_at_fasilitas-tembakau', '2026-11-20', '2026-11-24 10:03:14', '2026-11-24 10:03:14'),
+('167', 'media_caption_fasilitas-tembakau', 'Gudang Penyimpanan Tembakau & Cengkeh', '2026-11-24 10:03:14', '2026-11-24 10:03:14'),
+('168', 'media_file_pabrik-ponggok', 'pabrik-media/flXwwtrc3l16r9YdwIGu9DjjuVlHWUnHXFGbD0Ks.jpg', '2026-11-24 10:03:39', '2026-11-24 10:03:39'),
+('169', 'media_file_fasilitas-gudang', 'pabrik-media/w5jxsutlOZLnfwYCCKO0CZiQkweHqKaQzMITBso5.jpg', '2026-11-24 10:04:09', '2026-11-24 10:04:09'),
+('170', 'media_updated_at_fasilitas-gudang', '2026-11-20', '2026-11-24 10:04:09', '2026-11-24 10:04:09'),
+('171', 'media_caption_fasilitas-gudang', 'Kesiapan Stok Produk & Distribusi Mitra', '2026-11-24 10:04:09', '2026-11-24 10:04:09'),
+('172', 'media_file_pabrik-beranda', 'pabrik-media/DpZraEjPRKTjrngZpVud497DCosAwr4jMEGX8ftm.jpg', '2026-11-24 10:04:19', '2026-11-24 10:04:19'),
+('173', 'media_updated_at_pabrik-beranda', '2026-11-20', '2026-11-24 10:04:19', '2026-11-24 10:04:19'),
+('174', 'media_caption_pabrik-beranda', 'Fasilitas Pabrik PR. KERETA KENCANA • Ponggok, Blitar', '2026-11-24 10:04:19', '2026-11-24 10:04:19');
+
+-- --------------------------------------------------------
+-- Struktur tabel `failed_jobs`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `failed_jobs`;
+CREATE TABLE `failed_jobs` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `uuid` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `connection` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `queue` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `exception` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `failed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `failed_jobs_uuid_unique` (`uuid`),
+  KEY `failed_jobs_connection_queue_failed_at_index` (`connection`,`queue`,`failed_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Struktur tabel `job_batches`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `job_batches`;
+CREATE TABLE `job_batches` (
+  `id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `total_jobs` int NOT NULL,
+  `pending_jobs` int NOT NULL,
+  `failed_jobs` int NOT NULL,
+  `failed_job_ids` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `options` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `cancelled_at` int DEFAULT NULL,
+  `created_at` int NOT NULL,
+  `finished_at` int DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Struktur tabel `jobs`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `jobs`;
+CREATE TABLE `jobs` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `queue` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `attempts` smallint unsigned NOT NULL,
+  `reserved_at` int unsigned DEFAULT NULL,
+  `available_at` int unsigned NOT NULL,
+  `created_at` int unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `jobs_queue_index` (`queue`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Struktur tabel `kategoris`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `kategoris`;
+CREATE TABLE `kategoris` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `nama_kategori` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `slug` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `deskripsi` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `kategoris_slug_unique` (`slug`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `kategoris` (`id`, `nama_kategori`, `slug`, `deskripsi`, `created_at`, `updated_at`) VALUES
+('2', 'Sigaret Kretek Tangan (SKT)', 'skt', 'Kretek linting tangan tradisional dengan racikan tembakau asli dan cengkeh pilihan warisan nusantara.', '2026-09-17 08:58:20', '2026-09-17 08:58:20');
+
+-- --------------------------------------------------------
+-- Struktur tabel `legal_documents`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `legal_documents`;
+CREATE TABLE `legal_documents` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `nama_dokumen` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `nomor` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `penerbit` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `berlaku_sampai` date DEFAULT NULL,
+  `status` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Aktif',
+  `catatan` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `file_dokumen` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `urutan` int NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=120 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `legal_documents` (`id`, `nama_dokumen`, `nomor`, `penerbit`, `berlaku_sampai`, `status`, `catatan`, `file_dokumen`, `urutan`, `created_at`, `updated_at`) VALUES
+('23', 'NPPBKC (Nomor Pokok Pengusaha Barang Kena Cukai)', '750******-070700-221221*******', 'KPPBC Tipe Madya Pabean C Blitar (Ditjen Bea dan Cukai)', NULL, 'Aktif', 'Pengusaha Pabrik Hasil Tembakau (Ditetapkan 16 Agustus 2022). Sebagian digit disensor untuk mencegah penyalahgunaan/pemalsuan.', NULL, '1', '2026-11-16 12:33:06', '2026-11-16 12:33:06');
+
+-- --------------------------------------------------------
+-- Struktur tabel `migrations`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `migrations`;
+CREATE TABLE `migrations` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `migration` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `batch` int NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
+('1', '0001_01_01_000000_create_users_table', '1'),
+('2', '0001_01_01_000001_create_cache_table', '1'),
+('3', '0001_01_01_000002_create_jobs_table', '1'),
+('4', '2026_09_17_000001_create_kategoris_table', '1'),
+('5', '2026_09_17_000002_create_barangs_table', '1'),
+('6', '2026_09_17_000003_create_transaksis_table', '1'),
+('7', '2026_09_17_000004_create_barang_user_table', '1'),
+('8', '2026_09_17_000005_create_legal_documents_table', '1'),
+('9', '2026_09_17_000006_create_activity_logs_table', '1'),
+('10', '2026_09_17_000007_create_company_settings_table', '1'),
+('11', '2026_09_17_090633_add_slop_pricing_to_barangs_table', '2'),
+('12', '2026_09_27_125846_add_customer_fields_to_users_and_transaksis_table', '3'),
+('13', '2026_09_27_133138_create_transaksi_details_table', '4'),
+('14', '2026_10_10_143753_create_personal_access_tokens_table', '5'),
+('15', '2026_10_14_183500_add_foto_profil_to_users_table', '6'),
+('16', '2026_10_14_132127_add_metode_pembayaran_to_transaksis_table', '7'),
+('17', '2026_11_05_095503_add_bukti_transfer_to_transaksis_table', '8'),
+('18', '2026_11_16_000001_add_file_dokumen_to_legal_documents_table', '9'),
+('19', '2026_11_16_000002_update_uniform_slop_prices_on_barangs_table', '10'),
+('20', '2026_11_16_000003_update_verified_nppbkc_in_legal_documents_table', '11'),
+('21', '2026_11_20_000001_add_best_seller_to_barangs_table', '12'),
+('22', '2026_11_23_000001_convert_barangs_stok_to_slop', '13'),
+('23', '2026_11_24_000001_convert_staff_role_to_admin', '14');
+
+-- --------------------------------------------------------
+-- Struktur tabel `orders_wa_log`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `orders_wa_log`;
+CREATE TABLE `orders_wa_log` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `nama_mitra` varchar(150) NOT NULL,
+  `telepon` varchar(30) NOT NULL,
+  `alamat` text NOT NULL,
+  `varian_produk` varchar(150) NOT NULL,
+  `jumlah` int NOT NULL DEFAULT '1',
+  `satuan` varchar(20) NOT NULL DEFAULT 'Bal',
+  `total_harga` decimal(14,2) NOT NULL DEFAULT '0.00',
+  `catatan` text,
+  `status` enum('Baru Masuk','Diproses','Selesai','Dibatalkan') NOT NULL DEFAULT 'Baru Masuk',
+  `sumber` varchar(30) NOT NULL DEFAULT 'Web WhatsApp',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+-- Struktur tabel `password_reset_tokens`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `password_reset_tokens`;
+CREATE TABLE `password_reset_tokens` (
+  `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `token` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Struktur tabel `personal_access_tokens`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `personal_access_tokens`;
+CREATE TABLE `personal_access_tokens` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `tokenable_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `tokenable_id` bigint unsigned NOT NULL,
+  `name` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `token` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `abilities` text COLLATE utf8mb4_unicode_ci,
+  `last_used_at` timestamp NULL DEFAULT NULL,
+  `expires_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `personal_access_tokens_token_unique` (`token`),
+  KEY `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`,`tokenable_id`),
+  KEY `personal_access_tokens_expires_at_index` (`expires_at`)
+) ENGINE=InnoDB AUTO_INCREMENT=839 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Struktur tabel `products`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `products`;
+CREATE TABLE `products` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `slug` varchar(100) NOT NULL,
+  `nama` varchar(150) NOT NULL,
+  `kategori` enum('SKM','SKT') NOT NULL,
+  `deskripsi` text,
+  `profil_rasa` text,
+  `tar_mg` decimal(5,1) DEFAULT NULL,
+  `nikotin_mg` decimal(5,1) DEFAULT NULL,
+  `batang_per_bungkus` int NOT NULL DEFAULT '12',
+  `bungkus_per_slop` int NOT NULL DEFAULT '10',
+  `slop_per_bal` int NOT NULL DEFAULT '20',
+  `harga_per_bal` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `min_order_bal` int NOT NULL DEFAULT '5',
+  `status_stok` varchar(50) NOT NULL DEFAULT 'Ready Stock',
+  `image_url` varchar(255) DEFAULT NULL,
+  `aktif` tinyint(1) NOT NULL DEFAULT '1',
+  `urutan` int NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `slug` (`slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+-- Struktur tabel `sessions`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `sessions`;
+CREATE TABLE `sessions` (
+  `id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_id` bigint unsigned DEFAULT NULL,
+  `ip_address` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `user_agent` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `last_activity` int NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `sessions_user_id_index` (`user_id`),
+  KEY `sessions_last_activity_index` (`last_activity`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Struktur tabel `transaksi_details`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `transaksi_details`;
+CREATE TABLE `transaksi_details` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `transaksi_id` bigint unsigned NOT NULL,
+  `barang_id` bigint unsigned NOT NULL,
+  `satuan` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Slop',
+  `jumlah` int NOT NULL DEFAULT '1',
+  `harga_satuan` decimal(14,2) NOT NULL DEFAULT '0.00',
+  `subtotal` decimal(14,2) NOT NULL DEFAULT '0.00',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `transaksi_details_transaksi_id_foreign` (`transaksi_id`),
+  KEY `transaksi_details_barang_id_foreign` (`barang_id`),
+  CONSTRAINT `transaksi_details_barang_id_foreign` FOREIGN KEY (`barang_id`) REFERENCES `barangs` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `transaksi_details_transaksi_id_foreign` FOREIGN KEY (`transaksi_id`) REFERENCES `transaksis` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=963 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `transaksi_details` (`id`, `transaksi_id`, `barang_id`, `satuan`, `jumlah`, `harga_satuan`, `subtotal`, `created_at`, `updated_at`) VALUES
+('543', '657', '10', 'Slop', '1', '70000.00', '70000.00', '2026-11-17 03:16:11', '2026-11-17 03:16:11'),
+('560', '676', '12', 'Slop', '1', '70000.00', '70000.00', '2026-11-17 03:50:05', '2026-11-17 03:50:05'),
+('620', '736', '12', 'Slop', '2', '70000.00', '140000.00', '2026-11-18 06:48:23', '2026-11-18 06:48:23'),
+('621', '737', '12', 'Slop', '1', '70000.00', '70000.00', '2026-11-18 06:54:26', '2026-11-18 06:54:26');
+
+-- --------------------------------------------------------
+-- Struktur tabel `transaksis`
+-- --------------------------------------------------------
 DROP TABLE IF EXISTS `transaksis`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `transaksis` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `kode_transaksi` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `kode_transaksi` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `user_id` bigint unsigned DEFAULT NULL,
-  `barang_id` bigint unsigned NOT NULL,
-  `nama_mitra` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `telepon` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `alamat` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `barang_id` bigint unsigned DEFAULT NULL,
+  `nama_mitra` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `telepon` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `alamat` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `jumlah` int NOT NULL DEFAULT '1',
-  `satuan` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Bal',
+  `satuan` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Bal',
   `total_harga` decimal(14,2) NOT NULL DEFAULT '0.00',
-  `catatan` text COLLATE utf8mb4_unicode_ci,
-  `status` enum('Baru Masuk','Diproses','Selesai','Dibatalkan') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Baru Masuk',
-  `nomor_do` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `nomor_resi` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `sumber` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Web B2B',
+  `catatan` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `metode_pembayaran` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'COD',
+  `status_pembayaran` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Belum Dibayar',
+  `bukti_transfer` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ditransfer_pada` timestamp NULL DEFAULT NULL,
+  `status` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Baru Masuk',
+  `bukti_penerimaan` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `diterima_pada` timestamp NULL DEFAULT NULL,
+  `catatan_penerima` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `nomor_do` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `nomor_resi` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sumber` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Web B2B',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -413,119 +441,40 @@ CREATE TABLE `transaksis` (
   KEY `transaksis_barang_id_foreign` (`barang_id`),
   CONSTRAINT `transaksis_barang_id_foreign` FOREIGN KEY (`barang_id`) REFERENCES `barangs` (`id`) ON DELETE CASCADE,
   CONSTRAINT `transaksis_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB AUTO_INCREMENT=1207 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `transaksis`
---
+INSERT INTO `transaksis` (`id`, `kode_transaksi`, `user_id`, `barang_id`, `nama_mitra`, `telepon`, `alamat`, `jumlah`, `satuan`, `total_harga`, `catatan`, `metode_pembayaran`, `status_pembayaran`, `bukti_transfer`, `ditransfer_pada`, `status`, `bukti_penerimaan`, `diterima_pada`, `catatan_penerima`, `nomor_do`, `nomor_resi`, `sumber`, `created_at`, `updated_at`) VALUES
+('657', 'TRX-20261117-1HRO', '944', '10', 'Toko Hebat (Ade Aldienta)', '+6285257907797', 'Jl,anggrek', '1', 'Slop', '70000.00', NULL, 'Transfer Bank', 'Belum Dibayar', NULL, NULL, 'Baru Masuk', NULL, NULL, NULL, NULL, NULL, 'Mobile App', '2026-11-17 03:16:11', '2026-11-18 07:32:48'),
+('676', 'TRX-20261117-GMKX', '944', '12', 'Toko Hebat (Ade Aldienta)', '+6285257907797', 'Jl,anggrek', '1', 'Slop', '70000.00', NULL, 'Transfer Bank', 'Ditolak / Belum Valid', 'bukti_transfer/bukti_transfer_TRX-20261117-GMKX_1794986190.jpg', '2026-11-18 07:16:30', 'Dikirim', NULL, NULL, NULL, NULL, NULL, 'Mobile App', '2026-11-17 03:50:05', '2026-11-18 07:17:16'),
+('736', 'TRX-20261118-IEQC', '944', '12', 'Toko Hebat (Ade Aldienta)', '+6285257907797', 'Jl,anggrek', '2', 'Slop', '140000.00', NULL, 'Transfer Bank', 'Lunas', 'bukti_transfer/bukti_transfer_TRX-20261118-IEQC_1794986399.jpg', '2026-11-18 07:19:59', 'Selesai', 'bukti_penerimaan/4oWc983tYeHtYyoqFwoF7t3rLweLdsAFPGqzBc86.jpg', '2026-11-18 07:20:58', 'sampai pak/bu', NULL, NULL, 'Mobile App', '2026-11-18 06:48:23', '2026-11-18 07:20:58'),
+('737', 'TRX-20261118-ZHUL', '944', '12', 'Toko Hebat (Ade Aldienta)', '+6285257907797', 'Jl,anggrek', '1', 'Slop', '70000.00', NULL, 'Bayar di Tempat (COD)', 'Belum Dibayar', NULL, NULL, 'Diproses', NULL, NULL, NULL, NULL, NULL, 'Mobile App', '2026-11-18 06:54:26', '2026-11-18 07:42:35');
 
-LOCK TABLES `transaksis` WRITE;
-/*!40000 ALTER TABLE `transaksis` DISABLE KEYS */;
-INSERT INTO `transaksis` VALUES (1,'TRX-202609-001',3,7,'Toko Berkah Grosir','081234567891','Jl. Basuki Rahmat No. 12, Malang, Jawa Timur',15,'Bal',14700000.00,'Kirim via kargo langganan Blitar-Malang armada cold diesel','Diproses','DO-KK-2026-0901','CARGO-MLG-8823','Web B2B WhatsApp','2026-09-21 21:47:02','2026-09-21 21:47:02'),(2,'TRX-202609-002',3,11,'UD. Tembakau Sentosa','082198765432','Pasar Legi Blok A-4, Kota Blitar',20,'Bal',23000000.00,'Ambil langsung mandiri di pos gerbang gudang pabrik Ponggok','Selesai','DO-KK-2026-0894','PICKUP-PABRIK-042','Web B2B Form','2026-09-21 21:47:02','2026-09-21 21:47:02'),(3,'TRX-202609-003',3,8,'Agen Rokok Jaya Abadi','085712349999','Kec. Wlingi, Kabupaten Blitar',10,'Bal',10500000.00,'Mohon sertakan faktur fisik bercap basah perusahaan','Baru Masuk',NULL,NULL,'Web B2B WhatsApp','2026-09-21 21:47:02','2026-09-21 21:47:02'),(4,'TRX-202609-004',3,10,'Grosir Berkah Mandiri','081333445566','Jl. Dhoho No. 45, Kota Kediri',8,'Bal',7600000.00,'Pesanan rutin distributor Kediri Raya','Diproses','DO-KK-2026-0905','EXP-KDR-1092','Web B2B Form','2026-09-21 21:47:02','2026-09-21 21:47:02'),(5,'TRX-202609-005',3,9,'Mitra Tembakau Sejahtera','085299887711','Pasar Wage Blok B-12, Tulungagung',12,'Bal',12600000.00,'Pengiriman armada pabrik langsung ke gudang Tulungagung','Selesai','DO-KK-2026-0889','TRUCK-KK-08','Web B2B WhatsApp','2026-09-21 21:47:02','2026-09-21 21:47:02'),(6,'TRX-202609-006',3,11,'Warung Kopi Mbak Sri','081398765432','Jl. Pasar Pon No. 5, Blitar',5,'Slop',287500.00,'Pembelian eceran slop untuk warung','Selesai','DO-KK-2026-0910','LOKAL-BLT-055','Web B2B Form','2026-09-21 21:47:02','2026-09-21 21:47:02'),(7,'TRX-202609-007',3,7,'Toko Sumber Rejeki','087811223344','Kec. Srengat, Kabupaten Blitar',3,'Slop',147000.00,'Uji pasar varian Dwipantara Hitam di toko','Diproses','DO-KK-2026-0912','LOKAL-BLT-059','Web B2B WhatsApp','2026-09-21 21:47:02','2026-09-21 21:47:02'),(8,'TRX-202609-008',3,10,'Koperasi Unit Desa Ponggok','081277665544','Dusun Kebonduren, Ponggok, Blitar',2,'Bal',1900000.00,'Pasokan etalase koperasi desa','Baru Masuk',NULL,NULL,'Web B2B Form','2026-09-21 21:47:02','2026-09-21 21:47:02'),(9,'TRX-20260922-DPIU',NULL,11,'UD. Mitra Test Laravel','081234567890','Jl. Pengujian No. 10, Blitar',10,'Bal',11500000.00,'Test order otomatis','Baru Masuk',NULL,NULL,'Web B2B Form','2026-09-21 21:47:26','2026-09-21 21:47:26'),(10,'TRX-20260922-QBWZ',NULL,11,'Warung Kopi Mbak Sri','081398765432','Jl. Pasar Pon No. 5, Blitar',1,'Slop',57500.00,'Pesan minimal 1 slop untuk warung','Baru Masuk',NULL,NULL,'Web B2B Form','2026-09-21 21:47:26','2026-09-21 21:47:26');
-/*!40000 ALTER TABLE `transaksis` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `legal_documents`
---
-
-DROP TABLE IF EXISTS `legal_documents`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `legal_documents` (
+-- --------------------------------------------------------
+-- Struktur tabel `users`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `users`;
+CREATE TABLE `users` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `nama_dokumen` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `nomor` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `penerbit` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `berlaku_sampai` date DEFAULT NULL,
-  `status` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Aktif',
-  `catatan` text COLLATE utf8mb4_unicode_ci,
-  `urutan` int NOT NULL DEFAULT '0',
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `legal_documents`
---
-
-LOCK TABLES `legal_documents` WRITE;
-/*!40000 ALTER TABLE `legal_documents` DISABLE KEYS */;
-INSERT INTO `legal_documents` VALUES (1,'NPPBKC (Nomor Pokok Pengusaha Barang Kena Cukai)','0821.1.2.XXXXX','KPPBC Tipe Madya Pabean C Blitar','2028-12-31','Aktif','Izin pita cukai resmi dari Direktorat Jenderal Bea dan Cukai untuk produksi tembakau.',1,'2026-09-17 01:58:20','2026-09-17 01:58:20'),(2,'NIB (Nomor Induk Berusaha)','9120001234567','Kementerian Investasi / BKPM RI','2030-01-01','Aktif','Identitas berusaha terintegrasi OSS RBA sektor industri pengolahan tembakau.',2,'2026-09-17 01:58:20','2026-09-17 01:58:20'),(3,'Izin Usaha Industri (IUI)','503/IUI/TMBK/2021','DPMPTSP Kabupaten Blitar','2029-06-30','Aktif','Izin operasional pabrik sigaret kretek di kawasan industri Ponggok, Kabupaten Blitar.',3,'2026-09-17 01:58:20','2026-09-17 01:58:20'),(4,'Sertifikat Merek Dagang Kereta Kencana','IDM000987654','DJKI Kementerian Hukum dan HAM RI','2032-10-15','Aktif','Perlindungan hak kekayaan intelektual merek dagang kelas barang 34.',4,'2026-09-17 01:58:20','2026-09-17 01:58:20');
-/*!40000 ALTER TABLE `legal_documents` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `activity_logs`
---
-
-DROP TABLE IF EXISTS `activity_logs`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `activity_logs` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `user_id` bigint unsigned DEFAULT NULL,
-  `user_nama` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `role` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'staff',
-  `action` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `details` text COLLATE utf8mb4_unicode_ci,
-  `ip_address` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `nama_toko` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `telepon` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `alamat` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `foto_profil` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `email_verified_at` timestamp NULL DEFAULT NULL,
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `role` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'admin',
+  `remember_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `activity_logs_user_id_foreign` (`user_id`),
-  CONSTRAINT `activity_logs_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+  UNIQUE KEY `users_email_unique` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=2390 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `activity_logs`
---
+INSERT INTO `users` (`id`, `name`, `nama_toko`, `email`, `telepon`, `alamat`, `foto_profil`, `email_verified_at`, `password`, `role`, `remember_token`, `created_at`, `updated_at`) VALUES
+('1', 'Bapak Komari Yaman (Owner)', NULL, 'owner@keretakencana.com', NULL, NULL, NULL, NULL, '$2y$12$3wpQqcKO2jNxwTvR6daa7u/59vgEnpPWCnV7y4aCTSg24dEi37QHe', 'owner', NULL, '2026-09-17 08:58:20', '2026-11-17 10:58:55'),
+('2', 'Super Admin (Web Dev)', NULL, 'superadmin@keretakencana.com', NULL, NULL, NULL, NULL, '$2y$12$57hwHpxMkEk3OSdI4.HG/e/pjARnr.ZwwQd4Uih3qsJy5gBTfXB5y', 'superadmin', NULL, '2026-09-17 08:58:20', '2026-11-17 10:58:55'),
+('4', 'Admin Gudang & Pemesanan', NULL, 'admin@keretakencana.com', NULL, NULL, NULL, NULL, '$2y$12$CFUtgS/xSv6J/7MWnXBo.e.KkLpN5xhYxsQ25OdpzmjeBaAVmjYhq', 'admin', NULL, '2026-09-17 08:58:20', '2026-10-01 12:30:36'),
+('944', 'Ade Aldienta', 'Toko Hebat', 'tokohebat777@gmail.com', '+6285257907797', 'Jl,anggrek', NULL, NULL, '$2y$12$ut5rhG9Y.UVmsJMeCgZHJuYu/ZF1FO6z/gtH7NwBEb1QZb301HK0y', 'pelanggan', NULL, '2026-11-14 11:11:18', '2026-11-17 03:01:36');
 
-LOCK TABLES `activity_logs` WRITE;
-/*!40000 ALTER TABLE `activity_logs` DISABLE KEYS */;
-INSERT INTO `activity_logs` VALUES (1,NULL,'Tamu / Sistem','guest','Pesanan Masuk','Pesanan baru TRX-20260917-2B7O oleh UD. Mitra Test Laravel (10 Bal)','127.0.0.1','2026-09-17 01:58:34','2026-09-17 01:58:34'),(2,NULL,'Tamu / Sistem','guest','Pesanan Masuk','Pesanan baru TRX-20260917-QIPK oleh UD. Mitra Test Laravel (10 Bal)','127.0.0.1','2026-09-17 01:59:43','2026-09-17 01:59:43'),(3,NULL,'Tamu / Sistem','guest','Pesanan Masuk','Pesanan baru TRX-20260917-JTFK oleh UD. Mitra Test Laravel (10 Bal)','127.0.0.1','2026-09-17 02:15:08','2026-09-17 02:15:08'),(4,NULL,'Tamu / Sistem','guest','Pesanan Masuk','Pesanan baru TRX-20260917-3MYJ oleh Warung Kopi Mbak Sri (1 Slop)','127.0.0.1','2026-09-17 02:15:08','2026-09-17 02:15:08'),(5,NULL,'Tamu / Sistem','guest','Pesanan Masuk','Pesanan baru TRX-20260917-PNM5 oleh aldienta test 1 (1 Slop)','127.0.0.1','2026-09-17 02:21:21','2026-09-17 02:21:21'),(6,3,'Staf Operasional Pabrik','staff','Login Sistem','Pengguna berhasil masuk ke dashboard','127.0.0.1','2026-09-17 02:22:01','2026-09-17 02:22:01'),(7,3,'Staf Operasional Pabrik','staff','Update Transaksi','Memperbarui status transaksi TRX-20260917-PNM5 menjadi Diproses','127.0.0.1','2026-09-17 02:22:50','2026-09-17 02:22:50'),(8,3,'Staf Operasional Pabrik','staff','Logout Sistem','Pengguna keluar dari sistem','127.0.0.1','2026-09-17 02:32:37','2026-09-17 02:32:37'),(9,NULL,'Tamu / Sistem','guest','Pesanan Masuk','Pesanan baru TRX-20260917-NB2C oleh UD. Mitra Test Laravel (10 Bal)','127.0.0.1','2026-09-17 03:00:03','2026-09-17 03:00:03'),(10,NULL,'Tamu / Sistem','guest','Pesanan Masuk','Pesanan baru TRX-20260917-40JO oleh Warung Kopi Mbak Sri (1 Slop)','127.0.0.1','2026-09-17 03:00:03','2026-09-17 03:00:03'),(11,NULL,'Tamu / Sistem','guest','Pesanan Masuk','Pesanan baru TRX-20260921-VXCN oleh UD. Mitra Test Laravel (10 Bal)','127.0.0.1','2026-09-20 22:01:13','2026-09-20 22:01:13'),(12,NULL,'Tamu / Sistem','guest','Pesanan Masuk','Pesanan baru TRX-20260921-FPFV oleh Warung Kopi Mbak Sri (1 Slop)','127.0.0.1','2026-09-20 22:01:13','2026-09-20 22:01:13'),(13,1,'Owner PR. Kereta Kencana','owner','Login Sistem','Pengguna berhasil masuk ke dashboard','::1','2026-09-20 22:02:59','2026-09-20 22:02:59'),(14,1,'Owner PR. Kereta Kencana','owner','Logout Sistem','Pengguna keluar dari sistem','::1','2026-09-20 22:03:41','2026-09-20 22:03:41'),(15,1,'Owner PR. Kereta Kencana','owner','Login Sistem','Pengguna berhasil masuk ke dashboard','127.0.0.1','2026-09-21 19:58:59','2026-09-21 19:58:59'),(16,1,'Owner PR. Kereta Kencana','owner','Logout Sistem','Pengguna keluar dari sistem','127.0.0.1','2026-09-21 20:00:34','2026-09-21 20:00:34'),(17,3,'Staf Operasional Pabrik','staff','Login Sistem','Pengguna berhasil masuk ke dashboard','127.0.0.1','2026-09-21 20:00:39','2026-09-21 20:00:39'),(18,3,'Staf Operasional Pabrik','staff','Login Sistem','Pengguna berhasil masuk ke dashboard','127.0.0.1','2026-09-21 20:00:46','2026-09-21 20:00:46'),(19,3,'Staf Operasional Pabrik','staff','Update Transaksi','Memperbarui status transaksi TRX-20260921-FPFV menjadi Selesai','127.0.0.1','2026-09-21 20:01:17','2026-09-21 20:01:17'),(20,NULL,'Tamu / Sistem','guest','Pesanan Masuk','Pesanan baru TRX-20260922-FNKN oleh UD. Mitra Test Laravel (10 Bal)','127.0.0.1','2026-09-21 20:16:10','2026-09-21 20:16:10'),(21,NULL,'Tamu / Sistem','guest','Pesanan Masuk','Pesanan baru TRX-20260922-U3I2 oleh Warung Kopi Mbak Sri (1 Slop)','127.0.0.1','2026-09-21 20:16:10','2026-09-21 20:16:10'),(22,3,'Staf Operasional Pabrik','staff','Logout Sistem','Pengguna keluar dari sistem','127.0.0.1','2026-09-21 20:16:54','2026-09-21 20:16:54'),(23,NULL,'Tamu / Sistem','guest','Pesanan Masuk','Pesanan baru TRX-20260922-ANJ2 oleh UD. Mitra Test Laravel (10 Bal)','127.0.0.1','2026-09-21 20:23:48','2026-09-21 20:23:48'),(24,NULL,'Tamu / Sistem','guest','Pesanan Masuk','Pesanan baru TRX-20260922-A0KT oleh Warung Kopi Mbak Sri (1 Slop)','127.0.0.1','2026-09-21 20:23:48','2026-09-21 20:23:48'),(25,NULL,'Tamu / Sistem','guest','Pesanan Masuk','Pesanan baru TRX-20260922-PZ7F oleh UD. Mitra Test Laravel (10 Bal)','127.0.0.1','2026-09-21 20:44:00','2026-09-21 20:44:00'),(26,NULL,'Tamu / Sistem','guest','Pesanan Masuk','Pesanan baru TRX-20260922-XDYV oleh Warung Kopi Mbak Sri (1 Slop)','127.0.0.1','2026-09-21 20:44:00','2026-09-21 20:44:00'),(27,NULL,'Tamu / Sistem','guest','Pesanan Masuk','Pesanan baru TRX-20260922-QYE8 oleh UD. Mitra Test Laravel (10 Bal)','127.0.0.1','2026-09-21 20:50:36','2026-09-21 20:50:36'),(28,NULL,'Tamu / Sistem','guest','Pesanan Masuk','Pesanan baru TRX-20260922-G3AV oleh Warung Kopi Mbak Sri (1 Slop)','127.0.0.1','2026-09-21 20:50:36','2026-09-21 20:50:36'),(29,1,'Owner PR. Kereta Kencana','owner','Login Sistem','Pengguna berhasil masuk ke dashboard','127.0.0.1','2026-09-21 21:00:02','2026-09-21 21:00:02'),(30,NULL,'Tamu / Sistem','guest','Pesanan Masuk','Pesanan baru TRX-20260922-WDGY oleh UD. Mitra Test Laravel (10 Bal)','127.0.0.1','2026-09-21 21:10:02','2026-09-21 21:10:02'),(31,NULL,'Tamu / Sistem','guest','Pesanan Masuk','Pesanan baru TRX-20260922-PKW7 oleh Warung Kopi Mbak Sri (1 Slop)','127.0.0.1','2026-09-21 21:10:02','2026-09-21 21:10:02'),(32,1,'Owner PR. Kereta Kencana','owner','Logout Sistem','Pengguna keluar dari sistem','127.0.0.1','2026-09-21 21:18:47','2026-09-21 21:18:47'),(33,NULL,'Tamu / Sistem','guest','Pesanan Masuk','Pesanan baru TRX-20260922-DPIU oleh UD. Mitra Test Laravel (10 Bal)','127.0.0.1','2026-09-21 21:47:26','2026-09-21 21:47:26'),(34,NULL,'Tamu / Sistem','guest','Pesanan Masuk','Pesanan baru TRX-20260922-QBWZ oleh Warung Kopi Mbak Sri (1 Slop)','127.0.0.1','2026-09-21 21:47:26','2026-09-21 21:47:26');
-/*!40000 ALTER TABLE `activity_logs` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `company_settings`
---
-
-DROP TABLE IF EXISTS `company_settings`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `company_settings` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `setting_key` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `setting_value` text COLLATE utf8mb4_unicode_ci,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `company_settings_setting_key_unique` (`setting_key`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `company_settings`
---
-
-LOCK TABLES `company_settings` WRITE;
-/*!40000 ALTER TABLE `company_settings` DISABLE KEYS */;
-/*!40000 ALTER TABLE `company_settings` ENABLE KEYS */;
-UNLOCK TABLES;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
-
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
--- Dump completed on 2026-09-22 11:47:57
-
+SET FOREIGN_KEY_CHECKS=1;

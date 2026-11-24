@@ -10,6 +10,8 @@ use App\Helpers\ActivityLogger;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Exception;
 
 class PemesananController extends Controller
@@ -81,27 +83,33 @@ class PemesananController extends Controller
             'alamat.required' => 'Alamat pengiriman tujuan wajib diisi lengkap.',
         ]);
 
-        // Kumpulkan item pesanan (Khusus Pemesanan Satuan Slop di Website; Skala Bal lewat Admin)
-        $rawItems = [];
+        // Kumpulkan & agregasikan item pesanan per barang_id (Khusus Satuan Slop di Website; Skala Bal lewat Admin)
+        $rawItemsByBarang = [];
 
         if ($request->has('items') && is_array($request->items)) {
             foreach ($request->items as $barangId => $data) {
+                $bId = (int)$barangId;
                 $qty = isset($data['jumlah']) ? (int)$data['jumlah'] : 0;
 
-                if ($qty > 0) {
-                    $rawItems[] = [
-                        'barang_id' => (int)$barangId,
-                        'satuan' => 'Slop',
-                        'jumlah' => $qty,
-                    ];
+                if ($bId > 0 && $qty > 0) {
+                    $rawItemsByBarang[$bId] = ($rawItemsByBarang[$bId] ?? 0) + $qty;
                 }
             }
         } elseif ($request->filled('barang_id') && $request->filled('jumlah')) {
             // Fallback kompatibilitas jika dikirim sebagai single item
+            $bId = (int)$request->barang_id;
+            $qty = (int)$request->jumlah;
+            if ($bId > 0 && $qty > 0) {
+                $rawItemsByBarang[$bId] = $qty;
+            }
+        }
+
+        $rawItems = [];
+        foreach ($rawItemsByBarang as $bId => $qty) {
             $rawItems[] = [
-                'barang_id' => (int)$request->barang_id,
+                'barang_id' => $bId,
                 'satuan' => 'Slop',
-                'jumlah' => (int)$request->jumlah,
+                'jumlah' => $qty,
             ];
         }
 
@@ -126,6 +134,23 @@ class PemesananController extends Controller
         // Jalankan Database Transaction untuk menjaga integritas data & pemotongan stok
         try {
             $transaksi = DB::transaction(function () use ($request, $user, $rawItems, $totalOrderSlop, $metodePembayaran) {
+                $txLockedOrder = Transaksi::where('user_id', $user->id)
+                    ->where('status', 'Dikirim')
+                    ->whereNull('bukti_penerimaan')
+                    ->lockForUpdate()
+                    ->first();
+                if ($txLockedOrder) {
+                    throw new Exception("Pemesanan terkunci! Anda masih memiliki pesanan aktif ({$txLockedOrder->kode_transaksi}) yang sedang dalam pengiriman.");
+                }
+
+                $barangIds = array_column($rawItems, 'barang_id');
+                sort($barangIds);
+                $lockedBarangs = Barang::whereIn('id', $barangIds)
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('id');
+
                 $kode_transaksi = 'TRX-' . date('Ymd') . '-' . strtoupper(Str::random(4));
                 $grandTotal = 0;
                 $totalUnitQty = 0;
@@ -134,23 +159,32 @@ class PemesananController extends Controller
                 $hargaSatuanTier = Barang::hargaSlopByQty((int) $totalOrderSlop);
 
                 foreach ($rawItems as $itemData) {
-                    $barang = Barang::findOrFail($itemData['barang_id']);
+                    $barang = $lockedBarangs[$itemData['barang_id']] ?? null;
+                    if (!$barang) {
+                        throw new Exception('Varian produk yang dipilih tidak ditemukan di sistem.');
+                    }
+
+                    if (!$barang->aktif) {
+                        throw new Exception("Produk {$barang->nama} saat ini tidak tersedia untuk dipesan.");
+                    }
+
                     $satuan = 'Slop';
                     $qty = $itemData['jumlah'];
 
+                    if ($barang->stok <= 0 || strcasecmp((string) $barang->status_stok, 'Habis') === 0) {
+                        throw new Exception("Stok {$barang->nama} saat ini habis.");
+                    }
+
                     // Cek minimum order satuan Slop (Total gabungan <= 19 Slop sudah divalidasi di atas)
-                    $slopPerBal = $barang->slop_per_bal ?: 20;
                     $minOrder = $barang->min_order_slop ?: 1;
 
                     if ($qty < $minOrder) {
                         throw new Exception("Minimum pemesanan untuk {$barang->nama} adalah {$minOrder} Slop.");
                     }
 
-                    // Cek & Kurangi Stok Gudang (Stok dihitung dalam satuan Bal)
-                    $balDeduct = max(1, (int)ceil($qty / $slopPerBal));
-
-                    if ($barang->stok < $balDeduct) {
-                        throw new Exception("Permintaan untuk varian {$barang->nama} saat ini belum dapat diproses otomatis. Silakan hubungi Admin via WhatsApp untuk konfirmasi ketersediaan.");
+                    // Cek & Kurangi Stok Gudang secara presisi dalam satuan Slop
+                    if ($barang->stok < $qty) {
+                        throw new Exception("Stok untuk varian {$barang->nama} saat ini tersisa {$barang->stok} Slop. Silakan sesuaikan jumlah atau hubungi Admin via WhatsApp.");
                     }
 
                     $hargaSatuan = $hargaSatuanTier;
@@ -159,8 +193,8 @@ class PemesananController extends Controller
                     $grandTotal += $subtotal;
                     $totalUnitQty += $qty;
 
-                    // Kurangi stok produk
-                    $barang->decrement('stok', $balDeduct);
+                    // Kurangi stok produk presisi sesuai jumlah Slop
+                    $barang->decrement('stok', $qty);
 
                     $processedDetails[] = [
                         'barang_id' => $barang->id,
@@ -179,7 +213,7 @@ class PemesananController extends Controller
                     'kode_transaksi' => $kode_transaksi,
                     'user_id' => $user->id,
                     'barang_id' => $firstDetail['barang_id'],
-                    'nama_mitra' => $request->nama_mitra,
+                    'nama_mitra' => Str::limit(trim($request->nama_mitra), 150, ''),
                     'telepon' => $request->telepon,
                     'alamat' => $request->alamat,
                     'jumlah' => $totalUnitQty,
@@ -206,6 +240,11 @@ class PemesananController extends Controller
             return redirect()->route('pesanan.invoice', $transaksi->kode_transaksi)
                 ->with('success', 'Pesanan Anda berhasil dibuat! Faktur pemesanan multi-produk telah terbit.');
 
+        } catch (\Illuminate\Database\QueryException $e) {
+            Log::error('Web Order QueryException: ' . $e->getMessage());
+            return back()->withInput()->withErrors([
+                'items' => 'Terjadi kesalahan sistem saat menyimpan pesanan. Silakan periksa data Anda dan coba kembali.',
+            ]);
         } catch (Exception $e) {
             return back()->withInput()->withErrors([
                 'items' => $e->getMessage(),
@@ -252,8 +291,12 @@ class PemesananController extends Controller
 
         $transaksi = Transaksi::where('user_id', Auth::id())->findOrFail($id);
 
-        if ($transaksi->status === 'Dibatalkan') {
-            return back()->with('error', 'Pesanan yang telah dibatalkan tidak dapat diunggah bukti transfernya.');
+        if (!$transaksi->isTransferBank()) {
+            return back()->with('error', 'Unggah bukti transfer hanya berlaku untuk pesanan dengan metode Transfer Bank.');
+        }
+
+        if (in_array($transaksi->status, ['Selesai', 'Dibatalkan'], true)) {
+            return back()->with('error', "Pesanan berstatus '{$transaksi->status}' tidak dapat diunggah bukti transfernya.");
         }
 
         if ($transaksi->status_pembayaran === 'Lunas') {
@@ -272,6 +315,10 @@ class PemesananController extends Controller
         $file = $request->file('bukti_transfer');
         $filename = 'bukti_transfer_' . $transaksi->kode_transaksi . '_' . time() . '.' . $file->getClientOriginalExtension();
         $path = $file->storeAs('bukti_transfer', $filename, 'public');
+
+        if ($transaksi->bukti_transfer && Storage::disk('public')->exists($transaksi->bukti_transfer)) {
+            Storage::disk('public')->delete($transaksi->bukti_transfer);
+        }
 
         $transaksi->update([
             'bukti_transfer' => $path,
@@ -295,12 +342,6 @@ class PemesananController extends Controller
             return redirect()->route('login');
         }
 
-        $transaksi = Transaksi::where('user_id', Auth::id())->findOrFail($id);
-
-        if ($transaksi->status !== 'Dikirim') {
-            return back()->with('error', 'Pesanan ini tidak berada dalam tahap pengiriman.');
-        }
-
         $request->validate([
             'foto_bukti' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
             'catatan_penerima' => ['nullable', 'string', 'max:500'],
@@ -311,15 +352,33 @@ class PemesananController extends Controller
             'foto_bukti.max' => 'Ukuran foto maksimal adalah 5 Megabyte (MB).',
         ]);
 
-        $path = $request->file('foto_bukti')->store('bukti_penerimaan', 'public');
+        try {
+            $transaksi = DB::transaction(function () use ($request, $id) {
+                $transaksi = Transaksi::where('user_id', Auth::id())->lockForUpdate()->findOrFail($id);
 
-        $transaksi->update([
-            'status' => 'Selesai',
-            'status_pembayaran' => 'Lunas',
-            'bukti_penerimaan' => $path,
-            'diterima_pada' => now(),
-            'catatan_penerima' => $request->catatan_penerima,
-        ]);
+                if ($transaksi->status !== 'Dikirim') {
+                    throw new Exception('Pesanan ini tidak berada dalam tahap pengiriman.');
+                }
+
+                if ($transaksi->isTransferBelumLunas()) {
+                    throw new Exception('Pesanan Transfer Bank belum dapat dikonfirmasi selesai sebelum pembayaran diverifikasi Lunas oleh admin pabrik.');
+                }
+
+                $path = $request->file('foto_bukti')->store('bukti_penerimaan', 'public');
+
+                $transaksi->update([
+                    'status' => 'Selesai',
+                    'status_pembayaran' => 'Lunas',
+                    'bukti_penerimaan' => $path,
+                    'diterima_pada' => now(),
+                    'catatan_penerima' => $request->catatan_penerima,
+                ]);
+
+                return $transaksi;
+            });
+        } catch (Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         ActivityLogger::log('Bukti Terima Diunggah', "Mitra '{$transaksi->nama_mitra}' telah mengunggah bukti terima untuk transaksi {$transaksi->kode_transaksi}");
 
@@ -329,15 +388,11 @@ class PemesananController extends Controller
 
     private function getBankInfo(): array
     {
-        return [
-            'nama' => config('pabrik.bank_nama'),
-            'rekening' => config('pabrik.bank_rekening'),
-            'atas_nama' => config('pabrik.bank_atas_nama'),
-        ];
+        return \App\Services\PabrikConfigService::bankInfo();
     }
 
     /**
-     * Pembatalan Mandiri oleh Pelanggan (Hanya jika status 'Baru Masuk')
+     * Pembatalan Mandiri oleh Pelanggan (Hanya jika status 'Baru Masuk' dan belum Lunas)
      */
     public function batalkanPesanan(Request $request, $id)
     {
@@ -345,33 +400,54 @@ class PemesananController extends Controller
             return redirect()->route('login');
         }
 
-        $transaksi = Transaksi::with('details.barang', 'barang')->where('user_id', Auth::id())->findOrFail($id);
+        try {
+            $transaksi = DB::transaction(function () use ($id) {
+                $transaksi = Transaksi::with(['details.barang', 'barang'])
+                    ->where('user_id', Auth::id())
+                    ->lockForUpdate()
+                    ->findOrFail($id);
 
-        if ($transaksi->status !== 'Baru Masuk') {
-            return back()->with('error', 'Pesanan yang sudah diproses atau dikirim oleh pabrik tidak dapat dibatalkan mandiri. Silakan hubungi admin via WhatsApp.');
-        }
+                if ($transaksi->status !== 'Baru Masuk') {
+                    throw new Exception('Pesanan yang sudah diproses atau dikirim oleh pabrik tidak dapat dibatalkan mandiri. Silakan hubungi admin via WhatsApp.');
+                }
 
-        DB::transaction(function () use ($transaksi) {
-            // Kembalikan stok untuk seluruh item produk yang ada di transaksi ini
-            if ($transaksi->details && $transaksi->details->isNotEmpty()) {
-                foreach ($transaksi->details as $d) {
-                    if ($d->barang) {
-                        $slopPerBal = $d->barang->slop_per_bal ?: 20;
-                        $balDeduct = ($d->satuan === 'Bal') ? $d->jumlah : max(1, (int)ceil($d->jumlah / $slopPerBal));
-                        $d->barang->increment('stok', $balDeduct);
+                if ($transaksi->status_pembayaran === 'Lunas') {
+                    throw new Exception('Pesanan yang pembayarannya sudah diverifikasi Lunas tidak dapat dibatalkan mandiri. Silakan hubungi Admin pabrik via WhatsApp untuk proses pembatalan dan pengembalian dana.');
+                }
+
+                // Kembalikan stok secara presisi (Slop) dan teragregasi per barang_id
+                $restorationMap = [];
+                if ($transaksi->details && $transaksi->details->isNotEmpty()) {
+                    foreach ($transaksi->details as $d) {
+                        if ($d->barang) {
+                            $slopPerBal = $d->barang->slop_per_bal ?: 20;
+                            $slopUnit = ($d->satuan === 'Bal') ? ($d->jumlah * $slopPerBal) : $d->jumlah;
+                            $restorationMap[$d->barang_id] = ($restorationMap[$d->barang_id] ?? 0) + $slopUnit;
+                        }
+                    }
+                } elseif ($transaksi->barang) {
+                    $slopPerBal = $transaksi->barang->slop_per_bal ?: 20;
+                    $restorationMap[$transaksi->barang_id] = ($transaksi->satuan === 'Bal') ? ($transaksi->jumlah * $slopPerBal) : $transaksi->jumlah;
+                }
+
+                ksort($restorationMap);
+                foreach ($restorationMap as $bId => $slopToRestore) {
+                    $lockedBarang = Barang::where('id', $bId)->lockForUpdate()->first();
+                    if ($lockedBarang) {
+                        $lockedBarang->increment('stok', $slopToRestore);
                     }
                 }
-            } elseif ($transaksi->barang) {
-                $slopPerBal = $transaksi->barang->slop_per_bal ?: 20;
-                $balDeduct = ($transaksi->satuan === 'Bal') ? $transaksi->jumlah : max(1, (int)ceil($transaksi->jumlah / $slopPerBal));
-                $transaksi->barang->increment('stok', $balDeduct);
-            }
 
-            $transaksi->update([
-                'status' => 'Dibatalkan',
-                'catatan' => ($transaksi->catatan ? $transaksi->catatan . "\n" : '') . "[Dibatalkan oleh pembeli pada " . now()->format('d/m/Y H:i') . "]",
-            ]);
-        });
+                $transaksi->update([
+                    'status' => 'Dibatalkan',
+                    'catatan' => ($transaksi->catatan ? $transaksi->catatan . "\n" : '') . "[Dibatalkan oleh pembeli pada " . now()->format('d/m/Y H:i') . "]",
+                ]);
+
+                return $transaksi;
+            });
+        } catch (Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         ActivityLogger::log('Batal Pesanan', "Pesanan {$transaksi->kode_transaksi} dibatalkan oleh pembeli");
 
@@ -397,11 +473,11 @@ class PemesananController extends Controller
             foreach ($transaksi->details as $idx => $d) {
                 $num = $idx + 1;
                 $nama = $d->barang?->nama ?? 'Produk';
-                $daftarProdukText .= "  {$num}. {$nama} ({$d->jumlah} {$d->satuan}) - {$d->formatted_subtotal}%0A";
+                $daftarProdukText .= "  {$num}. " . urlencode($nama) . " ({$d->jumlah} {$d->satuan}) - " . urlencode($d->formatted_subtotal) . "%0A";
             }
         } else {
             $namaProduk = $transaksi->barang?->nama ?? 'Produk';
-            $daftarProdukText = "  • {$namaProduk} ({$transaksi->jumlah} {$transaksi->satuan}) - {$transaksi->formatted_total}%0A";
+            $daftarProdukText = "  • " . urlencode($namaProduk) . " ({$transaksi->jumlah} {$transaksi->satuan}) - " . urlencode($transaksi->formatted_total) . "%0A";
         }
 
         $metodePembayaran = $transaksi->metode_pembayaran ?? 'Bayar di Tempat (COD)';
@@ -409,11 +485,11 @@ class PemesananController extends Controller
         // Format pesan WhatsApp resmi
         $pesanWa = "Halo Tim Manajemen PR. KERETA KENCANA,%0A%0A"
             . "Saya telah membuat pemesanan resmi melalui website:%0A"
-            . "• No. Pemesanan: *" . $transaksi->kode_transaksi . "*%0A"
-            . "• Nama Mitra/Toko: *" . $transaksi->nama_mitra . "*%0A"
-            . "• Telepon: " . $transaksi->telepon . "%0A"
+            . "• No. Pemesanan: *" . urlencode($transaksi->kode_transaksi) . "*%0A"
+            . "• Nama Mitra/Toko: *" . urlencode($transaksi->nama_mitra) . "*%0A"
+            . "• Telepon: " . urlencode($transaksi->telepon) . "%0A"
             . "• Rincian Item Rokok:%0A" . $daftarProdukText
-            . "• Total Tagihan: *" . $transaksi->formatted_total . "*%0A"
+            . "• Total Tagihan: *" . urlencode($transaksi->formatted_total) . "*%0A"
             . "• Metode Pembayaran: " . urlencode($metodePembayaran) . "%0A"
             . "• Alamat Tujuan: " . urlencode($transaksi->alamat) . "%0A"
             . ($transaksi->catatan ? ("• Catatan: " . urlencode($transaksi->catatan) . "%0A") : "")

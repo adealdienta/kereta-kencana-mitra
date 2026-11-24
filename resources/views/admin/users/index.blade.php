@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Kelola Pengguna & Staf')
+@section('title', 'Kelola Akun Admin')
 @section('header_title', 'Manajemen Pengguna & Hak Akses Berjenjang (RBAC)')
 
 @section('content')
@@ -37,18 +37,22 @@
                         </td>
                         <td style="padding: 10px; text-align: center;">
                             <div style="display: inline-flex; gap: 6px; align-items: center;">
-                                <button type="button" onclick='openEditUserModal(@json($u->id), @json($u->name), @json($u->email), @json($u->role))'
-                                        style="background: none; border: none; color: #0284c7; cursor: pointer; padding: 4px;" title="Ubah Akun">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </button>
-                                @if($u->id !== auth()->id())
-                                    <form action="{{ route('admin.users.destroy', $u->id) }}" method="POST" onsubmit="return confirm('Hapus akun {{ $u->name }}?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" style="background: none; border: none; color: #dc2626; cursor: pointer; padding: 4px;" title="Hapus Akun">
-                                            <i class="fa-solid fa-trash"></i>
-                                        </button>
-                                    </form>
+                                @if($u->role !== 'owner' || auth()->user()->isOwner())
+                                    <button type="button" onclick='openEditUserModal(@json($u->id), @json($u->name), @json($u->email), @json($u->role))'
+                                            style="background: none; border: none; color: #0284c7; cursor: pointer; padding: 4px;" title="Ubah Akun">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    @if($u->id !== auth()->id())
+                                        <form action="{{ route('admin.users.destroy', $u->id) }}" method="POST" onsubmit='return confirm(@json("Hapus akun " . $u->name . "?"))'>
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" style="background: none; border: none; color: #dc2626; cursor: pointer; padding: 4px;" title="Hapus Akun">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+                                @else
+                                    <span style="font-size: 11px; color: #94a3b8;">Terproteksi</span>
                                 @endif
                             </div>
                         </td>
@@ -68,13 +72,13 @@
             @csrf
             <div style="margin-bottom: 14px;">
                 <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px;">Nama Lengkap <span style="color: #dc2626;">*</span></label>
-                <input type="text" name="name" required placeholder="Contoh: Staf Operasional Gudang"
+                <input type="text" name="name" required placeholder="Contoh: Admin Operasional Gudang"
                        style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
             </div>
 
             <div style="margin-bottom: 14px;">
                 <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px;">Alamat Email <span style="color: #dc2626;">*</span></label>
-                <input type="email" name="email" required placeholder="nama@email-staf.com"
+                <input type="email" name="email" required placeholder="nama@keretakencana.com"
                        style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
             </div>
 
@@ -87,9 +91,11 @@
             <div style="margin-bottom: 20px;">
                 <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px;">Tingkatan Akses / Role <span style="color: #dc2626;">*</span></label>
                 <select name="role" required style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
-                    <option value="staff">Staff (Operasional Pesanan &amp; Pengiriman)</option>
+                    <option value="admin">Admin (Operasional Pesanan &amp; Pengiriman)</option>
                     <option value="superadmin">Super Admin (Teknis &amp; Pengelola Sistem)</option>
-                    <option value="owner">Owner (Hak Akses Penuh Sistem &amp; Bisnis)</option>
+                    @if(auth()->user()->isOwner())
+                        <option value="owner">Owner (Hak Akses Penuh Sistem &amp; Bisnis)</option>
+                    @endif
                 </select>
             </div>
 
@@ -105,7 +111,7 @@
     <div style="background: #fff; border-radius: 8px; width: 100%; max-width: 460px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
             <h3 style="font-size: 16px; font-weight: 700; color: #1e293b; margin: 0;">
-                <i class="fa-solid fa-user-pen" style="color: var(--admin-gold); margin-right: 6px;"></i> Edit Akun Staf
+                <i class="fa-solid fa-user-pen" style="color: var(--admin-gold); margin-right: 6px;"></i> Edit Akun Admin
             </h3>
             <button type="button" onclick="closeEditUserModal()" style="background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer;">&times;</button>
         </div>
@@ -127,9 +133,11 @@
             <div style="margin-bottom: 12px;">
                 <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px;">Tingkatan Role <span style="color: #dc2626;">*</span></label>
                 <select name="role" id="editUserRole" required style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
-                    <option value="staff">Staff</option>
+                    <option value="admin">Admin</option>
                     <option value="superadmin">Super Admin</option>
-                    <option value="owner">Owner</option>
+                    @if(auth()->user()->isOwner())
+                        <option value="owner">Owner</option>
+                    @endif
                 </select>
             </div>
 
@@ -156,7 +164,7 @@ function openEditUserModal(id, name, email, role) {
     document.getElementById('formEditUser').action = '/admin/users/' + id;
     document.getElementById('editUserName').value = name || '';
     document.getElementById('editUserEmail').value = email || '';
-    document.getElementById('editUserRole').value = role || 'staff';
+    document.getElementById('editUserRole').value = role || 'admin';
     document.getElementById('editUserModal').style.display = 'flex';
 }
 function closeEditUserModal() {

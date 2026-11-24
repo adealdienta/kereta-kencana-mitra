@@ -54,6 +54,10 @@ class ApiController extends Controller
 
         $clean = preg_replace('/[^0-9]/', '', $phone);
 
+        if ($clean === '') {
+            return '';
+        }
+
         if (str_starts_with($clean, '62')) {
             return '+' . $clean;
         }

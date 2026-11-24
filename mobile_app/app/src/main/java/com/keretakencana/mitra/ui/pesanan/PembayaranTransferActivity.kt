@@ -20,13 +20,15 @@ import com.keretakencana.mitra.data.api.ApiClient
 import com.keretakencana.mitra.data.local.SessionManager
 import com.keretakencana.mitra.data.model.Pengaturan
 import com.keretakencana.mitra.databinding.ActivityPembayaranTransferBinding
+import com.keretakencana.mitra.utils.ApiErrorHelper
 import com.keretakencana.mitra.utils.CurrencyHelper
+import com.keretakencana.mitra.utils.ImageUploadHelper
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
-import java.io.File
-import java.io.FileOutputStream
 import java.net.URLEncoder
 
 class PembayaranTransferActivity : AppCompatActivity() {
@@ -37,6 +39,7 @@ class PembayaranTransferActivity : AppCompatActivity() {
     private var totalHarga: Double = 0.0
     private var formattedTotal: String = ""
     private var selectedImageUri: Uri? = null
+    private var pendingCameraUri: Uri? = null
     private var isAlreadyUploaded: Boolean = false
     private lateinit var currentPengaturan: Pengaturan
 
@@ -44,6 +47,17 @@ class PembayaranTransferActivity : AppCompatActivity() {
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
+            selectedImageUri = uri
+            showImagePreview(uri)
+            binding.btnKirimBuktiTransfer.isEnabled = true
+        }
+    }
+
+    private val takePictureLauncher = registerForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success: Boolean ->
+        val uri = pendingCameraUri
+        if (success && uri != null) {
             selectedImageUri = uri
             showImagePreview(uri)
             binding.btnKirimBuktiTransfer.isEnabled = true
@@ -134,7 +148,7 @@ class PembayaranTransferActivity : AppCompatActivity() {
         }
 
         binding.btnPilihFotoBukti.setOnClickListener {
-            selectImageLauncher.launch("image/*")
+            showImageSourcePicker()
         }
 
         binding.btnKirimBuktiTransfer.setOnClickListener {
@@ -154,7 +168,9 @@ class PembayaranTransferActivity : AppCompatActivity() {
     private fun showImagePreview(uri: Uri) {
         binding.layoutPlaceholderUpload.visibility = View.GONE
         binding.ivPreviewBukti.visibility = View.VISIBLE
-        binding.ivPreviewBukti.setImageURI(uri)
+        Glide.with(this)
+            .load(uri)
+            .into(binding.ivPreviewBukti)
     }
 
     private fun loadPesananStatus() {
@@ -168,7 +184,15 @@ class PembayaranTransferActivity : AppCompatActivity() {
                 if (response.isSuccessful && response.body()?.success == true) {
                     val trx = response.body()?.data
                     if (trx != null) {
-                        updateStatusBadge(trx.statusPembayaran ?: "Belum Dibayar")
+                        val isClosedOrder = trx.status.equals("Dibatalkan", ignoreCase = true) ||
+                                trx.status.equals("Selesai", ignoreCase = true)
+                        if (trx.status.equals("Dibatalkan", ignoreCase = true)) {
+                            binding.tvTransferStatusBadge.text = "Dibatalkan"
+                            binding.tvTransferStatusBadge.setBackgroundResource(R.drawable.bg_chip_gray)
+                            binding.tvTransferStatusBadge.setTextColor(ContextCompat.getColor(this@PembayaranTransferActivity, R.color.status_red))
+                        } else {
+                            updateStatusBadge(trx.statusPembayaran ?: "Belum Dibayar")
+                        }
 
                         if (!trx.buktiTransferUrl.isNullOrBlank()) {
                             isAlreadyUploaded = true
@@ -180,6 +204,11 @@ class PembayaranTransferActivity : AppCompatActivity() {
 
                             binding.btnPilihFotoBukti.text = "Ganti Foto Bukti Transfer"
                             binding.btnKirimBuktiTransfer.text = "Kirim Ulang Bukti"
+                        }
+
+                        if (isClosedOrder) {
+                            binding.btnKirimBuktiTransfer.visibility = View.GONE
+                            binding.btnPilihFotoBukti.visibility = View.GONE
                         }
                     }
                 }
@@ -218,6 +247,26 @@ class PembayaranTransferActivity : AppCompatActivity() {
         }
     }
 
+    private fun showImageSourcePicker() {
+        val options = arrayOf("Pilih dari Galeri", "Ambil Foto dengan Kamera")
+        AlertDialog.Builder(this)
+            .setTitle("Pilih Sumber Bukti Transfer")
+            .setItems(options) { _, which ->
+                if (which == 1) {
+                    try {
+                        val cameraUri = ImageUploadHelper.createCameraImageUri(this, "bukti_transfer_cam_")
+                        pendingCameraUri = cameraUri
+                        takePictureLauncher.launch(cameraUri)
+                    } catch (e: Exception) {
+                        Toast.makeText(this, "Kamera tidak tersedia: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    selectImageLauncher.launch("image/*")
+                }
+            }
+            .show()
+    }
+
     private fun confirmAndUploadBukti(uri: Uri) {
         AlertDialog.Builder(this)
             .setTitle("Kirim Bukti Pembayaran?")
@@ -234,14 +283,20 @@ class PembayaranTransferActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                val file = createTempFileFromUri(uri)
+                val file = withContext(Dispatchers.IO) {
+                    ImageUploadHelper.compressUriToJpegFile(
+                        this@PembayaranTransferActivity,
+                        uri,
+                        "bukti_transfer_"
+                    )
+                }
                 if (file == null) {
                     setLoading(false)
                     Toast.makeText(this@PembayaranTransferActivity, "Gagal memproses file gambar.", Toast.LENGTH_SHORT).show()
                     return@launch
                 }
 
-                val reqFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+                val reqFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
                 val body = MultipartBody.Part.createFormData("bukti_transfer", file.name, reqFile)
 
                 val api = ApiClient.getService(this@PembayaranTransferActivity)
@@ -260,30 +315,13 @@ class PembayaranTransferActivity : AppCompatActivity() {
                         .setCancelable(false)
                         .show()
                 } else {
-                    val errorMsg = response.body()?.message ?: "Gagal mengunggah bukti transfer."
+                    val errorMsg = ApiErrorHelper.parseMessage(response, response.body()?.message ?: "Gagal mengunggah bukti transfer.")
                     Toast.makeText(this@PembayaranTransferActivity, errorMsg, Toast.LENGTH_LONG).show()
                 }
             } catch (e: Exception) {
                 setLoading(false)
                 Toast.makeText(this@PembayaranTransferActivity, "Koneksi terganggu: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
             }
-        }
-    }
-
-    private fun createTempFileFromUri(uri: Uri): File? {
-        return try {
-            val contentResolver = contentResolver
-            val inputStream = contentResolver.openInputStream(uri) ?: return null
-            val tempFile = File.createTempFile("bukti_transfer_", ".jpg", cacheDir)
-            val outputStream = FileOutputStream(tempFile)
-            inputStream.use { input ->
-                outputStream.use { output ->
-                    input.copyTo(output)
-                }
-            }
-            tempFile
-        } catch (_: Exception) {
-            null
         }
     }
 

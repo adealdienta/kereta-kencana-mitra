@@ -27,6 +27,14 @@
                 <option value="Offline" {{ request('sumber') === 'Offline' ? 'selected' : '' }}>Langsung Pabrik (Offline)</option>
             </select>
 
+            <select name="status_pembayaran" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+                <option value="">-- Semua Pembayaran --</option>
+                <option value="Belum Dibayar" {{ request('status_pembayaran') === 'Belum Dibayar' ? 'selected' : '' }}>Belum Dibayar</option>
+                <option value="Menunggu Verifikasi" {{ request('status_pembayaran') === 'Menunggu Verifikasi' ? 'selected' : '' }}>Menunggu Verifikasi</option>
+                <option value="Lunas" {{ request('status_pembayaran') === 'Lunas' ? 'selected' : '' }}>Lunas</option>
+                <option value="Ditolak" {{ request('status_pembayaran') === 'Ditolak' ? 'selected' : '' }}>Ditolak</option>
+            </select>
+
             <button type="submit" class="btn btn-secondary btn-sm" style="padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
                 <i class="fa-solid fa-filter"></i> Saring Data
             </button>
@@ -35,9 +43,6 @@
         <div class="admin-action-buttons" style="display: flex; gap: 8px; flex-wrap: wrap;">
             <a href="{{ route('admin.transaksis.offline') }}" style="background: #10b981; color: #fff; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
                 <i class="fa-solid fa-cash-register"></i> + Transaksi Langsung di Pabrik (Offline)
-            </a>
-            <a href="{{ route('pesanan.form') }}" target="_blank" style="background: #121619; color: #fff; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
-                <i class="fa-solid fa-cart-plus"></i> Form Order Web
             </a>
         </div>
     </div>
@@ -153,13 +158,6 @@
                                 <a href="{{ route('admin.transaksis.faktur', $t->id) }}" target="_blank" style="color: #059669; padding: 4px 6px;" title="Cetak Faktur / DO">
                                     <i class="fa-solid fa-print"></i>
                                 </a>
-                                <form action="{{ route('admin.transaksis.destroy', $t->id) }}" method="POST" onsubmit="return confirm('Hapus transaksi {{ $t->kode_transaksi }}? Stok akan dipulihkan.')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" style="background: none; border: none; color: #dc2626; cursor: pointer; padding: 4px 6px;" title="Hapus">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </form>
                             </div>
                         </td>
                     </tr>

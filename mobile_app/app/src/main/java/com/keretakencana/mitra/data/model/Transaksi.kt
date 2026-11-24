@@ -36,6 +36,12 @@ data class Transaksi(
     @SerializedName("catatan_penerima")
     val catatanPenerima: String? = null,
 
+    @SerializedName("nomor_do")
+    val nomorDo: String? = null,
+
+    @SerializedName("nomor_resi")
+    val nomorResi: String? = null,
+
     @SerializedName("bukti_penerimaan_url")
     val buktiPenerimaanUrl: String? = null,
 

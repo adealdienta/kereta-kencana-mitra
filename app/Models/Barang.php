@@ -34,6 +34,7 @@ class Barang extends Model
         'status_stok',
         'gambar',
         'aktif',
+        'best_seller',
         'urutan',
     ];
 
@@ -41,6 +42,7 @@ class Barang extends Model
     {
         return [
             'aktif' => 'boolean',
+            'best_seller' => 'boolean',
             'harga_per_bal' => 'decimal:2',
             'harga_per_slop' => 'decimal:2',
             'tar_mg' => 'decimal:1',
@@ -104,6 +106,45 @@ class Barang extends Model
     public function getFormattedHargaSlopAttribute(): string
     {
         return 'Rp ' . number_format((float)$this->harga_per_slop, 0, ',', '.');
+    }
+
+    public function getStokBalUtuhAttribute(): int
+    {
+        $slopPerBal = max(1, (int) ($this->slop_per_bal ?: 20));
+        return intdiv(max(0, (int) $this->stok), $slopPerBal);
+    }
+
+    public function getStokSisaSlopAttribute(): int
+    {
+        $slopPerBal = max(1, (int) ($this->slop_per_bal ?: 20));
+        return max(0, (int) $this->stok) % $slopPerBal;
+    }
+
+    public function getFormattedStokAttribute(): string
+    {
+        $totalSlop = max(0, (int) $this->stok);
+        if ($totalSlop <= 0) {
+            return '0 Slop (Habis)';
+        }
+
+        $bal = $this->stok_bal_utuh;
+        $sisa = $this->stok_sisa_slop;
+        $slopFormatted = number_format($totalSlop, 0, ',', '.');
+
+        if ($bal > 0 && $sisa > 0) {
+            return "{$bal} Bal {$sisa} Slop ({$slopFormatted} Slop)";
+        }
+
+        if ($bal > 0) {
+            return "{$bal} Bal ({$slopFormatted} Slop)";
+        }
+
+        return "{$sisa} Slop";
+    }
+
+    public function isTersediaUntukOrder(): bool
+    {
+        return $this->aktif && (int) $this->stok > 0 && strcasecmp((string) $this->status_stok, 'Habis') !== 0;
     }
 
     public function getImageUrlAttribute(): string

@@ -58,8 +58,8 @@
                             <div style="font-size: 11px; color: #475569;">{{ $b->formatted_harga }} / Bal</div>
                         </td>
                         <td style="padding: 10px; text-align: center;">
-                            <span style="font-weight: 700; color: {{ $b->stok <= 20 ? '#dc2626' : '#16a34a' }};">
-                                {{ $b->stok }} Bal
+                            <span style="font-weight: 700; color: {{ $b->stok <= 400 ? '#dc2626' : '#16a34a' }};">
+                                {{ $b->formatted_stok }}
                             </span>
                         </td>
                         <td style="padding: 10px; text-align: center;">
@@ -72,7 +72,7 @@
                                 <a href="{{ route('admin.barangs.edit', $b->id) }}" style="color: #0284c7; padding: 4px 8px; font-size: 13px;" title="Edit Produk">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </a>
-                                <form action="{{ route('admin.barangs.destroy', $b->id) }}" method="POST" onsubmit="return confirm('Hapus produk {{ $b->nama }}?')">
+                                <form action="{{ route('admin.barangs.destroy', $b->id) }}" method="POST" onsubmit='return confirm(@json("Hapus produk " . $b->nama . "?"))'>
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" style="background: none; border: none; color: #dc2626; cursor: pointer; padding: 4px 8px;" title="Hapus Produk">

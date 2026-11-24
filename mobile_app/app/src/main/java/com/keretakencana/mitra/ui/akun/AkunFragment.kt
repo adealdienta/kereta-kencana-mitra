@@ -1,8 +1,6 @@
 package com.keretakencana.mitra.ui.akun
 
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -21,12 +19,15 @@ import com.keretakencana.mitra.data.local.CartManager
 import com.keretakencana.mitra.data.local.SessionManager
 import com.keretakencana.mitra.databinding.FragmentAkunBinding
 import com.keretakencana.mitra.ui.auth.LoginBottomSheetFragment
+import com.keretakencana.mitra.utils.ApiErrorHelper
+import com.keretakencana.mitra.utils.ImageUploadHelper
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
-import java.io.File
-import java.io.FileOutputStream
 import java.net.URLEncoder
 
 class AkunFragment : Fragment() {
@@ -112,7 +113,8 @@ class AkunFragment : Fragment() {
     }
 
     private fun uploadAvatar(uri: Uri) {
-        val session = SessionManager.getInstance(requireContext())
+        val ctx = context ?: return
+        val session = SessionManager.getInstance(ctx)
         if (!session.isLoggedIn()) return
 
         binding.progressUploadAvatar.visibility = View.VISIBLE
@@ -120,7 +122,18 @@ class AkunFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val file = createTempFileFromUri(uri)
+                val appCtx = ctx.applicationContext
+                val file = withContext(Dispatchers.IO) {
+                    ImageUploadHelper.compressUriToJpegFile(
+                        appCtx,
+                        uri,
+                        "avatar_mitra_",
+                        maxDimension = 1080,
+                        quality = 85
+                    )
+                }
+                if (!isAdded || _binding == null) return@launch
+
                 if (file == null) {
                     binding.progressUploadAvatar.visibility = View.GONE
                     binding.ivCameraBadge.visibility = View.VISIBLE
@@ -128,12 +141,13 @@ class AkunFragment : Fragment() {
                     return@launch
                 }
 
-                val reqFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+                val reqFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
                 val body = MultipartBody.Part.createFormData("foto", file.name, reqFile)
 
                 val api = ApiClient.getService(requireContext())
                 val response = api.uploadFotoProfil(body)
 
+                if (!isAdded || _binding == null) return@launch
                 binding.progressUploadAvatar.visibility = View.GONE
                 binding.ivCameraBadge.visibility = View.VISIBLE
 
@@ -145,65 +159,17 @@ class AkunFragment : Fragment() {
                     Toast.makeText(requireContext(), "✓ Foto profil berhasil diperbarui.", Toast.LENGTH_SHORT).show()
                     updateProfileView()
                 } else {
-                    val rawError = response.errorBody()?.string()
-                    val errMsg = try {
-                        if (!rawError.isNullOrBlank()) {
-                            val json = org.json.JSONObject(rawError)
-                            json.optString("message", "Gagal mengunggah foto profil.")
-                        } else {
-                            response.body()?.message ?: "Gagal mengunggah foto profil."
-                        }
-                    } catch (_: Exception) {
-                        response.body()?.message ?: "Gagal mengunggah foto profil."
-                    }
+                    val errMsg = ApiErrorHelper.parseMessage(response, response.body()?.message ?: "Gagal mengunggah foto profil.")
                     Toast.makeText(requireContext(), errMsg, Toast.LENGTH_LONG).show()
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
+                if (!isAdded || _binding == null) return@launch
                 binding.progressUploadAvatar.visibility = View.GONE
                 binding.ivCameraBadge.visibility = View.VISIBLE
                 Toast.makeText(requireContext(), "Gagal upload: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
             }
-        }
-    }
-
-    private fun createTempFileFromUri(uri: Uri): File? {
-        return try {
-            val context = context ?: return null
-            val inputStream = context.contentResolver.openInputStream(uri) ?: return null
-            val tempFile = File.createTempFile("avatar_mitra_", ".jpg", context.cacheDir)
-
-            val bitmap = BitmapFactory.decodeStream(inputStream)
-            inputStream.close()
-
-            if (bitmap != null) {
-                val maxDim = 1080
-                val width = bitmap.width
-                val height = bitmap.height
-                val (scaledWidth, scaledHeight) = if (width > maxDim || height > maxDim) {
-                    val ratio = width.toFloat() / height.toFloat()
-                    if (ratio > 1) {
-                        Pair(maxDim, (maxDim / ratio).toInt())
-                    } else {
-                        Pair((maxDim * ratio).toInt(), maxDim)
-                    }
-                } else {
-                    Pair(width, height)
-                }
-
-                val scaledBitmap = Bitmap.createScaledBitmap(bitmap, scaledWidth, scaledHeight, true)
-                val fos = FileOutputStream(tempFile)
-                scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 85, fos)
-                fos.flush()
-                fos.close()
-                tempFile
-            } else {
-                val is2 = context.contentResolver.openInputStream(uri) ?: return null
-                val fos = FileOutputStream(tempFile)
-                is2.use { input -> fos.use { output -> input.copyTo(output) } }
-                tempFile
-            }
-        } catch (_: Exception) {
-            null
         }
     }
 
@@ -212,6 +178,7 @@ class AkunFragment : Fragment() {
             try {
                 val api = ApiClient.getService(requireContext())
                 val response = api.getPengaturan()
+                if (!isAdded || _binding == null) return@launch
                 if (response.isSuccessful && response.body()?.success == true) {
                     val data = response.body()?.data
                     waPabrikNumber = data?.waPabrik
@@ -219,6 +186,7 @@ class AkunFragment : Fragment() {
                         binding.tvNomorWaPabrik.text = "Hubungi admin resmi (+${waPabrikNumber})"
                     }
                 }
+            } catch (_: CancellationException) {
             } catch (_: Exception) {}
         }
     }

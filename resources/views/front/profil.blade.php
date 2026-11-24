@@ -32,12 +32,11 @@
 
             <!-- Kolom Kanan: Foto Pabrik & Tabel Fakta Kunci -->
             <div class="profil-visual-col scroll-reveal reveal-zoom reveal-delay-1">
-                @if(file_exists(public_path('assets/img/pabrik-ponggok.jpg')))
+                @php $imgMeta = $fasilitasImages['pabrik-ponggok'] ?? []; @endphp
+                @if(!empty($imgMeta['exists']) && !empty($imgMeta['url']))
                     <div class="photo-frame-modern" style="min-height: 320px; border: 1px solid var(--border-light); border-radius: 0; box-shadow: none;">
-                        <img src="{{ asset('assets/img/pabrik-ponggok.jpg') }}?v=2" alt="Pabrik PR. Kereta Kencana Ponggok" class="photo-frame-img" style="height: 320px;">
-                        <div class="photo-frame-caption">
-                            Pabrik PR. KERETA KENCANA &bull; Ponggok, Kab. Blitar
-                        </div>
+                        <img src="{{ $imgMeta['url'] }}" alt="{{ $imgMeta['alt'] ?? 'Pabrik PR. Kereta Kencana Ponggok' }}" class="photo-frame-img" style="height: 320px;">
+                        @include('front._facility_caption', ['imgMeta' => $imgMeta])
                     </div>
                 @else
                     <div class="photo-placeholder-slot" style="min-height: 320px;">
@@ -68,6 +67,10 @@
                     <div class="profil-fakta-card">
                         <div class="profil-fakta-label">Satuan Kemasan</div>
                         <div class="profil-fakta-value">10 Bungkus/Slop &bull; Bal via Admin</div>
+                    </div>
+                    <div class="profil-fakta-card" style="grid-column: 1 / -1;">
+                        <div class="profil-fakta-label">Jam Operasional Pabrik</div>
+                        <div class="profil-fakta-value">{{ $pabrikJamOperasional ?? config('pabrik.jam_operasional', 'Buka: 09.00 - 16.00 WIB (Senin - Sabtu)') }}</div>
                     </div>
                 </div>
             </div>
@@ -191,7 +194,7 @@
         </div>
 
         <p style="margin: 16px 0 0; font-size: 0.86rem; color: #8c8c8c; line-height: 1.55;">
-            Sebagian digit nomor izin disensor untuk mencegah penyalahgunaan maupun pemalsuan dokumen. Mitra resmi yang membutuhkan verifikasi dokumen asli dapat menghubungi <a href="https://wa.me/{{ config('pabrik.wa_pabrik', '6285790627104') }}?text={{ urlencode('Halo Admin PR. KERETA KENCANA, saya ingin mengonfirmasi kelengkapan dokumen legalitas kemitraan.') }}" target="_blank" rel="noopener noreferrer" style="color: #ffffff; text-decoration: underline;">Admin via WhatsApp</a>.
+            Sebagian digit nomor izin disensor untuk mencegah penyalahgunaan maupun pemalsuan dokumen. Mitra resmi yang membutuhkan verifikasi dokumen asli dapat menghubungi <a href="https://wa.me/{{ $pabrikWa ?? config('pabrik.wa_pabrik', '6285790627104') }}?text={{ urlencode('Halo Admin PR. KERETA KENCANA, saya ingin mengonfirmasi kelengkapan dokumen legalitas kemitraan.') }}" target="_blank" rel="noopener noreferrer" style="color: #ffffff; text-decoration: underline;">Admin via WhatsApp</a>.
         </p>
     </div>
 </section>
@@ -210,12 +213,11 @@
             <!-- Pilar 01 -->
             <div class="profil-pilar-card scroll-reveal reveal-up">
                 <div class="profil-pilar-media">
-                    @if(file_exists(public_path('assets/img/fasilitas-tembakau.jpg')))
+                    @php $imgMeta = $fasilitasImages['fasilitas-tembakau'] ?? []; @endphp
+                    @if(!empty($imgMeta['exists']) && !empty($imgMeta['url']))
                         <div class="photo-frame-modern">
-                            <img src="{{ asset('assets/img/fasilitas-tembakau.jpg') }}?v=2" alt="Gudang Bahan Baku & Racikan Tembakau" class="photo-frame-img">
-                            <div class="photo-frame-caption">
-                                Gudang Penyimpanan Tembakau &amp; Cengkeh
-                            </div>
+                            <img src="{{ $imgMeta['url'] }}" alt="{{ $imgMeta['alt'] ?? 'Gudang Bahan Baku & Racikan Tembakau' }}" class="photo-frame-img">
+                            @include('front._facility_caption', ['imgMeta' => $imgMeta])
                         </div>
                     @else
                         <div class="photo-placeholder-slot">
@@ -240,12 +242,11 @@
             <!-- Pilar 02 -->
             <div class="profil-pilar-card scroll-reveal reveal-up reveal-delay-1">
                 <div class="profil-pilar-media">
-                    @if(file_exists(public_path('assets/img/galeri-produksi-skt.jpg')))
+                    @php $imgMeta = $fasilitasImages['galeri-produksi-skt'] ?? []; @endphp
+                    @if(!empty($imgMeta['exists']) && !empty($imgMeta['url']))
                         <div class="photo-frame-modern">
-                            <img src="{{ asset('assets/img/galeri-produksi-skt.jpg') }}?v=2" alt="Ruang Produksi Linting SKT" class="photo-frame-img">
-                            <div class="photo-frame-caption">
-                                Aktivitas Lini Produksi SKT
-                            </div>
+                            <img src="{{ $imgMeta['url'] }}" alt="{{ $imgMeta['alt'] ?? 'Ruang Produksi Linting SKT' }}" class="photo-frame-img">
+                            @include('front._facility_caption', ['imgMeta' => $imgMeta])
                         </div>
                     @else
                         <div class="photo-placeholder-slot">
@@ -270,12 +271,11 @@
             <!-- Pilar 03 -->
             <div class="profil-pilar-card scroll-reveal reveal-up">
                 <div class="profil-pilar-media">
-                    @if(file_exists(public_path('assets/img/fasilitas-cukai.jpg')))
+                    @php $imgMeta = $fasilitasImages['fasilitas-cukai'] ?? []; @endphp
+                    @if(!empty($imgMeta['exists']) && !empty($imgMeta['url']))
                         <div class="photo-frame-modern">
-                            <img src="{{ asset('assets/img/fasilitas-cukai.jpg') }}?v=2" alt="Pengawasan Cukai & Pengepakan" class="photo-frame-img">
-                            <div class="photo-frame-caption">
-                                Pelekatan Pita Cukai &amp; Pengemasan
-                            </div>
+                            <img src="{{ $imgMeta['url'] }}" alt="{{ $imgMeta['alt'] ?? 'Pengawasan Cukai & Pengepakan' }}" class="photo-frame-img">
+                            @include('front._facility_caption', ['imgMeta' => $imgMeta])
                         </div>
                     @else
                         <div class="photo-placeholder-slot">
@@ -300,12 +300,11 @@
             <!-- Pilar 04 -->
             <div class="profil-pilar-card scroll-reveal reveal-up reveal-delay-1">
                 <div class="profil-pilar-media">
-                    @if(file_exists(public_path('assets/img/fasilitas-gudang.jpg')))
+                    @php $imgMeta = $fasilitasImages['fasilitas-gudang'] ?? []; @endphp
+                    @if(!empty($imgMeta['exists']) && !empty($imgMeta['url']))
                         <div class="photo-frame-modern">
-                            <img src="{{ asset('assets/img/fasilitas-gudang.jpg') }}?v=2" alt="Gudang Barang Jadi & Distribusi" class="photo-frame-img">
-                            <div class="photo-frame-caption">
-                                Gudang Penyimpanan &amp; Armada Pengiriman
-                            </div>
+                            <img src="{{ $imgMeta['url'] }}" alt="{{ $imgMeta['alt'] ?? 'Gudang Barang Jadi & Distribusi' }}" class="photo-frame-img">
+                            @include('front._facility_caption', ['imgMeta' => $imgMeta])
                         </div>
                     @else
                         <div class="photo-placeholder-slot">

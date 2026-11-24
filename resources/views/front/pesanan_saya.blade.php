@@ -83,6 +83,20 @@
                                 <div style="color: var(--text-muted); font-size: 12.5px; margin-top: 3px;">
                                     Dipesan pada: {{ $t->created_at->format('d M Y, H:i') }} WIB
                                 </div>
+                                @if($t->nomor_do || $t->nomor_resi)
+                                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; font-size: 11.5px;">
+                                        @if($t->nomor_do)
+                                            <span class="font-mono" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #0f172a; padding: 2px 8px; border-radius: 2px;">
+                                                No. DO: <strong>{{ $t->nomor_do }}</strong>
+                                            </span>
+                                        @endif
+                                        @if($t->nomor_resi)
+                                            <span class="font-mono" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #0f172a; padding: 2px 8px; border-radius: 2px;">
+                                                Resi: <strong>{{ $t->nomor_resi }}</strong>
+                                            </span>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
 
                             <!-- Status Badge Berbasis Kontras Tinggi -->
@@ -174,9 +188,9 @@
                                     <div style="color: var(--text-medium); font-size: 13px; margin-top: 2px;">
                                         Jumlah: <strong>{{ $t->jumlah }} {{ $t->satuan }}</strong>
                                         @if($t->satuan === 'Slop')
-                                            <span style="color: var(--text-muted);">({{ $t->jumlah * 10 }} Bungkus)</span>
+                                            <span style="color: var(--text-muted);">({{ $t->jumlah * ($t->barang->bungkus_per_slop ?: 10) }} Bungkus)</span>
                                         @else
-                                            <span style="color: var(--text-muted);">(Kemasan Bal)</span>
+                                            <span style="color: var(--text-muted);">({{ $t->jumlah * ($t->barang->slop_per_bal ?: 20) }} Slop &bull; Kemasan Bal)</span>
                                         @endif
                                     </div>
                                 @endif
@@ -217,7 +231,7 @@
                                     @else
                                         <strong>Pembayaran Transfer Bank:</strong>
                                         <span style="color: var(--text-muted); display: block; font-size: 11.5px;">
-                                            Nomor rekening resmi pabrik dikonfirmasi langsung oleh Admin via WhatsApp (<span class="font-mono">+62 857-9062-7104</span>), lalu unggah foto bukti transfer di sini.
+                                            Nomor rekening resmi pabrik dikonfirmasi langsung oleh Admin via WhatsApp (<span class="font-mono">{{ $pabrikWaDisplay ?? '+62 857-9062-7104' }}</span>), lalu unggah foto bukti transfer di sini.
                                         </span>
                                     @endif
                                 </div>
@@ -261,14 +275,18 @@
                                     <i class="fa-solid fa-file-invoice"></i> Buka Faktur / Invoice
                                 </a>
 
-                                <!-- Tombol Batalkan Pesanan (Khusus jika masih Baru Masuk) -->
-                                @if($t->status === 'Baru Masuk')
+                                <!-- Tombol Batalkan Pesanan (Khusus jika masih Baru Masuk dan belum Lunas) -->
+                                @if($t->status === 'Baru Masuk' && $paymentStatus !== 'Lunas')
                                     <form action="{{ route('pesanan.batal', $t->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pesanan ini? Stok akan dipulihkan kembali.')" style="display: inline;">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-secondary" style="font-size: 12px; color: #b91c1c; border-color: #fca5a5;">
                                             <i class="fa-solid fa-xmark"></i> Batalkan Pesanan
                                         </button>
                                     </form>
+                                @elseif($t->status === 'Baru Masuk' && $paymentStatus === 'Lunas')
+                                    <span style="font-size: 12px; color: var(--text-muted); padding: 6px 10px; border: 1px solid var(--border-light); border-radius: 4px; background: #f8fafc;">
+                                        <i class="fa-solid fa-circle-info"></i> Pembayaran Lunas — Hubungi Admin untuk pembatalan &amp; pengembalian dana
+                                    </span>
                                 @endif
                             </div>
 
@@ -281,7 +299,7 @@
                                 @endif
 
                                 @if($t->status !== 'Dibatalkan')
-                                    <a href="https://wa.me/{{ config('pabrik.wa_pabrik', '6285790627104') }}?text={{ urlencode('Halo Admin PR. KERETA KENCANA, saya ingin menanyakan status pesanan ' . $t->kode_transaksi . ' atas nama ' . $t->nama_mitra) }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-secondary" style="font-size: 12px;">
+                                    <a href="https://wa.me/{{ $pabrikWa ?? config('pabrik.wa_pabrik', '6285790627104') }}?text={{ urlencode('Halo Admin PR. KERETA KENCANA, saya ingin menanyakan status pesanan ' . $t->kode_transaksi . ' atas nama ' . $t->nama_mitra) }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-secondary" style="font-size: 12px;">
                                         <i class="fa-brands fa-whatsapp"></i> Chat Admin Pabrik
                                     </a>
                                 @endif
@@ -360,7 +378,7 @@
                 No. Rek: <span class="font-mono" style="font-weight: 700;">{{ $bankInfo['rekening'] }}</span> &bull; a.n. <strong>{{ $bankInfo['atas_nama'] ?? 'PR. KERETA KENCANA' }}</strong>
             @else
                 <strong>Transfer Bank</strong><br>
-                Pastikan Anda telah menerima konfirmasi nomor rekening resmi dari Admin WhatsApp (<span class="font-mono">+62 857-9062-7104</span>) sebelum mengunggah struk.
+                Pastikan Anda telah menerima konfirmasi nomor rekening resmi dari Admin WhatsApp (<span class="font-mono">{{ $pabrikWaDisplay ?? '+62 857-9062-7104' }}</span>) sebelum mengunggah struk.
             @endif
         </div>
 
@@ -520,6 +538,22 @@ function togglePasswordVisibility(inputId, iconId) {
         icon.classList.add('fa-eye');
     }
 }
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+            overlay.style.display = 'none';
+        }
+    });
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeKonfirmasiModal();
+        closeTransferModal();
+        closeMitraProfileModal();
+    }
+});
 </script>
 @endpush
 @endsection

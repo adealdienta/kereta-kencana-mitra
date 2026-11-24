@@ -8,6 +8,7 @@ import androidx.lifecycle.lifecycleScope
 import com.keretakencana.mitra.data.api.ApiClient
 import com.keretakencana.mitra.data.local.SessionManager
 import com.keretakencana.mitra.databinding.ActivityAlamatTokoBinding
+import com.keretakencana.mitra.utils.ApiErrorHelper
 import kotlinx.coroutines.launch
 
 class AlamatTokoActivity : AppCompatActivity() {
@@ -68,8 +69,8 @@ class AlamatTokoActivity : AppCompatActivity() {
                         Toast.makeText(this@AlamatTokoActivity, "✓ Alamat toko pengiriman berhasil diperbarui.", Toast.LENGTH_SHORT).show()
                         finish()
                     } else {
-                        val msg = response.body()?.message ?: "Gagal memperbarui alamat toko."
-                        Toast.makeText(this@AlamatTokoActivity, msg, Toast.LENGTH_SHORT).show()
+                        val msg = ApiErrorHelper.parseMessage(response, response.body()?.message ?: "Gagal memperbarui alamat toko.")
+                        Toast.makeText(this@AlamatTokoActivity, msg, Toast.LENGTH_LONG).show()
                     }
                 } catch (e: Exception) {
                     setLoading(false)

@@ -139,7 +139,7 @@
                     </a>
                 </div>
 
-                @if($transaksi->status_pembayaran !== 'Lunas')
+                @if($transaksi->status_pembayaran !== 'Lunas' && !in_array($transaksi->status, ['Selesai', 'Dibatalkan'], true))
                     <div style="display: flex; gap: 8px;">
                         <form action="{{ route('admin.transaksis.verifikasi_pembayaran', $transaksi->id) }}" method="POST" style="flex: 1;">
                             @csrf
@@ -159,6 +159,16 @@
                         </form>
                     </div>
                 @endif
+            </div>
+        @elseif($transaksi->isTransferBank())
+            <div style="background: #fffbeb; border: 1.5px dashed #f59e0b; border-radius: 6px; padding: 14px 16px; margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                    <i class="fa-solid fa-clock" style="color: #d97706; font-size: 16px;"></i>
+                    <h4 style="font-size: 13.5px; color: #92400e; margin: 0; font-weight: 700;">Menunggu Bukti Transfer Bank</h4>
+                </div>
+                <p style="color: #78350f; font-size: 12px; margin: 0; line-height: 1.5;">
+                    Pembeli belum mengunggah bukti transfer. Pesanan Transfer Bank tidak dapat diproses atau dikirim sebelum bukti transfer diunggah dan diverifikasi <strong>Lunas</strong>.
+                </p>
             </div>
         @endif
 
@@ -191,24 +201,44 @@
             <i class="fa-solid fa-truck-ramp-box"></i> Status & Logistik Pengiriman
         </h3>
 
+        @php
+            $terkunciTransfer = $transaksi->isTransferBelumLunas();
+        @endphp
+
+        @if($terkunciTransfer)
+            <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 12px 14px; margin-bottom: 16px; font-size: 12px; color: #92400e; line-height: 1.5;">
+                <strong><i class="fa-solid fa-triangle-exclamation"></i> Alur Transfer Bank Terkunci:</strong>
+                @if(!$transaksi->bukti_transfer)
+                    Pembeli belum mengunggah foto bukti transfer. Status <strong>Diproses</strong>, <strong>Dikirim</strong>, dan <strong>Selesai</strong> terkunci sampai bukti transfer diunggah dan diverifikasi <strong>Lunas</strong>.
+                @else
+                    Bukti transfer sudah diunggah, namun belum diverifikasi <strong>Lunas</strong>. Silakan klik tombol <strong>Verifikasi Lunas</strong> di panel sebelah kiri terlebih dahulu sebelum memproses atau mengirim pesanan.
+                @endif
+            </div>
+        @endif
+
         <form action="{{ route('admin.transaksis.update', $transaksi->id) }}" method="POST">
             @csrf
             @method('PUT')
 
+            @php
+                $isSelesai = $transaksi->status === 'Selesai';
+                $lockSelesaiForStaff = $isSelesai && auth()->user()->isAdmin();
+            @endphp
+
             <div style="margin-bottom: 16px;">
                 <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px;">Status Pesanan</label>
                 <select name="status" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
-                    <option value="Baru Masuk" {{ $transaksi->status === 'Baru Masuk' ? 'selected' : '' }}>Baru Masuk (Antrean)</option>
-                    <option value="Diproses" {{ $transaksi->status === 'Diproses' ? 'selected' : '' }}>Diproses Gudang</option>
-                    <option value="Dikirim" {{ $transaksi->status === 'Dikirim' ? 'selected' : '' }}>Sedang Diantar oleh Kurir Resmi Pabrik</option>
-                    @if(auth()->user()->isStaff())
-                        <option value="Selesai" disabled style="color: #94a3b8;">Selesai (Hanya via Aplikasi / Otorisasi Owner)</option>
+                    <option value="Baru Masuk" {{ $transaksi->status === 'Baru Masuk' ? 'selected' : '' }} {{ $lockSelesaiForStaff ? 'disabled' : '' }}>Baru Masuk (Antrean)</option>
+                    <option value="Diproses" {{ $transaksi->status === 'Diproses' ? 'selected' : '' }} {{ ($terkunciTransfer || $lockSelesaiForStaff) ? 'disabled' : '' }}>Diproses Gudang{{ $terkunciTransfer ? ' (Menunggu Transfer Lunas)' : '' }}</option>
+                    <option value="Dikirim" {{ $transaksi->status === 'Dikirim' ? 'selected' : '' }} {{ ($terkunciTransfer || $lockSelesaiForStaff) ? 'disabled' : '' }}>Sedang Diantar oleh Kurir Resmi Pabrik{{ $terkunciTransfer ? ' (Menunggu Transfer Lunas)' : '' }}</option>
+                    @if(auth()->user()->isAdmin())
+                        <option value="Selesai" {{ $isSelesai ? 'selected' : 'disabled' }} style="color: #94a3b8;">Selesai (Hanya via Aplikasi / Otorisasi Owner)</option>
                     @else
-                        <option value="Selesai" {{ $transaksi->status === 'Selesai' ? 'selected' : '' }}>Selesai / Diterima</option>
+                        <option value="Selesai" {{ $isSelesai ? 'selected' : '' }} {{ $terkunciTransfer ? 'disabled' : '' }}>Selesai / Diterima{{ $terkunciTransfer ? ' (Menunggu Transfer Lunas)' : '' }}</option>
                     @endif
-                    <option value="Dibatalkan" {{ $transaksi->status === 'Dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
+                    <option value="Dibatalkan" {{ $transaksi->status === 'Dibatalkan' ? 'selected' : '' }} {{ $lockSelesaiForStaff ? 'disabled' : '' }}>Dibatalkan{{ $lockSelesaiForStaff ? ' (Khusus Owner/Super Admin)' : '' }}</option>
                 </select>
-                <small style="color: #64748b; font-size: 11px;">*Status 'Dikirim' akan memicu tombol konfirmasi penerimaan di Website (Pesanan Saya) dan Aplikasi Mobile mitra.</small>
+                <small style="color: #64748b; font-size: 11px;">*Status 'Dikirim' akan memicu tombol konfirmasi penerimaan di Website (Pesanan Saya) dan Aplikasi Mobile mitra.{{ $lockSelesaiForStaff ? ' Pesanan berstatus Selesai hanya dapat dikoreksi oleh Owner atau Super Admin.' : '' }}</small>
             </div>
 
             <div style="margin-bottom: 16px;">

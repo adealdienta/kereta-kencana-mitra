@@ -129,26 +129,53 @@ class FakturActivity : AppCompatActivity() {
         binding.tvFakturAlamat.text = t.alamat
         binding.tvFakturGrandTotal.text = CurrencyHelper.formatRupiah(t.totalHarga)
 
-        // Penandaan Status Lunas vs Belum Dibayar (Transfer BCA vs COD)
+        // Penandaan Status Lunas vs Belum Dibayar (Transfer Bank vs COD)
+        val isDibatalkan = t.status.equals("Dibatalkan", ignoreCase = true)
         val isSelesai = t.status.equals("Selesai", ignoreCase = true)
         val isTransfer = t.metodePembayaran?.contains("transfer", ignoreCase = true) == true ||
                 t.metodePembayaran?.contains("bca", ignoreCase = true) == true
         val isLunas = t.statusPembayaran.equals("Lunas", ignoreCase = true) || isSelesai
+        val isDitolak = t.statusPembayaran?.contains("Ditolak", ignoreCase = true) == true ||
+                t.statusPembayaran?.contains("Belum Valid", ignoreCase = true) == true ||
+                t.statusPembayaran?.contains("Tidak Valid", ignoreCase = true) == true
+        val isMenunggu = t.statusPembayaran?.contains("Menunggu", ignoreCase = true) == true
 
-        if (isTransfer) {
-            binding.tvFakturMetodeBayar.text = "Metode bayar: Transfer Bank"
-        } else {
-            binding.tvFakturMetodeBayar.text = "Metode bayar: Bayar di Tempat (COD)"
+        val metodeLine = StringBuilder(if (isTransfer) "Metode bayar: Transfer Bank" else "Metode bayar: Bayar di Tempat (COD)")
+        val doResiParts = listOfNotNull(
+            t.nomorDo?.trim()?.takeIf { it.isNotBlank() }?.let { "DO: $it" },
+            t.nomorResi?.trim()?.takeIf { it.isNotBlank() }?.let { "Resi: $it" }
+        )
+        if (doResiParts.isNotEmpty()) {
+            metodeLine.append("\n").append(doResiParts.joinToString(" • "))
         }
+        binding.tvFakturMetodeBayar.text = metodeLine.toString()
 
-        if (isLunas) {
-            binding.tvFakturStatusStempel.text = if (isTransfer) "LUNAS (TRANSFER BANK)" else "LUNAS (COD)"
-            binding.tvFakturStatusStempel.setBackgroundResource(R.drawable.bg_badge_lunas)
-            binding.tvFakturStatusStempel.setTextColor(ContextCompat.getColor(this, R.color.status_green))
-        } else {
-            binding.tvFakturStatusStempel.text = if (isTransfer) "MENUNGGU VERIFIKASI TRANSFER" else "BELUM DIBAYAR (COD)"
-            binding.tvFakturStatusStempel.setBackgroundResource(R.drawable.bg_badge_belum_bayar)
-            binding.tvFakturStatusStempel.setTextColor(ContextCompat.getColor(this, R.color.brand_gold))
+        when {
+            isDibatalkan -> {
+                binding.tvFakturStatusStempel.text = "PESANAN DIBATALKAN"
+                binding.tvFakturStatusStempel.setBackgroundResource(R.drawable.bg_chip_gray)
+                binding.tvFakturStatusStempel.setTextColor(ContextCompat.getColor(this, R.color.status_red))
+            }
+            isLunas -> {
+                binding.tvFakturStatusStempel.text = if (isTransfer) "LUNAS (TRANSFER BANK)" else "LUNAS (COD)"
+                binding.tvFakturStatusStempel.setBackgroundResource(R.drawable.bg_badge_lunas)
+                binding.tvFakturStatusStempel.setTextColor(ContextCompat.getColor(this, R.color.status_green))
+            }
+            isDitolak -> {
+                binding.tvFakturStatusStempel.text = "BUKTI TRANSFER DITOLAK"
+                binding.tvFakturStatusStempel.setBackgroundResource(R.drawable.bg_chip_gray)
+                binding.tvFakturStatusStempel.setTextColor(ContextCompat.getColor(this, R.color.status_red))
+            }
+            isMenunggu -> {
+                binding.tvFakturStatusStempel.text = "MENUNGGU VERIFIKASI TRANSFER"
+                binding.tvFakturStatusStempel.setBackgroundResource(R.drawable.bg_badge_belum_bayar)
+                binding.tvFakturStatusStempel.setTextColor(ContextCompat.getColor(this, R.color.brand_gold))
+            }
+            else -> {
+                binding.tvFakturStatusStempel.text = if (isTransfer) "BELUM DIBAYAR (TRANSFER BANK)" else "BELUM DIBAYAR (COD)"
+                binding.tvFakturStatusStempel.setBackgroundResource(R.drawable.bg_badge_belum_bayar)
+                binding.tvFakturStatusStempel.setTextColor(ContextCompat.getColor(this, R.color.brand_gold))
+            }
         }
 
         // Tampilkan Identitas Invoice & NPPBKC Pabrik
@@ -183,10 +210,10 @@ class FakturActivity : AppCompatActivity() {
             }
 
             val tvQty = TextView(this).apply {
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.8f)
-                text = "${item.jumlah} ${item.satuan.lowercase()}"
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.9f)
+                text = "${item.jumlah} ${item.satuan.lowercase()}\n@ ${CurrencyHelper.formatRupiah(item.hargaSatuan)}"
                 setTextColor(ContextCompat.getColor(context, R.color.text_primary))
-                textSize = 12f
+                textSize = 11f
                 gravity = Gravity.CENTER
             }
 
@@ -239,25 +266,28 @@ class FakturActivity : AppCompatActivity() {
                 }
 
                 val document = PdfDocument()
-                val pageInfo = PdfDocument.PageInfo.Builder(viewWidth, viewHeight, 1).create()
-                val page = document.startPage(pageInfo)
+                try {
+                    val pageInfo = PdfDocument.PageInfo.Builder(viewWidth, viewHeight, 1).create()
+                    val page = document.startPage(pageInfo)
 
-                withContext(Dispatchers.Main) {
-                    cardView.draw(page.canvas)
-                }
-                document.finishPage(page)
+                    withContext(Dispatchers.Main) {
+                        cardView.draw(page.canvas)
+                    }
+                    document.finishPage(page)
 
-                val dir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) ?: filesDir
-                val file = File(dir, "Faktur_${t.kodeTransaksi}.pdf")
-                val fos = FileOutputStream(file)
-                document.writeTo(fos)
-                fos.flush()
-                fos.close()
-                document.close()
+                    val dir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) ?: filesDir
+                    val file = File(dir, "Faktur_${t.kodeTransaksi}.pdf")
+                    FileOutputStream(file).use { fos ->
+                        document.writeTo(fos)
+                        fos.flush()
+                    }
 
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(this@FakturActivity, "Faktur berhasil disimpan: ${file.name}", Toast.LENGTH_LONG).show()
-                    bukaDokumenPdf(file)
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@FakturActivity, "Faktur berhasil disimpan: ${file.name}", Toast.LENGTH_LONG).show()
+                        bukaDokumenPdf(file)
+                    }
+                } finally {
+                    document.close()
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {

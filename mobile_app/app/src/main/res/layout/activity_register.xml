@@ -378,7 +378,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:buttonTint="@color/brand_brown_dark"
-                    android:checked="true" />
+                    android:checked="false" />
 
                 <TextView
                     android:layout_width="wrap_content"

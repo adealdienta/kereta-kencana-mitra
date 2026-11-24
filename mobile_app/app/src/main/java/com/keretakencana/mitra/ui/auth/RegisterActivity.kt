@@ -99,8 +99,8 @@ class RegisterActivity : AppCompatActivity() {
             hasError = true
         }
 
-        if (email.isEmpty()) {
-            showFieldError(binding.etEmail, binding.tvErrorEmail, "Email wajib diisi")
+        if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            showFieldError(binding.etEmail, binding.tvErrorEmail, "Masukkan alamat email yang valid")
             hasError = true
         }
 
@@ -140,6 +140,7 @@ class RegisterActivity : AppCompatActivity() {
                     "password" to password,
                     "password_confirmation" to passwordConfirmation,
                     "alamat" to alamat,
+                    "usia_21" to isUsia21,
                     "role" to "pelanggan"
                 )
 
@@ -183,17 +184,50 @@ class RegisterActivity : AppCompatActivity() {
             val errorsObj = json.optJSONObject("errors")
 
             if (errorsObj != null) {
+                var shownFieldError = false
+                if (errorsObj.has("nama_toko")) {
+                    val err = errorsObj.getJSONArray("nama_toko").getString(0)
+                    showFieldError(binding.etNamaToko, null, err)
+                    binding.tvGeneralError.text = err
+                    binding.tvGeneralError.visibility = View.VISIBLE
+                    shownFieldError = true
+                }
+                if (errorsObj.has("name")) {
+                    val err = errorsObj.getJSONArray("name").getString(0)
+                    showFieldError(binding.etNamaPemilik, null, err)
+                    if (!shownFieldError) {
+                        binding.tvGeneralError.text = err
+                        binding.tvGeneralError.visibility = View.VISIBLE
+                        shownFieldError = true
+                    }
+                }
                 if (errorsObj.has("telepon")) {
                     val err = errorsObj.getJSONArray("telepon").getString(0)
                     showFieldError(binding.etTelepon, binding.tvErrorTelepon, err)
+                    shownFieldError = true
                 }
                 if (errorsObj.has("email")) {
                     val err = errorsObj.getJSONArray("email").getString(0)
                     showFieldError(binding.etEmail, binding.tvErrorEmail, err)
+                    shownFieldError = true
                 }
                 if (errorsObj.has("password")) {
                     val err = errorsObj.getJSONArray("password").getString(0)
                     showFieldError(binding.etPassword, binding.tvErrorPassword, err)
+                    shownFieldError = true
+                }
+                if (errorsObj.has("alamat")) {
+                    val err = errorsObj.getJSONArray("alamat").getString(0)
+                    showFieldError(binding.etAlamat, null, err)
+                    if (!shownFieldError) {
+                        binding.tvGeneralError.text = err
+                        binding.tvGeneralError.visibility = View.VISIBLE
+                        shownFieldError = true
+                    }
+                }
+                if (!shownFieldError) {
+                    binding.tvGeneralError.text = message
+                    binding.tvGeneralError.visibility = View.VISIBLE
                 }
             } else {
                 binding.tvGeneralError.text = message

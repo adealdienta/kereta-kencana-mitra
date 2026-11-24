@@ -63,7 +63,9 @@
                 <a href="{{ route('beranda') }}" class="nav-link {{ request()->routeIs('beranda') ? 'active' : '' }}">Beranda</a>
                 <a href="{{ route('profil') }}" class="nav-link {{ request()->routeIs('profil') ? 'active' : '' }}">Profil Pabrik</a>
                 <a href="{{ route('katalog.index') }}" class="nav-link {{ request()->routeIs('katalog.*') || request()->routeIs('produk.*') ? 'active' : '' }}">Katalog Rokok</a>
-                <a href="{{ route('pesanan.form') }}" class="nav-link {{ request()->routeIs('pesanan.form') ? 'active' : '' }}">Order</a>
+                @if(!Auth::check() || Auth::user()->isPelanggan())
+                    <a href="{{ route('pesanan.form') }}" class="nav-link {{ request()->routeIs('pesanan.form') ? 'active' : '' }}">Order</a>
+                @endif
                 @auth
                     @if(Auth::user()->isPelanggan())
                         <a href="{{ route('pesanan.saya') }}" class="nav-link {{ request()->routeIs('pesanan.saya') ? 'active' : '' }}">
@@ -90,7 +92,7 @@
                             </form>
                         @else
                             <a href="{{ route('admin.dashboard') }}" class="btn btn-sm btn-gold" style="font-size: 12px; padding: 6px 12px;">
-                                <i class="fa-solid fa-shield-halved"></i> Panel Staf
+                                <i class="fa-solid fa-shield-halved"></i> Panel Admin
                             </a>
                             <form action="{{ route('logout') }}" method="POST" style="display: inline;">
                                 @csrf
@@ -153,7 +155,7 @@
                             <div class="badge-icon"><i class="fa-solid fa-stamp"></i></div>
                             <div>
                                 <div class="badge-title">NPPBKC Resmi</div>
-                                <div class="badge-sub" style="font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.01em;">750******-070700-221221*******</div>
+                                <div class="badge-sub" style="font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.01em;">{{ $pabrikNppbkc ?? config('pabrik.nppbkc', '750******-070700-221221*******') }}</div>
                             </div>
                         </div>
                         <div class="badge-card">
@@ -173,15 +175,17 @@
                         <li><a href="{{ route('beranda') }}" class="footer-nav-link"><i class="fa-solid fa-chevron-right" style="font-size: 10px; color: #737373;"></i> Beranda</a></li>
                         <li><a href="{{ route('profil') }}" class="footer-nav-link"><i class="fa-solid fa-chevron-right" style="font-size: 10px; color: #737373;"></i> Profil &amp; Legalitas Pabrik</a></li>
                         <li><a href="{{ route('katalog.index') }}" class="footer-nav-link"><i class="fa-solid fa-chevron-right" style="font-size: 10px; color: #737373;"></i> Katalog Produk Rokok</a></li>
-                        <li><a href="{{ route('pesanan.form') }}" class="footer-nav-link"><i class="fa-solid fa-chevron-right" style="font-size: 10px; color: #737373;"></i> Order Online (Satuan Slop)</a></li>
+                        @if(!Auth::check() || Auth::user()->isPelanggan())
+                            <li><a href="{{ route('pesanan.form') }}" class="footer-nav-link"><i class="fa-solid fa-chevron-right" style="font-size: 10px; color: #737373;"></i> Order Online (Satuan Slop)</a></li>
+                        @endif
                         @auth
                             @if(Auth::user()->isPelanggan())
                                 <li><a href="{{ route('pesanan.saya') }}" class="footer-nav-link" style="color: #ffffff !important; font-weight: 600;"><i class="fa-solid fa-box-open" style="font-size: 11px; color: #a3a3a3;"></i> Pesanan Saya</a></li>
                             @else
-                                <li><a href="{{ route('admin.dashboard') }}" class="footer-nav-link" style="color: #ffffff !important; font-weight: 600;"><i class="fa-solid fa-shield-halved" style="font-size: 11px; color: #a3a3a3;"></i> Dashboard Panel Staf</a></li>
+                                <li><a href="{{ route('admin.dashboard') }}" class="footer-nav-link" style="color: #ffffff !important; font-weight: 600;"><i class="fa-solid fa-shield-halved" style="font-size: 11px; color: #a3a3a3;"></i> Dashboard Panel Admin</a></li>
                             @endif
                         @else
-                            <li><a href="{{ route('login') }}" class="footer-nav-link" style="color: #ffffff !important; font-weight: 600;"><i class="fa-solid fa-shield-halved" style="font-size: 11px; color: #a3a3a3;"></i> Portal Masuk Mitra &amp; Staf</a></li>
+                            <li><a href="{{ route('login') }}" class="footer-nav-link" style="color: #ffffff !important; font-weight: 600;"><i class="fa-solid fa-shield-halved" style="font-size: 11px; color: #a3a3a3;"></i> Portal Masuk Mitra &amp; Admin</a></li>
                         @endauth
                     </ul>
                 </div>
@@ -193,8 +197,11 @@
                         <p style="color: #ffffff; font-size: 0.92rem; font-weight: 600; margin-bottom: 6px;">
                             PR. KERETA KENCANA
                         </p>
-                        <p style="color: #a3a3a3; font-size: 0.85rem; line-height: 1.55; margin-bottom: 12px;">
+                        <p style="color: #a3a3a3; font-size: 0.85rem; line-height: 1.55; margin-bottom: 8px;">
                             Dusun Subontoro RT. 001 RW. 015, Desa Kebonduren, Kecamatan Ponggok, Kabupaten Blitar, Jawa Timur 66153
+                        </p>
+                        <p style="color: #d6c3a1; font-size: 0.84rem; font-weight: 600; margin-bottom: 12px;">
+                            <i class="fa-regular fa-clock" style="margin-right: 5px;"></i> {{ $pabrikJamOperasional ?? config('pabrik.jam_operasional', 'Buka: 09.00 - 16.00 WIB (Senin - Sabtu)') }}
                         </p>
                         <div style="border-top: 1px solid #262626; padding-top: 12px;">
                             <p style="color: #ffffff; font-size: 0.88rem; font-weight: 600; line-height: 1.45; margin-bottom: 6px;">
@@ -207,7 +214,7 @@
                     </div>
 
                     <div style="display: flex; flex-direction: column; gap: 8px;">
-                        <a href="https://wa.me/{{ config('pabrik.wa_pabrik', '6285790627104') }}?text={{ urlencode('Halo Admin PR. KERETA KENCANA, saya ingin bertanya mengenai kemitraan & pemesanan rokok.') }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-gold btn-block">
+                        <a href="https://wa.me/{{ $pabrikWa ?? config('pabrik.wa_pabrik', '6285790627104') }}?text={{ urlencode('Halo Admin PR. KERETA KENCANA, saya ingin bertanya mengenai kemitraan & pemesanan rokok.') }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-gold btn-block">
                             <i class="fa-brands fa-whatsapp"></i> Hubungi Admin via WhatsApp
                         </a>
                         <a href="https://maps.app.goo.gl/3fxK2wXZoiRLs2sg8" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-gold btn-block">

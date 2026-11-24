@@ -2,6 +2,7 @@ package com.keretakencana.mitra.data.api
 
 import android.content.Context
 import com.google.gson.GsonBuilder
+import com.keretakencana.mitra.BuildConfig
 import com.keretakencana.mitra.data.local.SessionManager
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -11,12 +12,12 @@ import java.util.concurrent.TimeUnit
 
 object ApiClient {
 
-
-    private const val DEFAULT_BASE_URL = "http://192.168.68.159:8000/api/v1/"
+    private val DEFAULT_BASE_URL = BuildConfig.API_BASE_URL
     private var currentBaseUrl: String = DEFAULT_BASE_URL
 
     private var retrofit: Retrofit? = null
     private var apiService: ApiService? = null
+    private var unauthorizedHandler: (() -> Unit)? = null
 
     fun setCustomBaseUrl(newUrl: String) {
         val sanitized = if (newUrl.endsWith("/")) newUrl else "$newUrl/"
@@ -30,21 +31,26 @@ object ApiClient {
     fun getBaseUrl(): String = currentBaseUrl
 
     fun getService(context: Context, onUnauthorized: (() -> Unit)? = null): ApiService {
+        if (onUnauthorized != null) {
+            unauthorizedHandler = onUnauthorized
+        }
         return apiService ?: synchronized(this) {
-            apiService ?: buildRetrofit(context.applicationContext, onUnauthorized).create(ApiService::class.java).also {
+            apiService ?: buildRetrofit(context.applicationContext).create(ApiService::class.java).also {
                 apiService = it
             }
         }
     }
 
-    private fun buildRetrofit(context: Context, onUnauthorized: (() -> Unit)?): Retrofit {
+    private fun buildRetrofit(context: Context): Retrofit {
         val sessionManager = SessionManager.getInstance(context)
 
         val loggingInterceptor = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+            level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
         }
 
-        val authInterceptor = AuthInterceptor(sessionManager, onUnauthorized)
+        val authInterceptor = AuthInterceptor(sessionManager) {
+            unauthorizedHandler?.invoke()
+        }
 
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor(authInterceptor)

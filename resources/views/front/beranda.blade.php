@@ -8,16 +8,7 @@
 <section class="hero-section" id="heroSection">
     <!-- Large Background Slider (Auto-Slide / Ken-Burns Fade) -->
     @php
-        $heroSlides = [
-            [
-                'img' => asset('assets/img/pro-produksi-hero.jpg') . '?v=1',
-                'title' => 'Lini Produksi SKT PR. KERETA KENCANA',
-            ],
-            [
-                'img' => asset('assets/img/pro-cengkeh-tembakau.jpg') . '?v=1',
-                'title' => 'Racikan Tembakau & Cengkeh Pilihan',
-            ],
-        ];
+        $heroSlides = $heroSlides ?? \App\Services\PabrikConfigService::getHeroSlides();
     @endphp
 
     <div class="hero-slider-container" id="heroBgSlider">
@@ -61,7 +52,7 @@
                 <a href="#produk" class="btn btn-gold" style="padding: 12px 24px; font-size: 0.94rem; font-weight: 700;">
                     Lihat Varian Produk
                 </a>
-                <a href="https://wa.me/{{ config('pabrik.wa_pabrik', '6285790627104') }}?text={{ urlencode('Halo Manajemen PR. KERETA KENCANA, saya ingin bertanya mengenai pasokan dan kemitraan produk rokok.') }}" target="_blank" rel="noopener noreferrer" class="btn" style="background: rgba(16, 15, 14, 0.55); border: 1px solid rgba(255, 255, 255, 0.45); color: #ffffff; padding: 12px 22px; font-size: 0.94rem; font-weight: 600;">
+                <a href="https://wa.me/{{ $pabrikWa ?? config('pabrik.wa_pabrik', '6285790627104') }}?text={{ urlencode('Halo Manajemen PR. KERETA KENCANA, saya ingin bertanya mengenai pasokan dan kemitraan produk rokok.') }}" target="_blank" rel="noopener noreferrer" class="btn" style="background: rgba(16, 15, 14, 0.55); border: 1px solid rgba(255, 255, 255, 0.45); color: #ffffff; padding: 12px 22px; font-size: 0.94rem; font-weight: 600;">
                     <i class="fa-brands fa-whatsapp"></i> Hubungi Kemitraan
                 </a>
             </div>
@@ -90,12 +81,11 @@
         </div>
 
         <div class="about-media-flush scroll-reveal reveal-up reveal-delay-2">
-            @if(file_exists(public_path('assets/img/pabrik-beranda.jpg')))
+            @php $imgMeta = $fasilitasImages['pabrik-beranda'] ?? []; @endphp
+            @if(!empty($imgMeta['exists']) && !empty($imgMeta['url']))
                 <div class="photo-frame-modern">
-                    <img src="{{ asset('assets/img/pabrik-beranda.jpg') }}?v=2" alt="Gedung Pabrik PR. Kereta Kencana" class="photo-frame-img">
-                    <div class="photo-frame-caption">
-                        Fasilitas Pabrik PR. KERETA KENCANA &bull; Ponggok, Blitar
-                    </div>
+                    <img src="{{ $imgMeta['url'] }}" alt="{{ $imgMeta['alt'] ?? 'Gedung Pabrik PR. Kereta Kencana' }}" class="photo-frame-img">
+                    @include('front._facility_caption', ['imgMeta' => $imgMeta])
                 </div>
             @else
                 <div class="photo-placeholder-slot">
@@ -155,6 +145,9 @@
                         data-color="{{ $cardVariant['color'] }}"
                         data-url="{{ route('produk.detail', $p->slug) }}"
                     >
+                        @if($p->best_seller)
+                            <span class="bestseller-tag">Paling Diminati</span>
+                        @endif
                         <div class="kk-spice-media">
                             <img src="{{ $p->image_url }}" alt="{{ $p->nama }}" class="kk-spice-img">
                         </div>
@@ -206,9 +199,15 @@
                 <a href="#" id="kkModalDetailLink" class="btn btn-gold" style="padding: 11px 22px; font-weight: 700; font-size: 0.88rem;">
                     Halaman Detail Varian <i class="fa-solid fa-arrow-right"></i>
                 </a>
-                <a href="{{ route('pesanan.form') }}" id="kkModalOrderLink" data-base-url="{{ route('pesanan.form') }}" class="btn kk-btn-dark-outline" style="padding: 11px 20px; font-size: 0.88rem;">
-                    Pesan Varian Ini
-                </a>
+                @if(!Auth::check() || Auth::user()->isPelanggan())
+                    <a href="{{ route('pesanan.form') }}" id="kkModalOrderLink" data-base-url="{{ route('pesanan.form') }}" class="btn kk-btn-dark-outline" style="padding: 11px 20px; font-size: 0.88rem;">
+                        Pesan Varian Ini
+                    </a>
+                @else
+                    <a href="{{ route('admin.transaksis.offline') }}" class="btn kk-btn-dark-outline" style="padding: 11px 20px; font-size: 0.88rem;">
+                        Catat Kasir Offline
+                    </a>
+                @endif
             </div>
         </div>
     </div>
@@ -303,23 +302,24 @@
 </section>
 
 <!-- Proses Produksi SKT (Full-Bleed 50:50 Zig-Zag) -->
-<section style="padding: 58px 0 0; background: #ffffff;">
-    <div class="container">
-        <div class="section-header scroll-reveal reveal-up" style="margin-bottom: 40px; max-width: 720px;">
-            <h2 class="section-title" style="font-size: clamp(1.75rem, 3vw, 2.3rem);">Proses Manufaktur &amp; Jaminan Pasokan</h2>
-            <p class="section-desc">Tahap penyiapan bahan baku tembakau dan cengkeh, pelintingan tangan SKT 12 batang, hingga kesiapan gudang distribusi.</p>
+<section style="padding: 0; background: #ffffff;">
+    <div id="prosesManufakturHeader" style="background: #000000; color: #ffffff; padding: 54px 0 48px;">
+        <div class="container">
+            <div class="section-header scroll-reveal reveal-up" style="margin-bottom: 0; max-width: 720px;">
+                <h2 class="section-title" style="font-size: clamp(1.75rem, 3vw, 2.3rem); color: #ffffff;">Proses Manufaktur &amp; Jaminan Pasokan</h2>
+                <p class="section-desc" style="color: #ffffff; opacity: 0.92; margin-bottom: 0;">Tahap penyiapan bahan baku tembakau dan cengkeh, pelintingan tangan SKT 12 batang, hingga kesiapan gudang distribusi.</p>
+            </div>
         </div>
     </div>
     <div class="proses-split-list">
         <!-- Baris 1: Gambar Besar 50% di KIRI — Teks di KANAN -->
         <div class="proses-split-row scroll-reveal reveal-up">
             <div class="proses-split-media">
-                @if(file_exists(public_path('assets/img/proses-bahan-baku.jpg')))
+                @php $imgMeta = $fasilitasImages['proses-bahan-baku'] ?? []; @endphp
+                @if(!empty($imgMeta['exists']) && !empty($imgMeta['url']))
                     <div class="photo-frame-modern">
-                        <img src="{{ asset('assets/img/proses-bahan-baku.jpg') }}?v=2" alt="Bahan Baku Tembakau dan Cengkeh" class="photo-frame-img">
-                        <div class="photo-frame-caption">
-                            Gudang Bahan Baku Tembakau &amp; Cengkeh
-                        </div>
+                        <img src="{{ $imgMeta['url'] }}" alt="{{ $imgMeta['alt'] ?? 'Bahan Baku Tembakau dan Cengkeh' }}" class="photo-frame-img">
+                        @include('front._facility_caption', ['imgMeta' => $imgMeta])
                     </div>
                 @else
                     <div class="photo-placeholder-slot">
@@ -355,12 +355,11 @@
                 </p>
             </div>
             <div class="proses-split-media">
-                @if(file_exists(public_path('assets/img/proses-linting-skt.jpg')))
+                @php $imgMeta = $fasilitasImages['proses-linting-skt'] ?? []; @endphp
+                @if(!empty($imgMeta['exists']) && !empty($imgMeta['url']))
                     <div class="photo-frame-modern">
-                        <img src="{{ asset('assets/img/proses-linting-skt.jpg') }}?v=2" alt="Lini Linting Tangan SKT & Pita Cukai" class="photo-frame-img">
-                        <div class="photo-frame-caption">
-                            <i class="fa-solid fa-hands-holding-circle" style="color: #d4d4d8;"></i> Lini Produksi SKT &amp; Pelekatan Pita Cukai
-                        </div>
+                        <img src="{{ $imgMeta['url'] }}" alt="{{ $imgMeta['alt'] ?? 'Lini Linting Tangan SKT & Pita Cukai' }}" class="photo-frame-img">
+                        @include('front._facility_caption', ['imgMeta' => $imgMeta])
                     </div>
                 @else
                     <div class="photo-placeholder-slot">
@@ -378,12 +377,11 @@
         <!-- Baris 3: Gambar Besar 50% di KIRI — Teks di KANAN -->
         <div class="proses-split-row scroll-reveal reveal-up">
             <div class="proses-split-media">
-                @if(file_exists(public_path('assets/img/proses-gudang-distribusi.jpg')))
+                @php $imgMeta = $fasilitasImages['proses-gudang-distribusi'] ?? []; @endphp
+                @if(!empty($imgMeta['exists']) && !empty($imgMeta['url']))
                     <div class="photo-frame-modern">
-                        <img src="{{ asset('assets/img/proses-gudang-distribusi.jpg') }}?v=2" alt="Gudang Distribusi Slop & Bal" class="photo-frame-img">
-                        <div class="photo-frame-caption">
-                            <i class="fa-solid fa-boxes-stacked" style="color: #d4d4d8;"></i> Gudang Barang Jadi Siap Kirim
-                        </div>
+                        <img src="{{ $imgMeta['url'] }}" alt="{{ $imgMeta['alt'] ?? 'Gudang Distribusi Slop & Bal' }}" class="photo-frame-img">
+                        @include('front._facility_caption', ['imgMeta' => $imgMeta])
                     </div>
                 @else
                     <div class="photo-placeholder-slot">
@@ -422,9 +420,15 @@
             Ajukan pemesanan online hingga 19 Slop per transaksi, atau konsultasikan pengadaan skala Bal langsung bersama tim manajemen pabrik.
         </p>
         <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
-            <a href="{{ route('pesanan.form') }}" class="btn btn-gold" style="padding: 13px 26px; font-weight: 700;">
-                <i class="fa-solid fa-cart-shopping"></i> Order Online Sekarang
-            </a>
+            @if(!Auth::check() || Auth::user()->isPelanggan())
+                <a href="{{ route('pesanan.form') }}" class="btn btn-gold" style="padding: 13px 26px; font-weight: 700;">
+                    <i class="fa-solid fa-cart-shopping"></i> Order Online Sekarang
+                </a>
+            @else
+                <a href="{{ route('admin.transaksis.offline') }}" class="btn btn-gold" style="padding: 13px 26px; font-weight: 700;">
+                    <i class="fa-solid fa-cash-register"></i> Buka Kasir Pabrik (Offline)
+                </a>
+            @endif
             <a href="{{ route('katalog.index') }}" class="btn btn-outline-gold" style="padding: 13px 24px;">
                 Lihat Katalog Lengkap
             </a>

@@ -27,11 +27,6 @@ class CheckRole
             return $next($request);
         }
 
-        // Khusus owner selalu memiliki akses super ke seluruh fitur
-        if ($user->role === 'owner') {
-            return $next($request);
-        }
-
         abort(403, 'Akses Ditolak: Anda tidak memiliki izin untuk membuka halaman ini.');
     }
 }

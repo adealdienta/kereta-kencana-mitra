@@ -22,9 +22,17 @@
         }
     </style>
 </head>
-<body onload="window.print()">
-    <div class="no-print" style="margin-bottom: 20px; background: #fdf6b2; padding: 10px 15px; border: 1px solid #fde047;">
-        Tombol otomatis cetak telah diaktifkan. Klik tombol cetak browser Anda atau tutup tab ini jika selesai.
+<body>
+    <div class="no-print" style="margin-bottom: 20px; background: #fdf6b2; padding: 12px 16px; border: 1px solid #fde047; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <span style="font-size: 13px; color: #713f12;">Pratinjau dokumen Faktur &amp; Delivery Order siap cetak.</span>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <a href="{{ route('admin.transaksis.show', $transaksi->id) }}" style="background: #ffffff; color: #1e293b; border: 1px solid #cbd5e1; padding: 7px 14px; border-radius: 5px; text-decoration: none; font-weight: 600; font-size: 12.5px;">
+                &larr; Kembali ke Detail
+            </a>
+            <button type="button" onclick="window.print()" style="background: #0f172a; color: #ffffff; border: none; padding: 7px 16px; border-radius: 5px; font-weight: 700; font-size: 12.5px; cursor: pointer;">
+                Cetak Faktur Sekarang
+            </button>
+        </div>
     </div>
 
     <div class="header">
@@ -32,7 +40,7 @@
             <div class="title">PR. KERETA KENCANA</div>
             <div>Pabrik Sigaret Kretek Tangan (SKT)</div>
             <div>Dusun Subontoro RT. 001 RW. 015, Desa Kebonduren, Kec. Ponggok, Kab. Blitar - Jawa Timur</div>
-            <div><strong>NPPBKC: {{ config('pabrik.nppbkc', '750******-070700-221221*******') }} (KPPBC TMP C Blitar)</strong></div>
+            <div><strong>NPPBKC: {{ $pabrikNppbkc ?? config('pabrik.nppbkc', '750******-070700-221221*******') }} (KPPBC TMP C Blitar)</strong></div>
         </div>
         <div class="meta">
             <div style="font-size: 16px; font-weight: bold; border: 1px solid #222; padding: 4px 8px; display: inline-block;">
@@ -131,12 +139,18 @@
             <div>Mitra Distributor / Penerima</div>
         </div>
         <div class="sign-box">
-            <div>Pengemudi / Ekspedisi,</div>
-            <div class="sign-line">Armada Pengirim</div>
-            <div>Truk Logistik Pabrik</div>
+            @if(str_contains((string) $transaksi->sumber, 'Offline'))
+                <div>Diserahkan Oleh,</div>
+                <div class="sign-line">Kasir Gudang Pabrik</div>
+                <div>Serah Terima Langsung (Cash &amp; Carry)</div>
+            @else
+                <div>Pengemudi / Ekspedisi,</div>
+                <div class="sign-line">Armada Pengirim</div>
+                <div>Truk Logistik Pabrik</div>
+            @endif
         </div>
         <div class="sign-box">
-            <div>Ponggok, {{ date('d F Y') }}</div>
+            <div>Ponggok, {{ ($transaksi->created_at ?? now())->translatedFormat('d F Y') }}</div>
             <div class="sign-line">PR. KERETA KENCANA</div>
             <div>Bagian Administrasi & Cukai</div>
         </div>

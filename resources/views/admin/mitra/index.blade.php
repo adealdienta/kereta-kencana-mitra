@@ -98,7 +98,7 @@
                                 </a>
                             @endif
 
-                            <button type="button" class="btn btn-sm" onclick="openResetPasswordModal({{ $mitra->id }}, '{{ addslashes($mitra->nama_toko ?: $mitra->name) }}', '{{ $mitra->email }}')"
+                            <button type="button" class="btn btn-sm" onclick='openResetPasswordModal(@json($mitra->id), @json($mitra->nama_toko ?: $mitra->name), @json($mitra->email))'
                                     style="background: #f59e0b; color: #fff; padding: 6px 10px; border-radius: 4px; font-size: 12px; border: none; cursor: pointer;" title="Kirim Tautan Atur Ulang Sandi Resmi ke Email Mitra">
                                 <i class="fa-solid fa-paper-plane"></i> Kirim Link Reset
                             </button>

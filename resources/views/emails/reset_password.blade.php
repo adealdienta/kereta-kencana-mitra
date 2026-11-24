@@ -41,10 +41,15 @@
 
                             <!-- CTA Button -->
                             <div style="text-align: center; margin: 32px 0;">
-                                <a href="{{ $resetUrl }}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #d97706 0%, #b45309 100%); color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 700; padding: 14px 32px; border-radius: 6px; box-shadow: 0 4px 10px rgba(180, 83, 9, 0.3);">
+                                <a href="{{ $resetUrl }}" target="_blank" style="display: inline-block; background-color: #b45309; background: linear-gradient(135deg, #d97706 0%, #b45309 100%); color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 700; padding: 14px 32px; border-radius: 6px; box-shadow: 0 4px 10px rgba(180, 83, 9, 0.3);">
                                     Atur Ulang Kata Sandi Sekarang &rarr;
                                 </a>
                             </div>
+
+                            <p style="font-size: 12px; color: #64748b; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; word-break: break-all; margin-bottom: 22px;">
+                                Jika tombol di atas tidak dapat diklik, salin dan buka tautan berikut di peramban Anda:<br>
+                                <a href="{{ $resetUrl }}" style="color: #b45309; font-family: monospace;">{{ $resetUrl }}</a>
+                            </p>
 
                             @if(!empty($otpCode))
                             <!-- Mobile OTP Box (Untuk Persiapan Aplikasi Mobile) -->

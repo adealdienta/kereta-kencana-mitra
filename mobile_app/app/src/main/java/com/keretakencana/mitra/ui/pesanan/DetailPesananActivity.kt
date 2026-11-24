@@ -21,6 +21,7 @@ import com.keretakencana.mitra.data.model.Pengaturan
 import com.keretakencana.mitra.data.model.Transaksi
 import com.keretakencana.mitra.databinding.ActivityDetailPesananBinding
 import com.keretakencana.mitra.ui.cart.CartActivity
+import com.keretakencana.mitra.utils.ApiErrorHelper
 import com.keretakencana.mitra.utils.CurrencyHelper
 import com.keretakencana.mitra.utils.DateHelper
 import kotlinx.coroutines.launch
@@ -98,6 +99,7 @@ class DetailPesananActivity : AppCompatActivity() {
     }
 
     private fun renderPesanan(t: Transaksi) {
+        binding.scrollDetailPesanan.visibility = View.VISIBLE
         binding.tvDetailKodeTrx.text = t.kodeTransaksi
         binding.tvDetailWaktuPesan.text = "Dipesan pada ${DateHelper.formatIsoToIndonesianDateTime(t.createdAt)}"
         binding.tvDetailGrandTotal.text = CurrencyHelper.formatRupiah(t.totalHarga)
@@ -124,6 +126,26 @@ class DetailPesananActivity : AppCompatActivity() {
             "Pesanan disiapkan untuk diambil langsung di gudang pabrik"
         } else {
             "Kurir / ekspedisi mengantar pesanan ke tujuan toko"
+        }
+
+        val doText = t.nomorDo?.trim()
+        val resiText = t.nomorResi?.trim()
+        if (!doText.isNullOrBlank() || !resiText.isNullOrBlank()) {
+            binding.layoutDetailDokumenPengiriman.visibility = View.VISIBLE
+            if (!doText.isNullOrBlank()) {
+                binding.tvDetailNomorDo.visibility = View.VISIBLE
+                binding.tvDetailNomorDo.text = "Nomor DO Pabrik: $doText"
+            } else {
+                binding.tvDetailNomorDo.visibility = View.GONE
+            }
+            if (!resiText.isNullOrBlank()) {
+                binding.tvDetailNomorResi.visibility = View.VISIBLE
+                binding.tvDetailNomorResi.text = "Nomor Resi / Kargo: $resiText"
+            } else {
+                binding.tvDetailNomorResi.visibility = View.GONE
+            }
+        } else {
+            binding.layoutDetailDokumenPengiriman.visibility = View.GONE
         }
 
         // Status & Metode Pembayaran
@@ -254,7 +276,7 @@ class DetailPesananActivity : AppCompatActivity() {
     private fun setupWhatsAppAction(t: Transaksi) {
         binding.tvHubungiWaLink.setOnClickListener {
             val isAmbilPabrik = t.catatan?.contains("ambil", ignoreCase = true) == true ||
-                    t.alamat.contains("ponggok", ignoreCase = true)
+                    t.alamat.contains("Ambil Mandiri", ignoreCase = true)
 
             val metodeText = if (isAmbilPabrik) {
                 "Metode: Ambil Langsung di Pabrik.\nSaya berencana mengambil muatan langsung ke pabrik sekarang, mohon dibantu siapkan pesanan di loket gudang ya Admin."
@@ -388,17 +410,37 @@ class DetailPesananActivity : AppCompatActivity() {
         when (t.status) {
             "Baru Masuk" -> {
                 binding.layoutBottomDetailBar.visibility = View.VISIBLE
-                binding.btnDetailSecondaryAction.visibility = View.VISIBLE
-                binding.btnDetailSecondaryAction.text = "Batalkan Pesanan"
-                binding.btnDetailSecondaryAction.setOnClickListener {
-                    showDialogBatalPesanan(t.id)
+                if (t.bolehBatal) {
+                    binding.btnDetailSecondaryAction.visibility = View.VISIBLE
+                    binding.btnDetailSecondaryAction.text = "Batalkan Pesanan"
+                    binding.btnDetailSecondaryAction.setOnClickListener {
+                        showDialogBatalPesanan(t.id)
+                    }
+                } else {
+                    binding.btnDetailSecondaryAction.visibility = View.GONE
                 }
-
-                binding.btnDetailPrimaryAction.visibility = View.GONE
+                binding.btnDetailPrimaryAction.visibility = View.VISIBLE
+                binding.btnDetailPrimaryAction.text = "Lihat Faktur & Nota"
+                binding.btnDetailPrimaryAction.setOnClickListener {
+                    openFakturActivity(t.id)
+                }
+            }
+            "Diproses" -> {
+                binding.layoutBottomDetailBar.visibility = View.VISIBLE
+                binding.btnDetailSecondaryAction.visibility = View.GONE
+                binding.btnDetailPrimaryAction.visibility = View.VISIBLE
+                binding.btnDetailPrimaryAction.text = "Lihat Faktur & Nota"
+                binding.btnDetailPrimaryAction.setOnClickListener {
+                    openFakturActivity(t.id)
+                }
             }
             "Dikirim" -> {
                 binding.layoutBottomDetailBar.visibility = View.VISIBLE
-                binding.btnDetailSecondaryAction.visibility = View.GONE
+                binding.btnDetailSecondaryAction.visibility = View.VISIBLE
+                binding.btnDetailSecondaryAction.text = "Lihat Faktur"
+                binding.btnDetailSecondaryAction.setOnClickListener {
+                    openFakturActivity(t.id)
+                }
 
                 binding.btnDetailPrimaryAction.visibility = View.VISIBLE
                 binding.btnDetailPrimaryAction.text = "Konfirmasi Penerimaan Barang"
@@ -422,16 +464,20 @@ class DetailPesananActivity : AppCompatActivity() {
                 binding.btnDetailPrimaryAction.visibility = View.VISIBLE
                 binding.btnDetailPrimaryAction.text = "Lihat Faktur & Nota"
                 binding.btnDetailPrimaryAction.setOnClickListener {
-                    val intent = Intent(this, FakturActivity::class.java).apply {
-                        putExtra(FakturActivity.EXTRA_PESANAN_ID, t.id)
-                    }
-                    startActivity(intent)
+                    openFakturActivity(t.id)
                 }
             }
             else -> {
                 binding.layoutBottomDetailBar.visibility = View.GONE
             }
         }
+    }
+
+    private fun openFakturActivity(transaksiId: Long) {
+        val intent = Intent(this, FakturActivity::class.java).apply {
+            putExtra(FakturActivity.EXTRA_PESANAN_ID, transaksiId)
+        }
+        startActivity(intent)
     }
 
     private fun showDialogBatalPesanan(id: Long) {
@@ -455,7 +501,8 @@ class DetailPesananActivity : AppCompatActivity() {
                     Toast.makeText(this@DetailPesananActivity, "Pesanan berhasil dibatalkan.", Toast.LENGTH_SHORT).show()
                     loadPesananDetail()
                 } else {
-                    Toast.makeText(this@DetailPesananActivity, "Gagal membatalkan pesanan.", Toast.LENGTH_SHORT).show()
+                    val errMsg = ApiErrorHelper.parseMessage(response, "Gagal membatalkan pesanan.")
+                    Toast.makeText(this@DetailPesananActivity, errMsg, Toast.LENGTH_LONG).show()
                 }
             } catch (e: Exception) {
                 Toast.makeText(this@DetailPesananActivity, "Koneksi terganggu: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
@@ -472,8 +519,8 @@ class DetailPesananActivity : AppCompatActivity() {
 
         AlertDialog.Builder(this)
             .setTitle("Pesan Lagi?")
-            .setMessage("Muatan dari pesanan ini akan ditambahkan ke keranjang belanja Anda (maks. ${Barang.MAX_SLOP_PER_ORDER} Slop online).")
-            .setPositiveButton("Ya, Tambah ke Keranjang") { _, _ ->
+            .setMessage("Keranjang belanja akan diisi dengan muatan dari pesanan ini (maks. ${Barang.MAX_SLOP_PER_ORDER} Slop online).")
+            .setPositiveButton("Ya, Muat ke Keranjang") { _, _ ->
                 lifecycleScope.launch {
                     try {
                         val api = ApiClient.getService(this@DetailPesananActivity)
@@ -493,7 +540,7 @@ class DetailPesananActivity : AppCompatActivity() {
 
                         val cartPairs = groupedSlop.mapNotNull { (bId, qty) ->
                             val barang = catalogMap[bId]
-                            if (barang != null && barang.stok > 0 && qty > 0) barang to qty else null
+                            if (barang != null && barang.hasAvailableStock && qty > 0) barang to qty else null
                         }
 
                         if (cartPairs.isEmpty()) {

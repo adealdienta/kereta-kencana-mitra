@@ -10,7 +10,7 @@ class KatalogController extends Controller
 {
     public function index(Request $request)
     {
-        $kategoris = Kategori::withCount('barangs')->get();
+        $kategoris = Kategori::withCount(['barangs' => fn ($q) => $q->aktif()])->get();
         $query = Barang::with('kategori')->aktif();
 
         if ($request->filled('kategori')) {
@@ -35,7 +35,7 @@ class KatalogController extends Controller
 
     public function detail($slug)
     {
-        $produk = Barang::with('kategori')->where('slug', $slug)->firstOrFail();
+        $produk = Barang::with('kategori')->aktif()->where('slug', $slug)->firstOrFail();
         $terkait = Barang::with('kategori')
             ->where('kategori_id', $produk->kategori_id)
             ->where('id', '!=', $produk->id)

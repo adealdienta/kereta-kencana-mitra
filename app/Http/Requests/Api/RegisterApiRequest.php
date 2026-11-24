@@ -22,6 +22,7 @@ class RegisterApiRequest extends FormRequest
             'telepon' => ['required', 'string', 'max:30'],
             'alamat' => ['required', 'string', 'max:500'],
             'password' => ['required', 'string', 'min:6', 'confirmed'],
+            'usia_21' => ['sometimes', 'accepted'],
         ];
     }
 
@@ -38,6 +39,7 @@ class RegisterApiRequest extends FormRequest
             'password.required' => 'Kata sandi wajib diisi.',
             'password.min' => 'Kata sandi minimal 6 karakter.',
             'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
+            'usia_21.accepted' => 'Pendaftar wajib menyatakan berusia 21 tahun ke atas.',
         ];
     }
 

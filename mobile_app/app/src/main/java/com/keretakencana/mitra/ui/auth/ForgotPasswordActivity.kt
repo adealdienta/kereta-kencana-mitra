@@ -6,6 +6,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.widget.EditText
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.keretakencana.mitra.data.api.ApiClient
@@ -19,6 +20,7 @@ class ForgotPasswordActivity : AppCompatActivity() {
 
     private var currentIdentifier: String = ""
     private var resendTimer: CountDownTimer? = null
+    private var isResending: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,16 +35,35 @@ class ForgotPasswordActivity : AppCompatActivity() {
         binding.btnBackForgot.setOnClickListener {
             handleBackPress()
         }
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                handleBackPress()
+            }
+        })
     }
 
     private fun handleBackPress() {
         val currentStep = binding.viewFlipperForgot.displayedChild
         if (currentStep > 0 && currentStep < 3) {
             hideError()
+            if (currentStep == 1) {
+                resendTimer?.cancel()
+                clearOtpInputs()
+            }
             binding.viewFlipperForgot.displayedChild = currentStep - 1
         } else {
             finish()
         }
+    }
+
+    private fun clearOtpInputs() {
+        binding.etOtp1.setText("")
+        binding.etOtp2.setText("")
+        binding.etOtp3.setText("")
+        binding.etOtp4.setText("")
+        binding.etOtp5.setText("")
+        binding.etOtp6.setText("")
     }
 
     // ==========================================
@@ -69,6 +90,7 @@ class ForgotPasswordActivity : AppCompatActivity() {
 
                     setLoadingStep1(false)
                     if (response.isSuccessful && response.body()?.success == true) {
+                        clearOtpInputs()
                         binding.tvOtpTargetInfo.text = "Kode OTP 6-digit dikirim ke $currentIdentifier"
                         startResendTimer()
                         binding.viewFlipperForgot.displayedChild = 1
@@ -134,6 +156,7 @@ class ForgotPasswordActivity : AppCompatActivity() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun afterTextChanged(s: Editable?) {
+                hideError()
                 if (s?.length == 1) {
                     next?.requestFocus()
                 } else if (s?.isEmpty() == true) {
@@ -154,6 +177,7 @@ class ForgotPasswordActivity : AppCompatActivity() {
 
     private fun startResendTimer() {
         resendTimer?.cancel()
+        binding.tvResendOtp.setOnClickListener(null)
         resendTimer = object : CountDownTimer(45000, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 val sec = millisUntilFinished / 1000
@@ -170,12 +194,27 @@ class ForgotPasswordActivity : AppCompatActivity() {
     }
 
     private fun resendOtp() {
+        if (isResending || currentIdentifier.isBlank()) return
+        isResending = true
+        binding.tvResendOtp.text = "Mengirim ulang..."
+        hideError()
+
         lifecycleScope.launch {
             try {
                 val api = ApiClient.getService(this@ForgotPasswordActivity)
-                api.forgotPassword(mapOf("email" to currentIdentifier))
-                startResendTimer()
-            } catch (_: Exception) {}
+                val response = api.forgotPassword(mapOf("email" to currentIdentifier))
+                if (response.isSuccessful && response.body()?.success == true) {
+                    startResendTimer()
+                } else {
+                    binding.tvResendOtp.text = "Kirim ulang kode"
+                    showError(parseErrorMessage(response.errorBody()?.string()) ?: "Gagal mengirim ulang kode OTP.")
+                }
+            } catch (e: Exception) {
+                binding.tvResendOtp.text = "Kirim ulang kode"
+                showError("Gagal menghubungi server: ${e.localizedMessage}")
+            } finally {
+                isResending = false
+            }
         }
     }
 
@@ -183,6 +222,14 @@ class ForgotPasswordActivity : AppCompatActivity() {
     // STEP 3: Buat Kata Sandi Baru (S14)
     // ==========================================
     private fun setupStep3() {
+        val clearErrWatcher = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) { hideError() }
+        }
+        binding.etNewPassword.addTextChangedListener(clearErrWatcher)
+        binding.etConfirmNewPassword.addTextChangedListener(clearErrWatcher)
+
         binding.btnSaveNewPassword.setOnClickListener {
             val newPass = binding.etNewPassword.text.toString().trim()
             val confirmPass = binding.etConfirmNewPassword.text.toString().trim()
@@ -272,7 +319,8 @@ class ForgotPasswordActivity : AppCompatActivity() {
     private fun parseErrorMessage(errorJson: String?): String? {
         if (errorJson.isNullOrBlank()) return null
         return try {
-            JSONObject(errorJson).optString("message", null)
+            val msg = JSONObject(errorJson).optString("message", "")
+            msg.takeIf { it.isNotBlank() }
         } catch (_: Exception) {
             null
         }

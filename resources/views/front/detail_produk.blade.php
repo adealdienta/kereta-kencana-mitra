@@ -15,6 +15,9 @@
             <!-- Gambar Produk Resmi (1 Foto Mewakili 1 Produk) -->
             <div>
                 <div style="position: relative; background: var(--kk-ivory); border-radius: 2px; border: 1px solid var(--kk-ivory-border); padding: 24px; display: flex; align-items: center; justify-content: center; min-height: 380px;">
+                    @if($produk->best_seller)
+                        <span class="bestseller-tag">Paling Diminati</span>
+                    @endif
                     <img id="detailMainImg" src="{{ $produk->image_url }}" alt="{{ $produk->nama }}" 
                          style="max-width: 100%; max-height: 360px; width: auto; height: auto; object-fit: contain; mix-blend-mode: multiply;">
                 </div>
@@ -42,7 +45,7 @@
                     <h4 style="color: var(--text-dark); font-family: var(--font-serif); font-size: 16px; margin-bottom: 14px; border-bottom: 1px solid var(--kk-ivory-border); padding-bottom: 8px;">
                         Spesifikasi Teknis Hasil Tembakau
                     </h4>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; font-size: 14px; color: var(--text-dark);">
+                    <div class="grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; font-size: 14px; color: var(--text-dark);">
                         <div><strong>Profil Rasa:</strong><br><span style="color: var(--text-medium);">{{ $produk->profil_rasa ?? '-' }}</span></div>
                         <div><strong>Kemasan Per Bungkus:</strong><br><span class="font-mono" style="color: var(--text-medium); font-size: 13px;">{{ $produk->batang_per_bungkus }} Batang</span></div>
                         <div><strong>Kemasan Per Slop:</strong><br><span class="font-mono" style="color: var(--text-medium); font-size: 13px;">{{ $produk->bungkus_per_slop }} Bungkus</span></div>
@@ -50,7 +53,7 @@
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; background: #ffffff; padding: 20px 24px; border-radius: 2px; border: 1px solid var(--border-light); margin-bottom: 24px;">
+                <div class="grid-2col" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; background: #ffffff; padding: 20px 24px; border-radius: 2px; border: 1px solid var(--border-light); margin-bottom: 24px;">
                     <div>
                         <div style="margin-bottom: 10px;">
                             <span style="display: block; color: var(--text-muted); font-size: 12px;">Harga Satuan Slop (10 Bungkus):</span>
@@ -67,10 +70,16 @@
                         </div>
                     </div>
                     <div style="display: flex; flex-direction: column; justify-content: center; gap: 8px;">
-                        <a href="{{ route('pesanan.form', ['produk' => $produk->slug]) }}" class="btn btn-gold" style="padding: 12px 20px; text-align: center;">
-                            <i class="fa-solid fa-cart-shopping"></i> Order Online (Slop)
-                        </a>
-                        <a href="https://wa.me/{{ config('pabrik.wa_pabrik', '6285790627104') }}?text={{ urlencode('Halo Admin PR. KERETA KENCANA, saya ingin menanyakan ketersediaan stok & pembelian skala Bal untuk rokok ' . $produk->nama . '.') }}" 
+                        @if(!Auth::check() || Auth::user()->isPelanggan())
+                            <a href="{{ route('pesanan.form', ['produk' => $produk->slug]) }}" class="btn btn-gold" style="padding: 12px 20px; text-align: center;">
+                                <i class="fa-solid fa-cart-shopping"></i> Order Online (Slop)
+                            </a>
+                        @else
+                            <a href="{{ route('admin.transaksis.offline') }}" class="btn btn-gold" style="padding: 12px 20px; text-align: center;">
+                                <i class="fa-solid fa-cash-register"></i> Catat Transaksi Kasir Offline
+                            </a>
+                        @endif
+                        <a href="https://wa.me/{{ $pabrikWa ?? config('pabrik.wa_pabrik', '6285790627104') }}?text={{ urlencode('Halo Admin PR. KERETA KENCANA, saya ingin menanyakan ketersediaan stok & pembelian skala Bal untuk rokok ' . $produk->nama . '.') }}" 
                            target="_blank" rel="noopener noreferrer"
                            class="btn btn-outline-gold" 
                            style="padding: 10px 20px; text-align: center; font-size: 13px;">
@@ -90,6 +99,9 @@
                         <div class="product-card">
                             <div class="product-img-wrapper">
                                 <img src="{{ $t->image_url }}" alt="{{ $t->nama }}" class="product-img">
+                                @if($t->best_seller)
+                                    <span class="bestseller-tag">Paling Diminati</span>
+                                @endif
                             </div>
                             <div class="product-info">
                                 <h4 class="product-title"><a href="{{ route('produk.detail', $t->slug) }}">{{ $t->nama }}</a></h4>

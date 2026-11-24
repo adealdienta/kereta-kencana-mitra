@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('user_nama', 100);
-            $table->string('role', 30)->default('staff');
+            $table->string('role', 30)->default('admin');
             $table->string('action', 100);
             $table->text('details')->nullable();
             $table->string('ip_address', 50)->nullable();

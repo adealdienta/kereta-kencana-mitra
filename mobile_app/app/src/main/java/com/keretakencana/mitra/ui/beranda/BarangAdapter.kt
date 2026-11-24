@@ -25,20 +25,26 @@ class BarangAdapter(
             val context = binding.root.context
             val cartManager = CartManager.getInstance(context)
 
+            val hasStock = barang.hasAvailableStock
             binding.tvBarangNama.text = barang.nama
+            binding.tvBarangBestSeller.visibility = if (barang.bestSeller) View.VISIBLE else View.GONE
             binding.tvBarangHarga.text = CurrencyHelper.formatRupiah(barang.hargaPerSlop)
-            binding.tvBarangSatuanSub.text = if (barang.stok > 0) {
-                "per slop (${barang.bungkusPerSlop} bks)"
+            binding.tvBarangSatuanSub.text = if (hasStock) {
+                "per slop (${barang.bungkusPerSlop} bks) • Stok ${barang.stokTersediaSlop} Slop"
             } else {
                 "Stok Gudang Habis • Hubungi Admin"
             }
+
+            binding.btnTambahSlop.isEnabled = hasStock
+            binding.btnTambahSlop.alpha = if (hasStock) 1f else 0.45f
+            binding.btnTambahSlop.text = if (hasStock) "Tambah" else "Habis"
 
             // Muat Gambar Produk (Glide dengan Fallback Aset Lokal)
             val localDrawableRes = when {
                 barang.kodeBarang.contains("KK", ignoreCase = true) -> R.drawable.produk_kereta_kencana_12
                 barang.kodeBarang.contains("SC", ignoreCase = true) -> R.drawable.produk_sembada_cethe_12
                 barang.kodeBarang.contains("SM", ignoreCase = true) -> R.drawable.produk_sembada_12
-                else -> R.drawable.logo_resmi
+                else -> R.drawable.ic_logo_kereta_kencana
             }
 
             if (!barang.imageUrl.isNullOrBlank()) {
@@ -96,10 +102,15 @@ class BarangAdapter(
 
             // Event Tombol Minus (-)
             binding.btnMinusQty.setOnClickListener {
-                val newQty = currentQty - 1
-                cartManager.tryUpdateSlopQty(barang, newQty)
-                notifyItemChanged(adapterPosition)
-                onCartUpdated()
+                val minOrder = barang.minOrderSlop.coerceAtLeast(1)
+                val newQty = if (currentQty <= minOrder) 0 else currentQty - 1
+                val (ok, msg) = cartManager.tryUpdateSlopQty(barang, newQty)
+                if (ok) {
+                    notifyItemChanged(adapterPosition)
+                    onCartUpdated()
+                } else if (!msg.isNullOrBlank()) {
+                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                }
             }
         }
     }

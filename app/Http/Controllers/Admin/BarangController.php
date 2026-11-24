@@ -65,8 +65,8 @@ class BarangController extends Controller
             'kode_barang' => ['required', 'string', 'max:50', 'unique:barangs,kode_barang'],
             'deskripsi' => ['nullable', 'string'],
             'profil_rasa' => ['nullable', 'string', 'max:255'],
-            'tar_mg' => ['nullable', 'numeric'],
-            'nikotin_mg' => ['nullable', 'numeric'],
+            'tar_mg' => ['nullable', 'numeric', 'min:0'],
+            'nikotin_mg' => ['nullable', 'numeric', 'min:0'],
             'batang_per_bungkus' => ['required', 'integer', 'min:1'],
             'bungkus_per_slop' => ['required', 'integer', 'min:1'],
             'slop_per_bal' => ['required', 'integer', 'min:1'],
@@ -75,14 +75,18 @@ class BarangController extends Controller
             'min_order_bal' => ['required', 'integer', 'min:1'],
             'min_order_slop' => ['required', 'integer', 'min:1'],
             'stok' => ['required', 'integer', 'min:0'],
-            'status_stok' => ['required', 'string'],
+            'status_stok' => ['required', 'string', 'in:Ready Stock,Pre-Order,Habis'],
             'gambar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'remove_gambar' => ['nullable', 'boolean'],
             'aktif' => ['boolean'],
-            'urutan' => ['integer'],
+            'best_seller' => ['boolean'],
+            'urutan' => ['nullable', 'integer', 'min:0'],
         ]);
 
         $validated['slug'] = $this->generateUniqueSlug($request->nama);
         $validated['aktif'] = $request->boolean('aktif');
+        $validated['best_seller'] = $request->boolean('best_seller');
+        $validated['urutan'] = $validated['urutan'] ?? 0;
         if (empty($validated['harga_per_slop'])) {
             $validated['harga_per_slop'] = 70000;
         }
@@ -117,8 +121,8 @@ class BarangController extends Controller
             'kode_barang' => ['required', 'string', 'max:50', 'unique:barangs,kode_barang,' . $barang->id],
             'deskripsi' => ['nullable', 'string'],
             'profil_rasa' => ['nullable', 'string', 'max:255'],
-            'tar_mg' => ['nullable', 'numeric'],
-            'nikotin_mg' => ['nullable', 'numeric'],
+            'tar_mg' => ['nullable', 'numeric', 'min:0'],
+            'nikotin_mg' => ['nullable', 'numeric', 'min:0'],
             'batang_per_bungkus' => ['required', 'integer', 'min:1'],
             'bungkus_per_slop' => ['required', 'integer', 'min:1'],
             'slop_per_bal' => ['required', 'integer', 'min:1'],
@@ -127,14 +131,18 @@ class BarangController extends Controller
             'min_order_bal' => ['required', 'integer', 'min:1'],
             'min_order_slop' => ['required', 'integer', 'min:1'],
             'stok' => ['required', 'integer', 'min:0'],
-            'status_stok' => ['required', 'string'],
+            'status_stok' => ['required', 'string', 'in:Ready Stock,Pre-Order,Habis'],
             'gambar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'remove_gambar' => ['nullable', 'boolean'],
             'aktif' => ['boolean'],
-            'urutan' => ['integer'],
+            'best_seller' => ['boolean'],
+            'urutan' => ['nullable', 'integer', 'min:0'],
         ]);
 
         $validated['slug'] = $this->generateUniqueSlug($request->nama, $barang->id);
         $validated['aktif'] = $request->boolean('aktif');
+        $validated['best_seller'] = $request->boolean('best_seller');
+        $validated['urutan'] = $validated['urutan'] ?? ($barang->urutan ?? 0);
         if (empty($validated['harga_per_slop'])) {
             $validated['harga_per_slop'] = 70000;
         }
@@ -146,8 +154,14 @@ class BarangController extends Controller
             }
             $path = $request->file('gambar')->store('produk', 'public');
             $validated['gambar'] = 'storage/' . $path;
+        } elseif ($request->boolean('remove_gambar')) {
+            if ($barang->gambar && str_starts_with($barang->gambar, 'storage/')) {
+                Storage::disk('public')->delete(str_replace('storage/', '', $barang->gambar));
+            }
+            $validated['gambar'] = null;
         }
 
+        unset($validated['remove_gambar']);
         $barang->update($validated);
 
         ActivityLogger::log('Ubah Produk', "Memperbarui produk: {$barang->nama}");

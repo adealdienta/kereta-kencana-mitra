@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Transaksi;
+use App\Models\TransaksiDetail;
 
 class TransaksiSeeder extends Seeder
 {
@@ -13,7 +14,8 @@ class TransaksiSeeder extends Seeder
      */
     public function run(): void
     {
-        // Kosongkan transaksi jika dijalankan
-        Transaksi::truncate();
+        // Hapus aman sesuai urutan foreign key tanpa truncate() yang gagal di MySQL
+        TransaksiDetail::query()->delete();
+        Transaksi::query()->delete();
     }
 }

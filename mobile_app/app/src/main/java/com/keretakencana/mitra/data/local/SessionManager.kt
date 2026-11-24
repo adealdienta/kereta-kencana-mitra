@@ -21,6 +21,7 @@ class SessionManager(context: Context) {
 
         const val DEFAULT_WA_PABRIK = "6285790627104"
         const val DEFAULT_NPPBKC = "750******-070700-221221*******"
+        const val DEFAULT_JAM_OPERASIONAL = "Buka: 09.00 - 16.00 WIB (Senin - Sabtu)"
 
         @Volatile
         private var instance: SessionManager? = null
@@ -102,7 +103,8 @@ class SessionManager(context: Context) {
                 if (parsed != null) {
                     return parsed.copy(
                         waPabrik = parsed.waPabrik?.takeIf { it.isNotBlank() } ?: DEFAULT_WA_PABRIK,
-                        nppbkc = parsed.nppbkc?.takeIf { it.isNotBlank() } ?: DEFAULT_NPPBKC
+                        nppbkc = parsed.nppbkc?.takeIf { it.isNotBlank() } ?: DEFAULT_NPPBKC,
+                        jamOperasional = parsed.jamOperasional?.takeIf { it.isNotBlank() } ?: DEFAULT_JAM_OPERASIONAL
                     )
                 }
             } catch (_: Exception) {}
@@ -112,6 +114,7 @@ class SessionManager(context: Context) {
             nppbkc = DEFAULT_NPPBKC,
             namaPabrik = "PR. KERETA KENCANA",
             alamatPabrik = "Dusun Subontoro RT. 001 RW. 015, Desa Kebonduren, Ponggok, Blitar",
+            jamOperasional = DEFAULT_JAM_OPERASIONAL,
             bankNama = null,
             bankRekening = null,
             bankAtasNama = null

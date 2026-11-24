@@ -40,6 +40,7 @@ class CheckoutActivity : AppCompatActivity() {
     private var selectedPaymentMethod: String = "COD" // "COD" atau "TRANSFER_BANK"
     private var isAmbilDiPabrik: Boolean = false
     private lateinit var currentPengaturan: Pengaturan
+    private var idempotencyKey: String = UUID.randomUUID().toString()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,6 +85,9 @@ class CheckoutActivity : AppCompatActivity() {
     }
 
     private fun bindTransferInfo() {
+        binding.tvCheckoutJamOperasional.text = currentPengaturan.jamOperasional?.takeIf { it.isNotBlank() }
+            ?: SessionManager.DEFAULT_JAM_OPERASIONAL
+
         val bankNama = currentPengaturan.bankNama?.trim()
         val bankRekening = currentPengaturan.bankRekening?.trim()
         val bankAtasNama = currentPengaturan.bankAtasNama?.trim()
@@ -246,6 +250,19 @@ class CheckoutActivity : AppCompatActivity() {
     }
 
     private fun confirmAndSendOrder() {
+        val user = SessionManager.getInstance(this).getUser()
+        if (!isAmbilDiPabrik && user?.alamat.isNullOrBlank()) {
+            AlertDialog.Builder(this)
+                .setTitle("Alamat Toko Belum Diisi")
+                .setMessage("Silakan lengkapi alamat pengiriman toko Anda terlebih dahulu sebelum membuat pesanan pengantaran.")
+                .setPositiveButton("Isi Alamat") { _, _ ->
+                    startActivity(Intent(this, AlamatTokoActivity::class.java))
+                }
+                .setNegativeButton("Batal", null)
+                .show()
+            return
+        }
+
         val methodDesc = if (selectedPaymentMethod == "COD") {
             "Bayar di Tempat (COD)"
         } else {
@@ -275,7 +292,6 @@ class CheckoutActivity : AppCompatActivity() {
             try {
                 val api = ApiClient.getService(this@CheckoutActivity)
                 val user = SessionManager.getInstance(this@CheckoutActivity).getUser()
-                val idempotencyKey = UUID.randomUUID().toString()
 
                 val itemsPayload = cartItems.map {
                     mapOf(
@@ -340,6 +356,9 @@ class CheckoutActivity : AppCompatActivity() {
                         finish()
                     }
                 } else {
+                    if (response.code() in 400..499 && response.code() != 409) {
+                        idempotencyKey = UUID.randomUUID().toString()
+                    }
                     handleOrderError(response.code(), response.errorBody()?.string())
                 }
             } catch (e: Exception) {

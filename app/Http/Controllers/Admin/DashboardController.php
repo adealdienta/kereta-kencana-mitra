@@ -11,13 +11,18 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $totalProduk = Barang::count();
-        $totalPesanan = Transaksi::count();
-        $totalOmzet = Transaksi::where('status', '!=', 'Dibatalkan')->sum('total_harga');
+        $totalProduk = Barang::aktif()->count();
+        $totalPesanan = Transaksi::where('status', '!=', 'Dibatalkan')->count();
+        $totalOmzet = Transaksi::where('status', '!=', 'Dibatalkan')
+            ->where(function ($q) {
+                $q->where('status_pembayaran', 'Lunas')
+                  ->orWhere('status', 'Selesai');
+            })
+            ->sum('total_harga');
 
-        // Hitung total kuantitas rokok presisi dalam satuan Slop & Bungkus
+        // Hitung total kuantitas rokok presisi dalam satuan Slop & Bungkus (pesanan aktif diproses/dikirim/selesai)
         $activeTransaksis = Transaksi::with(['details.barang', 'barang'])
-            ->where('status', '!=', 'Dibatalkan')
+            ->whereNotIn('status', ['Dibatalkan', 'Baru Masuk'])
             ->get();
 
         $totalSlop = 0;
@@ -56,7 +61,8 @@ class DashboardController extends Controller
         $totalBal = $balCount; // Backward compatibility
 
         $pesananTerbaru = Transaksi::with(['details.barang', 'barang'])->latest()->take(5)->get();
-        $stokMenipis = Barang::where('stok', '<=', 20)->take(5)->get();
+        // Ambang stok menipis: <= 400 Slop (setara <= 20 Bal)
+        $stokMenipis = Barang::aktif()->where('stok', '<=', 400)->orderBy('stok')->take(5)->get();
         $aktivitasTerbaru = ActivityLog::latest()->take(6)->get();
 
         return view('admin.dashboard', compact(

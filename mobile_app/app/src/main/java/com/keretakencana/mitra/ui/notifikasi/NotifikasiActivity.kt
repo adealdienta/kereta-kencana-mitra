@@ -3,6 +3,7 @@ package com.keretakencana.mitra.ui.notifikasi
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -167,41 +168,36 @@ class NotifikasiActivity : AppCompatActivity() {
                                 )
                             )
                         }
+
+                        // Kategori E: Pesanan Dibatalkan
+                        if (t.status.equals("Dibatalkan", ignoreCase = true)) {
+                            listNotif.add(
+                                NotifikasiItem(
+                                    id = "cancel_${t.id}",
+                                    judul = "Pesanan Dibatalkan (${t.kodeTransaksi})",
+                                    pesan = "Pesanan ini telah dibatalkan dan stok produk telah dikembalikan ke gudang pabrik.",
+                                    waktu = DateHelper.formatNotificationWib(t.createdAt),
+                                    kategori = "dibatalkan",
+                                    transaksiId = t.id
+                                )
+                            )
+                        }
                     }
                 }
 
-                // Jika daftar masih kosong, beri notifikasi default akun aktif
-                if (listNotif.isEmpty()) {
-                    listNotif.add(
-                        NotifikasiItem(
-                            id = "default_info",
-                            judul = "Keamanan Akun: Akun Aktif & Terlindungi",
-                            pesan = "Sesi akun mitra Anda aktif dan aman. Pantau rincian mutasi pesanan rokok Anda di menu Pesanan.",
-                            waktu = DateHelper.getCurrentWibDateTime(),
-                            kategori = "keamanan"
-                        )
-                    )
-                }
-
+                // Jika daftar masih kosong, tampilkan empty state resmi alih-alih kartu dummy
                 renderList(listNotif)
             } catch (e: Exception) {
                 binding.progressNotif.visibility = View.GONE
                 binding.swipeRefreshNotif.isRefreshing = false
 
-                // Fallback menampilkan notifikasi keamanan yang tersimpan secara lokal
                 val localNotifs = session.getSecurityNotifications().toMutableList()
-                if (localNotifs.isEmpty()) {
-                    localNotifs.add(
-                        NotifikasiItem(
-                            id = "offline_info",
-                            judul = "Pemberitahuan Sistem Offline",
-                            pesan = "Tidak dapat memuat pembaruan transaksi dari server. Periksa koneksi Wi-Fi Anda.",
-                            waktu = DateHelper.getCurrentWibDateTime(),
-                            kategori = "info"
-                        )
-                    )
-                }
                 renderList(localNotifs)
+                Toast.makeText(
+                    this@NotifikasiActivity,
+                    "Gagal memuat notifikasi terbaru: ${e.localizedMessage ?: "Periksa koneksi internet"}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }

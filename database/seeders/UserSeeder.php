@@ -38,7 +38,20 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Admin Gudang & Pemesanan',
                 'password' => $defaultPassword,
-                'role' => 'staff',
+                'role' => 'admin',
+            ]
+        );
+
+        // 4. Akun Demo Mitra / Pelanggan (untuk pengujian Web & Mobile)
+        User::updateOrCreate(
+            ['email' => 'mitra@keretakencana.com'],
+            [
+                'name' => 'Mitra Demo Toko',
+                'nama_toko' => 'Toko Mitra Jaya',
+                'telepon' => '+6285200001111',
+                'alamat' => 'Jl. Raya Kebonduren No. 10, Ponggok, Kab. Blitar',
+                'password' => $defaultPassword,
+                'role' => 'pelanggan',
             ]
         );
     }

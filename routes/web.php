@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\TransaksiController;
 use App\Http\Controllers\Admin\LegalitasController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ActivityLogController;
+use App\Http\Controllers\Admin\PengaturanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,19 +28,19 @@ Route::get('/produk/{slug}', [KatalogController::class, 'detail'])->name('produk
 
 // --- 2. RUTE AUTENTIKASI (LOGIN & REGISTER MITRA) ---
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:20,1');
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-Route::post('/register', [AuthController::class, 'register']);
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:20,1');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Rute Mandiri Lupa & Atur Ulang Kata Sandi Mitra
 Route::get('/lupa-sandi', [AuthController::class, 'showForgotPassword'])->name('password.request');
-Route::post('/lupa-sandi', [AuthController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::post('/lupa-sandi', [AuthController::class, 'sendResetLinkEmail'])->middleware('throttle:15,1')->name('password.email');
 Route::get('/reset-sandi/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
-Route::post('/reset-sandi', [AuthController::class, 'resetPassword'])->name('password.update');
+Route::post('/reset-sandi', [AuthController::class, 'resetPassword'])->middleware('throttle:15,1')->name('password.update');
 
-// --- 3. RUTE PEMESANAN & PELACAKAN (WAJIB AUTHENTIKASI MITRA) ---
-Route::middleware(['auth'])->group(function () {
+// --- 3. RUTE PEMESANAN & PELACAKAN (KHUSUS MITRA TOKO / PELANGGAN) ---
+Route::middleware(['auth', 'role:pelanggan'])->group(function () {
     Route::get('/pesan', [PemesananController::class, 'form'])->name('pesanan.form');
     Route::post('/pesan', [PemesananController::class, 'store'])->name('pesanan.store');
     Route::get('/pesanan-saya', [PemesananController::class, 'pelacakan'])->name('pesanan.saya');
@@ -47,20 +48,19 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/pesanan/{id}/konfirmasi-terima', [PemesananController::class, 'konfirmasiTerima'])->name('pesanan.konfirmasi');
     Route::post('/pesanan/{id}/upload-bukti-transfer', [PemesananController::class, 'uploadBuktiTransfer'])->name('pesanan.upload_transfer');
     Route::post('/pesanan/{id}/batal', [PemesananController::class, 'batalkanPesanan'])->name('pesanan.batal');
-
-    // Halaman Invoice Digital (Hanya pemilik pesanan atau staf internal)
-    Route::get('/invoice/{kode_transaksi}', [PemesananController::class, 'invoice'])->name('pesanan.invoice');
 });
 
-// --- 4. RUTE DASHBOARD OPERASIONAL INTERNAL (ROLE STAFF, ADMIN, OWNER, SUPERADMIN) ---
-Route::middleware(['auth', 'role:staff,admin,owner,superadmin'])->prefix('admin')->name('admin.')->group(function () {
+// Halaman Invoice Digital (Hanya pemilik pesanan atau staf internal)
+Route::middleware(['auth'])->get('/invoice/{kode_transaksi}', [PemesananController::class, 'invoice'])->name('pesanan.invoice');
+
+// --- 4. RUTE DASHBOARD OPERASIONAL INTERNAL (ROLE ADMIN, OWNER, SUPERADMIN) ---
+Route::middleware(['auth', 'role:admin,owner,superadmin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/profil', [AuthController::class, 'profile'])->name('profile');
     Route::put('/profil', [AuthController::class, 'updateProfile'])->name('profile.update');
 
     // Daftar Mitra Toko (Dapat diakses oleh Staf/Admin Gudang, Super Admin, Owner)
     Route::get('/mitra', [UserController::class, 'mitraIndex'])->name('mitra.index');
-    Route::match(['put', 'post'], '/mitra/{id}/reset-password', [UserController::class, 'kirimResetLinkMitra'])->name('mitra.reset_password');
     Route::post('/mitra/{id}/kirim-reset-link', [UserController::class, 'kirimResetLinkMitra'])->name('mitra.kirim_reset_link');
 
     // Transaksi Offline / Kasir Langsung di Pabrik
@@ -72,20 +72,26 @@ Route::middleware(['auth', 'role:staff,admin,owner,superadmin'])->prefix('admin'
     Route::get('/transaksis/{id}', [TransaksiController::class, 'show'])->name('transaksis.show');
     Route::put('/transaksis/{id}', [TransaksiController::class, 'update'])->name('transaksis.update');
     Route::post('/transaksis/{id}/verifikasi-pembayaran', [TransaksiController::class, 'verifikasiPembayaran'])->name('transaksis.verifikasi_pembayaran');
-    Route::delete('/transaksis/{id}', [TransaksiController::class, 'destroy'])->name('transaksis.destroy');
     Route::get('/transaksis/{id}/faktur', [TransaksiController::class, 'cetakFaktur'])->name('transaksis.faktur');
 
     // CRUD Produk / Barang Rokok (Acara 15, 16)
-    Route::resource('barangs', BarangController::class);
+    Route::resource('barangs', BarangController::class)->except(['show']);
 
     // CRUD Kategori Produk (Acara 13, 14)
-    Route::resource('kategoris', KategoriController::class);
+    Route::resource('kategoris', KategoriController::class)->except(['show']);
 
     // Dokumen Perizinan & Legalitas Cukai
     Route::get('/legalitas', [LegalitasController::class, 'index'])->name('legalitas.index');
     Route::post('/legalitas', [LegalitasController::class, 'store'])->name('legalitas.store');
     Route::put('/legalitas/{id}', [LegalitasController::class, 'update'])->name('legalitas.update');
     Route::delete('/legalitas/{id}', [LegalitasController::class, 'destroy'])->name('legalitas.destroy');
+
+    // Pengaturan Website, Jam Operasional & Media Publik (Admin, Owner, Super Admin)
+    Route::get('/pengaturan', [PengaturanController::class, 'index'])->name('pengaturan.index');
+    Route::put('/pengaturan/umum', [PengaturanController::class, 'updateUmum'])->name('pengaturan.umum');
+    Route::post('/pengaturan/hero', [PengaturanController::class, 'storeHero'])->name('pengaturan.hero.store');
+    Route::post('/pengaturan/media/{key}', [PengaturanController::class, 'updateMedia'])->name('pengaturan.media.update');
+    Route::delete('/pengaturan/media/{key}', [PengaturanController::class, 'resetMedia'])->name('pengaturan.media.reset');
 
     // Fitur Khusus Role Owner & Super Admin (Acara 9 - 10)
     Route::middleware(['role:owner,superadmin'])->group(function () {

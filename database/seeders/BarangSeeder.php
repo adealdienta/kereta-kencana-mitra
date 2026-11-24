@@ -30,10 +30,11 @@ class BarangSeeder extends Seeder
                 'harga_per_slop' => 70000,
                 'min_order_bal' => 1,
                 'min_order_slop' => 1,
-                'stok' => 220,
+                'stok' => 4400, // Satuan Slop (setara 220 Bal)
                 'status_stok' => 'Ready Stock',
                 'gambar' => 'assets/img/produk/sembada-12.jpg',
                 'aktif' => true,
+                'best_seller' => true,
                 'urutan' => 1,
             ],
             [
@@ -52,10 +53,11 @@ class BarangSeeder extends Seeder
                 'harga_per_slop' => 70000,
                 'min_order_bal' => 1,
                 'min_order_slop' => 1,
-                'stok' => 250,
+                'stok' => 5000, // Satuan Slop (setara 250 Bal)
                 'status_stok' => 'Ready Stock',
                 'gambar' => 'assets/img/produk/kereta-kencana-12.jpg',
                 'aktif' => true,
+                'best_seller' => false,
                 'urutan' => 2,
             ],
             [
@@ -74,19 +76,16 @@ class BarangSeeder extends Seeder
                 'harga_per_slop' => 70000,
                 'min_order_bal' => 1,
                 'min_order_slop' => 1,
-                'stok' => 200,
+                'stok' => 4000, // Satuan Slop (setara 200 Bal)
                 'status_stok' => 'Ready Stock',
                 'gambar' => 'assets/img/produk/sembada-cethe-12.jpg',
                 'aktif' => true,
+                'best_seller' => false,
                 'urutan' => 3,
             ],
         ];
 
-        // Hapus produk lama yang tidak terpakai
-        $activeSlugs = array_column($barangs, 'slug');
-        Barang::whereNotIn('slug', $activeSlugs)->delete();
-
-        // Simpan / update data 3 produk resmi
+        // Simpan / update data 3 produk resmi tanpa menghapus produk tambahan admin
         foreach ($barangs as $b) {
             Barang::updateOrCreate(['slug' => $b['slug']], $b);
         }

@@ -46,11 +46,15 @@
                 <select name="barang_id" id="selectBarang" class="form-control" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
                     <option value="">-- Pilih Varian Rokok --</option>
                     @foreach($barangs as $b)
+                        @php $tersedia = $b->isTersediaUntukOrder(); @endphp
                         <option value="{{ $b->id }}"
                                 data-harga-slop="{{ $b->harga_per_slop }}"
                                 data-harga-bal="{{ $b->harga_per_bal }}"
-                                data-stok="{{ $b->stok }}">
-                            {{ $b->nama }} (SKT 12) &bull; Stok Tersedia: {{ $b->stok }} Bal &bull; Rp {{ number_format($b->harga_per_slop, 0, ',', '.') }}/Slop &bull; Rp {{ number_format($b->harga_per_bal, 0, ',', '.') }}/Bal
+                                data-stok="{{ $b->stok }}"
+                                data-slop-per-bal="{{ $b->slop_per_bal ?: 20 }}"
+                                {{ old('barang_id') == $b->id ? 'selected' : '' }}
+                                {{ !$tersedia ? 'disabled' : '' }}>
+                            {{ $b->nama }} (SKT {{ $b->batang_per_bungkus }}) &bull; Stok: {{ $tersedia ? $b->formatted_stok : 'Habis' }} &bull; Rp {{ number_format($b->harga_per_bal, 0, ',', '.') }}/Bal
                         </option>
                     @endforeach
                 </select>
@@ -62,8 +66,8 @@
                         Satuan Penjualan <span style="color: #ef4444;">*</span>
                     </label>
                     <select name="satuan" id="selectSatuan" class="form-control" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
-                        <option value="Slop" selected>Per Slop (10 Bungkus)</option>
-                        <option value="Bal">Per Bal (Kemasan Bal)</option>
+                        <option value="Slop" {{ old('satuan', 'Slop') === 'Slop' ? 'selected' : '' }}>Per Slop (10 Bungkus)</option>
+                        <option value="Bal" {{ old('satuan') === 'Bal' ? 'selected' : '' }}>Per Bal (Kemasan Bal)</option>
                     </select>
                 </div>
 
@@ -71,8 +75,9 @@
                     <label style="display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px;">
                         Jumlah Pembelian <span style="color: #ef4444;">*</span>
                     </label>
-                    <input type="number" name="jumlah" id="inputJumlah" class="form-control" min="1" value="1" required
+                    <input type="number" name="jumlah" id="inputJumlah" class="form-control" min="1" value="{{ old('jumlah', 1) }}" required
                            style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; font-weight: 700;">
+                    <small id="displayStokInfo" style="color: #64748b; font-size: 11.5px; display: block; margin-top: 4px;"></small>
                 </div>
 
                 <div class="form-group">
@@ -102,7 +107,8 @@
                         <option value="{{ $u->id }}"
                                 data-nama-toko="{{ $u->nama_toko ?: $u->name }}"
                                 data-telepon="{{ $u->telepon }}"
-                                data-alamat="{{ $u->alamat }}">
+                                data-alamat="{{ $u->alamat }}"
+                                {{ old('user_id') == $u->id ? 'selected' : '' }}>
                             {{ $u->nama_toko ?: $u->name }} &bull; {{ $u->name }} ({{ $u->telepon ?: $u->email }})
                         </option>
                     @endforeach
@@ -115,14 +121,14 @@
                     <label style="display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px;">
                         Nama Toko / Nama Pembeli <span style="color: #ef4444;">*</span>
                     </label>
-                    <input type="text" name="nama_mitra" id="inputNamaMitra" class="form-control" required placeholder="Contoh: Toko Barokah / Pak Slamet"
+                    <input type="text" name="nama_mitra" id="inputNamaMitra" class="form-control" value="{{ old('nama_mitra') }}" required placeholder="Contoh: Toko Barokah / Pak Slamet"
                            style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13.5px;">
                 </div>
                 <div class="form-group">
                     <label style="display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px;">
                         Nomor HP / WhatsApp
                     </label>
-                    <input type="tel" name="telepon" id="inputTelepon" class="form-control" placeholder="Contoh: 081234567890"
+                    <input type="tel" name="telepon" id="inputTelepon" class="form-control" value="{{ old('telepon') }}" placeholder="Contoh: 081234567890"
                            style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13.5px;">
                 </div>
             </div>
@@ -131,7 +137,7 @@
                 <label style="display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px;">
                     Alamat / Asal Pembeli
                 </label>
-                <input type="text" name="alamat" id="inputAlamat" class="form-control" value="Serah Terima Langsung di Pabrik (Ponggok, Blitar)"
+                <input type="text" name="alamat" id="inputAlamat" class="form-control" value="{{ old('alamat', 'Serah Terima Langsung di Pabrik (Ponggok, Blitar)') }}"
                        style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13.5px;">
             </div>
 
@@ -139,12 +145,12 @@
                 <label style="display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px;">
                     Catatan Kasir / Keterangan Pembayaran
                 </label>
-                <input type="text" name="catatan" class="form-control" value="Lunas Tunai / Kasir Pabrik"
+                <input type="text" name="catatan" class="form-control" value="{{ old('catatan', 'Lunas Tunai / Kasir Pabrik') }}"
                        style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13.5px;">
             </div>
         </div>
 
-        <button type="submit" class="btn btn-primary" style="padding: 14px 24px; font-size: 15px; font-weight: 700; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <button type="submit" class="btn btn-primary" style="padding: 14px 24px; font-size: 15px; font-weight: 700; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background: #0f172a; color: #ffffff; border: none; border-radius: 8px; cursor: pointer;">
             <i class="fa-solid fa-receipt"></i> Simpan Transaksi Lunas &amp; Cetak Faktur Kasir
         </button>
     </form>
@@ -156,6 +162,7 @@ const selectBarang = document.getElementById('selectBarang');
 const selectSatuan = document.getElementById('selectSatuan');
 const inputJumlah = document.getElementById('inputJumlah');
 const displayTotal = document.getElementById('displayTotal');
+const displayStokInfo = document.getElementById('displayStokInfo');
 
 function hitungHargaSlopBertingkat(qty) {
     if (qty > 10) return 60000;
@@ -167,11 +174,38 @@ function hitungTotal() {
     const opt = selectBarang.options[selectBarang.selectedIndex];
     if (!opt || !opt.value) {
         displayTotal.innerText = 'Rp 0';
+        displayStokInfo.innerText = '';
+        inputJumlah.removeAttribute('max');
         return;
     }
 
     const satuan = selectSatuan.value;
-    const qty = Math.max(1, parseInt(inputJumlah.value || 1) || 1);
+    const stokSlop = parseInt(opt.dataset.stok || 0, 10) || 0;
+    const slopPerBal = parseInt(opt.dataset.slopPerBal || 20, 10) || 20;
+    const maxUnit = satuan === 'Bal' ? Math.floor(stokSlop / slopPerBal) : stokSlop;
+
+    if (maxUnit > 0) {
+        inputJumlah.max = maxUnit;
+    } else {
+        inputJumlah.removeAttribute('max');
+    }
+
+    if (satuan === 'Bal') {
+        displayStokInfo.innerText = maxUnit > 0
+            ? `Maks. ${maxUnit} Bal (${stokSlop} Slop tersedia)`
+            : `Stok tersisa ${stokSlop} Slop (< 1 Bal), silakan pilih satuan Slop.`;
+        displayStokInfo.style.color = maxUnit > 0 ? '#64748b' : '#b45309';
+    } else {
+        displayStokInfo.innerText = `Maks. ${stokSlop} Slop tersedia`;
+        displayStokInfo.style.color = '#64748b';
+    }
+
+    let qty = Math.max(1, parseInt(inputJumlah.value || 1, 10) || 1);
+    if (maxUnit > 0 && qty > maxUnit) {
+        qty = maxUnit;
+        inputJumlah.value = maxUnit;
+    }
+
     const harga = satuan === 'Slop'
         ? hitungHargaSlopBertingkat(qty)
         : parseFloat(opt.dataset.hargaBal || 0);

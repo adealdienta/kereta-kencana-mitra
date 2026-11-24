@@ -31,8 +31,8 @@
 
                 <div class="form-group" style="margin-bottom: 16px;">
                     <label style="display: block; color: var(--text-dark); font-size: 13.5px; margin-bottom: 6px; font-weight: 600;">Alamat Email</label>
-                    <input type="email" name="email" id="inputEmail" class="form-control" required readonly value="{{ $email ?? old('email') }}"
-                           style="width: 100%; padding: 12px; background: #f8fafc; border: 1px solid var(--border-light); color: var(--text-dark); border-radius: 6px; font-weight: 600;">
+                    <input type="email" name="email" id="inputEmail" class="form-control" required {{ !empty($email) ? 'readonly' : '' }} value="{{ $email ?? old('email') }}" placeholder="nama@email.com"
+                           style="width: 100%; padding: 12px; background: {{ !empty($email) ? '#f8fafc' : '#ffffff' }}; border: 1px solid var(--border-light); color: var(--text-dark); border-radius: 6px; font-weight: 600;">
                 </div>
 
                 <div class="form-group" style="margin-bottom: 16px;">

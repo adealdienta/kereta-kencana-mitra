@@ -43,7 +43,10 @@ data class Barang(
     val minOrderBal: Int = 1,
 
     @SerializedName("stok")
-    val stok: Int = 0, // Stok gudang dalam satuan BAL
+    val stok: Int = 0, // Stok gudang presisi dalam satuan Slop
+
+    @SerializedName("stok_bal")
+    val stokBal: Int? = null,
 
     @SerializedName("stok_slop_estimasi")
     val stokSlopEstimasi: Int? = null,
@@ -67,17 +70,34 @@ data class Barang(
     val nikotinMg: Double? = null,
 
     @SerializedName("aktif")
-    val aktif: Boolean = true,
+    val aktif: Boolean? = true,
+
+    @SerializedName("best_seller")
+    val bestSeller: Boolean = false,
 
     @SerializedName("kategori")
     val kategori: Kategori? = null
 ) {
+    val isAktif: Boolean
+        get() = aktif != false
+
     /**
-     * Perkiraan total slop yang tersedia di gudang pabrik (Aturan B2).
-     * Diberi label perkiraan karena stok fisik dihitung dalam satuan Bal.
+     * Jumlah stok tersedia presisi dalam satuan Slop.
      */
+    val stokTersediaSlop: Int
+        get() = (stokSlopEstimasi ?: stok).coerceAtLeast(0)
+
     val perkiraanSlopTersedia: Int
-        get() = stokSlopEstimasi ?: (stok * slopPerBal)
+        get() = stokTersediaSlop
+
+    val hasAvailableStock: Boolean
+        get() = isAktif && stokTersediaSlop > 0 && !statusStok.equals("Habis", ignoreCase = true)
+
+    val stokBalUtuh: Int
+        get() {
+            val divisor = if (slopPerBal > 0) slopPerBal else 20
+            return stokBal ?: (stokTersediaSlop / divisor)
+        }
 
     companion object {
         const val MAX_SLOP_PER_ORDER = 19

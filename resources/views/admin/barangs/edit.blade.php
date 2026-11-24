@@ -81,17 +81,17 @@
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px;">
+            <div class="admin-form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 16px;">
                 <div>
                     <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Harga Bal (Rp)</label>
                     <input type="number" name="harga_per_bal" value="{{ old('harga_per_bal', (int)$barang->harga_per_bal) }}" required min="0"
                            style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
                 </div>
                 <div>
-                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Harga Slop (Rp)</label>
-                    <input type="number" name="harga_per_slop" value="{{ old('harga_per_slop', (int)$barang->harga_per_slop) }}" min="0" placeholder="Otomatis"
+                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Harga Dasar Slop (Rp)</label>
+                    <input type="number" name="harga_per_slop" value="{{ old('harga_per_slop', (int)$barang->harga_per_slop) }}" min="0" placeholder="70000"
                            style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
-                    <small style="font-size: 10px; color: #64748b;">(Otomatis = Bal / Slop)</small>
+                    <small style="font-size: 10px; color: #64748b;">(Tarif bertingkat 70k / 65k / 60k)</small>
                 </div>
                 <div>
                     <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Min. Order Slop</label>
@@ -106,13 +106,16 @@
             </div>
 
             <div>
-                <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Stok Tersedia (Bal)</label>
-                <input type="number" name="stok" value="{{ old('stok', $barang->stok) }}" required min="0"
-                       style="width: 250px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Stok Tersedia (Satuan Slop)</label>
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <input type="number" name="stok" id="inputStokSlop" value="{{ old('stok', $barang->stok) }}" required min="0"
+                           style="width: 220px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    <small id="stokBalPreview" style="font-size: 12px; color: #475569; font-weight: 600;">Setara: {{ $barang->formatted_stok }}</small>
+                </div>
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+        <div class="admin-form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; margin-bottom: 20px;">
             <div>
                 <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px;">Kadar Tar (mg) &ndash; Opsional</label>
                 <input type="number" step="0.1" name="tar_mg" value="{{ old('tar_mg', $barang->tar_mg) }}" placeholder="Isi sesuai hasil uji lab resmi"
@@ -123,23 +126,39 @@
                 <input type="number" step="0.1" name="nikotin_mg" value="{{ old('nikotin_mg', $barang->nikotin_mg) }}" placeholder="Isi sesuai hasil uji lab resmi"
                        style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
             </div>
+            <div>
+                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px;">Urutan Tampil Katalog</label>
+                <input type="number" name="urutan" value="{{ old('urutan', $barang->urutan ?? 0) }}" min="0"
+                       style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+            </div>
         </div>
 
         <div style="margin-bottom: 24px;">
             <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px;">Ganti Foto Produk</label>
             @if($barang->gambar)
-                <div style="margin-bottom: 8px;">
+                <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
                     <img src="{{ $barang->image_url }}" alt="Preview" style="height: 60px; border-radius: 4px; border: 1px solid #cbd5e1;">
+                    <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: #b91c1c; cursor: pointer;">
+                        <input type="checkbox" name="remove_gambar" value="1">
+                        <span>Hapus foto saat ini (gunakan foto default)</span>
+                    </label>
                 </div>
             @endif
             <input type="file" name="gambar" accept="image/*" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff;">
             <small style="color: #64748b; font-size: 11px;">Biarkan kosong jika tidak ingin mengganti gambar.</small>
         </div>
 
-        <div style="margin-bottom: 24px;">
+        <div style="margin-bottom: 12px;">
             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
                 <input type="checkbox" name="aktif" value="1" {{ old('aktif', $barang->aktif) ? 'checked' : '' }}>
                 <span>Publikasikan dan Tampilkan di Katalog Website</span>
+            </label>
+        </div>
+
+        <div style="margin-bottom: 24px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                <input type="checkbox" name="best_seller" value="1" {{ old('best_seller', $barang->best_seller) ? 'checked' : '' }}>
+                <span>Tandai sebagai Produk Paling Diminati (Best Seller)</span>
             </label>
         </div>
 
@@ -148,4 +167,27 @@
         </button>
     </form>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const stokInput = document.getElementById('inputStokSlop');
+    const slopPerBalInput = document.querySelector('input[name="slop_per_bal"]');
+    const previewEl = document.getElementById('stokBalPreview');
+    function updateStokPreview() {
+        if (!stokInput || !previewEl) return;
+        const totalSlop = Math.max(0, parseInt(stokInput.value || 0, 10) || 0);
+        const slopPerBal = Math.max(1, parseInt(slopPerBalInput?.value || 20, 10) || 20);
+        const bal = Math.floor(totalSlop / slopPerBal);
+        const sisa = totalSlop % slopPerBal;
+        previewEl.textContent = sisa > 0
+            ? `Setara: ${bal} Bal ${sisa} Slop (${totalSlop.toLocaleString('id-ID')} Slop)`
+            : `Setara: ${bal} Bal (${totalSlop.toLocaleString('id-ID')} Slop)`;
+    }
+    stokInput?.addEventListener('input', updateStokPreview);
+    slopPerBalInput?.addEventListener('input', updateStokPreview);
+    updateStokPreview();
+});
+</script>
+@endpush
 @endsection

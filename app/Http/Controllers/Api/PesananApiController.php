@@ -10,6 +10,8 @@ use App\Models\Barang;
 use App\Helpers\ActivityLogger;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Exception;
 
@@ -108,54 +110,72 @@ class PesananApiController extends ApiController
     public function store(PesananApiRequest $request)
     {
         $user = $request->user();
-        $idempotencyKey = $request->header('Idempotency-Key');
+        $idempotencyKey = trim((string) $request->header('Idempotency-Key', ''));
+        $idempotencyKey = $idempotencyKey !== '' ? substr($idempotencyKey, 0, 100) : null;
+        $lock = $idempotencyKey ? Cache::lock("idempotency_lock:order:{$user->id}:{$idempotencyKey}", 15) : null;
 
-        // 1. Cek Idempotency Key untuk mencegah pesanan ganda
-        if ($idempotencyKey) {
-            $cacheKey = "idempotency:order:{$user->id}:{$idempotencyKey}";
-            if (Cache::has($cacheKey)) {
-                $cachedOrderId = Cache::get($cacheKey);
-                $existingOrder = Transaksi::with(['details.barang'])->find($cachedOrderId);
-                if ($existingOrder) {
-                    return $this->successResponse($this->formatTransaksi($existingOrder, true), 'Pesanan telah diproses sebelumnya (Idempotent).', 200);
+        try {
+            if ($lock) {
+                $lock->block(5);
+            }
+
+            // 1. Cek Idempotency Key untuk mencegah pesanan ganda
+            if ($idempotencyKey) {
+                $cacheKey = "idempotency:order:{$user->id}:{$idempotencyKey}";
+                if (Cache::has($cacheKey)) {
+                    $cachedOrderId = Cache::get($cacheKey);
+                    $existingOrder = Transaksi::with(['details.barang.kategori'])->find($cachedOrderId);
+                    if ($existingOrder) {
+                        return $this->successResponse($this->formatTransaksi($existingOrder, true), 'Pesanan telah diproses sebelumnya (Idempotent).', 200);
+                    }
                 }
             }
-        }
 
-        // 2. Cek Order Lock di Sisi Server
-        $lockedOrder = Transaksi::where('user_id', $user->id)
-            ->where('status', 'Dikirim')
-            ->whereNull('bukti_penerimaan')
-            ->latest()
-            ->first();
+            // 2. Cek Order Lock di Sisi Server
+            $lockedOrder = Transaksi::where('user_id', $user->id)
+                ->where('status', 'Dikirim')
+                ->whereNull('bukti_penerimaan')
+                ->latest()
+                ->first();
 
-        if ($lockedOrder) {
-            return $this->errorResponse("Pemesanan terkunci! Anda masih memiliki pesanan ({$lockedOrder->kode_transaksi}) yang sedang dalam pengiriman. Unggah bukti penerimaan barang terlebih dahulu sebelum membuat pesanan baru.", 409, [
-                'order_lock' => true,
-                'locked_order_id' => $lockedOrder->id,
-                'kode_transaksi' => $lockedOrder->kode_transaksi,
-            ]);
-        }
+            if ($lockedOrder) {
+                return $this->errorResponse("Pemesanan terkunci! Anda masih memiliki pesanan ({$lockedOrder->kode_transaksi}) yang sedang dalam pengiriman. Unggah bukti penerimaan barang terlebih dahulu sebelum membuat pesanan baru.", 409, [
+                    'order_lock' => true,
+                    'locked_order_id' => $lockedOrder->id,
+                    'kode_transaksi' => $lockedOrder->kode_transaksi,
+                ]);
+            }
 
-        $itemsPayload = $request->input('items', []);
+            $itemsPayload = $request->input('items', []);
 
-        // Batasi pemesanan online maksimal 19 Slop gabungan seluruh varian (skala Bal via Admin WA)
-        $totalSlopRequested = collect($itemsPayload)->sum(fn ($item) => (int) ($item['jumlah'] ?? 0));
-        if ($totalSlopRequested < 1 || $totalSlopRequested > 19) {
-            return $this->errorResponse(
-                "Total pemesanan online maksimal 19 Slop gabungan seluruh varian (pilihan Anda saat ini: {$totalSlopRequested} Slop). Untuk pembelian skala Bal (20 Slop ke atas), silakan hubungi Admin via WhatsApp.",
-                422
-            );
-        }
+            // Batasi pemesanan online maksimal 19 Slop gabungan seluruh varian (skala Bal via Admin WA)
+            $totalSlopRequested = collect($itemsPayload)->sum(fn ($item) => (int) ($item['jumlah'] ?? 0));
+            if ($totalSlopRequested < 1 || $totalSlopRequested > 19) {
+                return $this->errorResponse(
+                    "Total pemesanan online maksimal 19 Slop gabungan seluruh varian (pilihan Anda saat ini: {$totalSlopRequested} Slop). Untuk pembelian skala Bal (20 Slop ke atas), silakan hubungi Admin via WhatsApp.",
+                    422
+                );
+            }
 
-        // 3. Jalankan Database Transaction dengan Pesimistic Lock & Agregasi Stok (Aturan B2)
-        try {
+            // 3. Jalankan Database Transaction dengan Pesimistic Lock & Agregasi Stok (Aturan B2)
             $transaksi = DB::transaction(function () use ($request, $user, $itemsPayload, $idempotencyKey) {
-                // Kumpulkan kebutuhan per varian barang
-                $barangIds = array_unique(array_column($itemsPayload, 'barang_id'));
-                
+                // Re-cek order lock secara atomik di dalam transaksi
+                $txLockedOrder = Transaksi::where('user_id', $user->id)
+                    ->where('status', 'Dikirim')
+                    ->whereNull('bukti_penerimaan')
+                    ->lockForUpdate()
+                    ->first();
+                if ($txLockedOrder) {
+                    throw new Exception("Pemesanan terkunci! Anda masih memiliki pesanan ({$txLockedOrder->kode_transaksi}) yang sedang dalam pengiriman.");
+                }
+
+                // Kumpulkan & urutkan ID barang untuk mencegah deadlock
+                $barangIds = array_unique(array_map('intval', array_column($itemsPayload, 'barang_id')));
+                sort($barangIds);
+
                 // Kunci baris barang untuk update (mencegah race condition overselling)
                 $lockedBarangs = Barang::whereIn('id', $barangIds)
+                    ->orderBy('id')
                     ->lockForUpdate()
                     ->get()
                     ->keyBy('id');
@@ -197,20 +217,22 @@ class PesananApiController extends ApiController
                     }
                 }
 
-                // Cek dan potong stok gudang berdasarkan hasil agregasi
+                // Cek dan potong stok gudang secara presisi dalam satuan Slop
                 foreach ($demandPerBarang as $bId => $demands) {
                     $b = $lockedBarangs[$bId];
                     $slopPerBal = $b->slop_per_bal ?: 20;
-                    
-                    // Hitung total pemotongan Bal (bal murni + konversi slop berlebih di-ceil)
-                    $balFromSlop = $demands['slop_qty'] > 0 ? (int)ceil($demands['slop_qty'] / $slopPerBal) : 0;
-                    $totalBalNeeded = $demands['bal_qty'] + $balFromSlop;
 
-                    if ($b->stok < $totalBalNeeded) {
-                        throw new Exception("Stok untuk varian {$b->nama} tidak mencukupi (Tersedia: {$b->stok} Bal, dibutuhkan: {$totalBalNeeded} Bal).");
+                    if (strcasecmp((string) $b->status_stok, 'Habis') === 0 || $b->stok <= 0) {
+                        throw new Exception("Stok {$b->nama} saat ini sedang habis.");
                     }
 
-                    $b->decrement('stok', $totalBalNeeded);
+                    $totalSlopNeeded = ($demands['bal_qty'] * $slopPerBal) + $demands['slop_qty'];
+
+                    if ($b->stok < $totalSlopNeeded) {
+                        throw new Exception("Stok untuk varian {$b->nama} tidak mencukupi (Tersedia: {$b->stok} Slop, dibutuhkan: {$totalSlopNeeded} Slop).");
+                    }
+
+                    $b->decrement('stok', $totalSlopNeeded);
                 }
 
                 // Hitung total Slop pesanan untuk penentuan harga bertingkat
@@ -250,7 +272,8 @@ class PesananApiController extends ApiController
                 }
 
                 $kodeTransaksi = 'TRX-' . date('Ymd') . '-' . strtoupper(Str::random(4));
-                $namaMitra = $user->nama_toko ? "{$user->nama_toko} ({$user->name})" : $user->name;
+                $namaMitraRaw = $user->nama_toko ? "{$user->nama_toko} ({$user->name})" : $user->name;
+                $namaMitra = Str::limit($namaMitraRaw, 150, '');
 
                 $metodeRaw = (string)$request->input('metode_pembayaran', 'COD');
                 $metodePembayaran = (stripos($metodeRaw, 'transfer') !== false || stripos($metodeRaw, 'bca') !== false)
@@ -296,8 +319,13 @@ class PesananApiController extends ApiController
 
             return $this->successResponse($this->formatTransaksi($transaksi, true), 'Pesanan berhasil dibuat! Pabrik akan memproses pesanan Anda.', 201);
 
+        } catch (\Illuminate\Database\QueryException $e) {
+            Log::error('API Order QueryException: ' . $e->getMessage());
+            return $this->errorResponse('Terjadi kesalahan sistem saat menyimpan pesanan. Silakan coba beberapa saat lagi.', 500);
         } catch (Exception $e) {
             return $this->errorResponse($e->getMessage(), 422);
+        } finally {
+            $lock?->release();
         }
     }
 
@@ -309,45 +337,63 @@ class PesananApiController extends ApiController
     {
         $user = $request->user();
 
-        $transaksi = Transaksi::with(['details.barang', 'barang'])
-            ->where('user_id', $user->id)
-            ->find($id);
+        try {
+            $transaksi = DB::transaction(function () use ($user, $id) {
+                $transaksi = Transaksi::with(['details.barang', 'barang'])
+                    ->where('user_id', $user->id)
+                    ->lockForUpdate()
+                    ->find($id);
+
+                if (!$transaksi) {
+                    return null;
+                }
+
+                if ($transaksi->status !== 'Baru Masuk') {
+                    throw new Exception('Pesanan yang sudah diproses atau dalam pengiriman tidak dapat dibatalkan mandiri. Hubungi pihak pabrik untuk pembatalan khusus.');
+                }
+
+                if ($transaksi->status_pembayaran === 'Lunas') {
+                    throw new Exception('Pesanan yang pembayarannya sudah diverifikasi Lunas tidak dapat dibatalkan mandiri. Silakan hubungi Admin pabrik via WhatsApp untuk proses pembatalan dan pengembalian dana.');
+                }
+
+                // Kembalikan kuota stok presisi (Slop) seluruh varian barang secara teragregasi
+                $restorationMap = [];
+                if ($transaksi->details && $transaksi->details->isNotEmpty()) {
+                    foreach ($transaksi->details as $d) {
+                        if ($d->barang) {
+                            $bId = $d->barang_id;
+                            $slopPerBal = $d->barang->slop_per_bal ?: 20;
+                            $slopUnit = ($d->satuan === 'Bal') ? ($d->jumlah * $slopPerBal) : $d->jumlah;
+                            $restorationMap[$bId] = ($restorationMap[$bId] ?? 0) + $slopUnit;
+                        }
+                    }
+                } elseif ($transaksi->barang) {
+                    $slopPerBal = $transaksi->barang->slop_per_bal ?: 20;
+                    $restorationMap[$transaksi->barang_id] = ($transaksi->satuan === 'Bal') ? ($transaksi->jumlah * $slopPerBal) : $transaksi->jumlah;
+                }
+
+                ksort($restorationMap);
+                foreach ($restorationMap as $bId => $slopToRestore) {
+                    $lockedBarang = Barang::where('id', $bId)->lockForUpdate()->first();
+                    if ($lockedBarang) {
+                        $lockedBarang->increment('stok', $slopToRestore);
+                    }
+                }
+
+                $transaksi->update([
+                    'status' => 'Dibatalkan',
+                    'catatan' => trim(($transaksi->catatan ? $transaksi->catatan . "\n" : '') . "[Dibatalkan oleh pembeli via Mobile pada " . now()->format('d/m/Y H:i') . "]"),
+                ]);
+
+                return $transaksi;
+            });
+        } catch (Exception $e) {
+            return $this->errorResponse($e->getMessage(), 422);
+        }
 
         if (!$transaksi) {
             return $this->errorResponse('Pesanan tidak ditemukan.', 404);
         }
-
-        if ($transaksi->status !== 'Baru Masuk') {
-            return $this->errorResponse('Pesanan yang sudah diproses atau dalam pengiriman tidak dapat dibatalkan mandiri. Hubungi pihak pabrik untuk pembatalan khusus.', 422);
-        }
-
-        DB::transaction(function () use ($transaksi) {
-            // Kembalikan kuota stok seluruh varian barang
-            if ($transaksi->details && $transaksi->details->isNotEmpty()) {
-                // Agregasi kuantitas per barang_id sebelum increment
-                $restorationMap = [];
-                foreach ($transaksi->details as $d) {
-                    if ($d->barang) {
-                        $bId = $d->barang_id;
-                        $slopPerBal = $d->barang->slop_per_bal ?: 20;
-                        $balUnit = ($d->satuan === 'Bal') ? $d->jumlah : (int)ceil($d->jumlah / $slopPerBal);
-                        $restorationMap[$bId] = ($restorationMap[$bId] ?? 0) + $balUnit;
-                    }
-                }
-                foreach ($restorationMap as $bId => $balToRestore) {
-                    Barang::where('id', $bId)->increment('stok', $balToRestore);
-                }
-            } elseif ($transaksi->barang) {
-                $slopPerBal = $transaksi->barang->slop_per_bal ?: 20;
-                $balRestored = ($transaksi->satuan === 'Bal') ? $transaksi->jumlah : (int)ceil($transaksi->jumlah / $slopPerBal);
-                $transaksi->barang->increment('stok', $balRestored);
-            }
-
-            $transaksi->update([
-                'status' => 'Dibatalkan',
-                'catatan' => trim(($transaksi->catatan ? $transaksi->catatan . "\n" : '') . "[Dibatalkan oleh pembeli via Mobile pada " . now()->format('d/m/Y H:i') . "]"),
-            ]);
-        });
 
         ActivityLogger::log('API Batal Pesanan', "Pesanan {$transaksi->kode_transaksi} dibatalkan oleh mitra via mobile");
 
@@ -365,16 +411,6 @@ class PesananApiController extends ApiController
     {
         $user = $request->user();
 
-        $transaksi = Transaksi::where('user_id', $user->id)->find($id);
-
-        if (!$transaksi) {
-            return $this->errorResponse('Pesanan tidak ditemukan.', 404);
-        }
-
-        if ($transaksi->status !== 'Dikirim') {
-            return $this->errorResponse("Konfirmasi penerimaan hanya dapat dilakukan jika pesanan dalam status 'Dikirim'. Status saat ini: {$transaksi->status}.", 422);
-        }
-
         $request->validate([
             'foto_bukti' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
             'catatan_penerima' => ['nullable', 'string', 'max:500'],
@@ -385,15 +421,41 @@ class PesananApiController extends ApiController
             'foto_bukti.max' => 'Ukuran foto maksimal adalah 5 Megabyte (MB).',
         ]);
 
-        $path = $request->file('foto_bukti')->store('bukti_penerimaan', 'public');
+        try {
+            $transaksi = DB::transaction(function () use ($request, $user, $id) {
+                $transaksi = Transaksi::where('user_id', $user->id)->lockForUpdate()->find($id);
 
-        $transaksi->update([
-            'status' => 'Selesai',
-            'status_pembayaran' => 'Lunas',
-            'bukti_penerimaan' => $path,
-            'diterima_pada' => now(),
-            'catatan_penerima' => $request->input('catatan_penerima'),
-        ]);
+                if (!$transaksi) {
+                    return null;
+                }
+
+                if ($transaksi->status !== 'Dikirim') {
+                    throw new Exception("Konfirmasi penerimaan hanya dapat dilakukan jika pesanan dalam status 'Dikirim'. Status saat ini: {$transaksi->status}.");
+                }
+
+                if ($transaksi->isTransferBelumLunas()) {
+                    throw new Exception('Pesanan Transfer Bank belum dapat dikonfirmasi selesai sebelum pembayaran diverifikasi Lunas oleh admin pabrik.');
+                }
+
+                $path = $request->file('foto_bukti')->store('bukti_penerimaan', 'public');
+
+                $transaksi->update([
+                    'status' => 'Selesai',
+                    'status_pembayaran' => 'Lunas',
+                    'bukti_penerimaan' => $path,
+                    'diterima_pada' => now(),
+                    'catatan_penerima' => $request->input('catatan_penerima'),
+                ]);
+
+                return $transaksi;
+            });
+        } catch (Exception $e) {
+            return $this->errorResponse($e->getMessage(), 422);
+        }
+
+        if (!$transaksi) {
+            return $this->errorResponse('Pesanan tidak ditemukan.', 404);
+        }
 
         ActivityLogger::log('API Konfirmasi Terima', "Mitra {$user->nama_toko} mengonfirmasi terima barang untuk {$transaksi->kode_transaksi}");
 
@@ -410,7 +472,7 @@ class PesananApiController extends ApiController
     public function uploadBuktiTransfer(Request $request, $id)
     {
         $request->validate([
-            'bukti_transfer' => 'required|image|mimes:jpeg,png,jpg|max:5120',
+            'bukti_transfer' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
         $user = $request->user();
@@ -420,13 +482,25 @@ class PesananApiController extends ApiController
             return $this->errorResponse('Pesanan tidak ditemukan atau bukan milik akun Anda.', 404);
         }
 
-        if ($transaksi->status === 'Dibatalkan') {
-            return $this->errorResponse('Pesanan yang telah dibatalkan tidak dapat diunggah bukti transfernya.', 422);
+        if (!$transaksi->isTransferBank()) {
+            return $this->errorResponse('Unggah bukti transfer hanya berlaku untuk pesanan dengan metode pembayaran Transfer Bank.', 422);
+        }
+
+        if (in_array($transaksi->status, ['Selesai', 'Dibatalkan'], true)) {
+            return $this->errorResponse("Pesanan berstatus '{$transaksi->status}' tidak dapat diunggah bukti transfernya.", 422);
+        }
+
+        if ($transaksi->status_pembayaran === 'Lunas') {
+            return $this->errorResponse('Pembayaran untuk pesanan ini sudah diverifikasi Lunas.', 422);
         }
 
         $file = $request->file('bukti_transfer');
         $filename = 'bukti_transfer_' . $transaksi->kode_transaksi . '_' . time() . '.' . $file->getClientOriginalExtension();
         $path = $file->storeAs('bukti_transfer', $filename, 'public');
+
+        if ($transaksi->bukti_transfer && Storage::disk('public')->exists($transaksi->bukti_transfer)) {
+            Storage::disk('public')->delete($transaksi->bukti_transfer);
+        }
 
         $transaksi->update([
             'bukti_transfer' => $path,
@@ -494,7 +568,7 @@ class PesananApiController extends ApiController
             'metode_pembayaran' => $t->metode_pembayaran ?: 'Bayar di Tempat (COD)',
             'status_pembayaran' => $t->status_pembayaran ?: ($t->status === 'Selesai' ? 'Lunas' : 'Belum Dibayar'),
             'ongkos_kirim' => 0, // Informasi gratis kurir resmi pabrik
-            'boleh_batal' => $t->status === 'Baru Masuk',
+            'boleh_batal' => $t->status === 'Baru Masuk' && $t->status_pembayaran !== 'Lunas',
             'boleh_konfirmasi' => $t->status === 'Dikirim',
             'bukti_penerimaan_url' => $buktiUrl,
             'bukti_transfer_url' => $buktiTransferUrl,

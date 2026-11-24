@@ -82,7 +82,7 @@
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px;">
+            <div class="admin-form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 16px;">
                 <div>
                     <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Harga Bal (Rp)</label>
                     <input type="number" name="harga_per_bal" id="inputHargaBal" value="{{ old('harga_per_bal', 1200000) }}" required min="0"
@@ -107,13 +107,16 @@
             </div>
 
             <div>
-                <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Stok Awal (Bal)</label>
-                <input type="number" name="stok" value="{{ old('stok', 100) }}" required min="0"
-                       style="width: 250px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Stok Awal (Satuan Slop)</label>
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <input type="number" name="stok" id="inputStokSlop" value="{{ old('stok', 2000) }}" required min="0"
+                           style="width: 220px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    <small id="stokBalPreview" style="font-size: 12px; color: #475569; font-weight: 600;">Setara: 100 Bal (1 Bal = 20 Slop)</small>
+                </div>
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+        <div class="admin-form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; margin-bottom: 20px;">
             <div>
                 <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px;">Kadar Tar (mg) &ndash; Opsional</label>
                 <input type="number" step="0.1" name="tar_mg" value="{{ old('tar_mg') }}" placeholder="Isi sesuai hasil uji lab resmi"
@@ -124,6 +127,11 @@
                 <input type="number" step="0.1" name="nikotin_mg" value="{{ old('nikotin_mg') }}" placeholder="Isi sesuai hasil uji lab resmi"
                        style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
             </div>
+            <div>
+                <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px;">Urutan Tampil Katalog</label>
+                <input type="number" name="urutan" value="{{ old('urutan', 0) }}" min="0" placeholder="0"
+                       style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+            </div>
         </div>
 
         <div style="margin-bottom: 24px;">
@@ -132,10 +140,17 @@
             <small style="color: #64748b; font-size: 11px;">Format: JPG, PNG, WEBP (Maksimal 2MB).</small>
         </div>
 
-        <div style="margin-bottom: 24px;">
+        <div style="margin-bottom: 12px;">
             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
                 <input type="checkbox" name="aktif" value="1" {{ old('aktif', 1) ? 'checked' : '' }}>
                 <span>Publikasikan dan Tampilkan di Katalog Website</span>
+            </label>
+        </div>
+
+        <div style="margin-bottom: 24px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                <input type="checkbox" name="best_seller" value="1" {{ old('best_seller') ? 'checked' : '' }}>
+                <span>Tandai sebagai Produk Paling Diminati (Best Seller)</span>
             </label>
         </div>
 
@@ -144,4 +159,27 @@
         </button>
     </form>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const stokInput = document.getElementById('inputStokSlop');
+    const slopPerBalInput = document.querySelector('input[name="slop_per_bal"]');
+    const previewEl = document.getElementById('stokBalPreview');
+    function updateStokPreview() {
+        if (!stokInput || !previewEl) return;
+        const totalSlop = Math.max(0, parseInt(stokInput.value || 0, 10) || 0);
+        const slopPerBal = Math.max(1, parseInt(slopPerBalInput?.value || 20, 10) || 20);
+        const bal = Math.floor(totalSlop / slopPerBal);
+        const sisa = totalSlop % slopPerBal;
+        previewEl.textContent = sisa > 0
+            ? `Setara: ${bal} Bal ${sisa} Slop (1 Bal = ${slopPerBal} Slop)`
+            : `Setara: ${bal} Bal (1 Bal = ${slopPerBal} Slop)`;
+    }
+    stokInput?.addEventListener('input', updateStokPreview);
+    slopPerBalInput?.addEventListener('input', updateStokPreview);
+    updateStokPreview();
+});
+</script>
+@endpush
 @endsection

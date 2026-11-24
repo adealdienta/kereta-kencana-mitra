@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Barang;
+use Illuminate\Http\Request;
 
 class BarangApiController extends ApiController
 {
@@ -10,13 +11,21 @@ class BarangApiController extends ApiController
      * Daftar Seluruh Katalog Produk Rokok Aktif
      * GET /api/v1/barang
      */
-    public function index()
+    public function index(Request $request)
     {
-        $barangs = Barang::with('kategori')
+        $query = Barang::with('kategori')
             ->aktif()
             ->orderBy('urutan')
-            ->orderBy('id')
-            ->get();
+            ->orderBy('id');
+
+        if ($request->filled('kategori')) {
+            $kat = trim((string) $request->query('kategori'));
+            $query->whereHas('kategori', function ($q) use ($kat) {
+                $q->where('slug', $kat)->orWhere('nama_kategori', $kat);
+            });
+        }
+
+        $barangs = $query->get();
 
         $data = $barangs->map(function ($b) {
             return $this->formatBarang($b);
@@ -65,9 +74,14 @@ class BarangApiController extends ApiController
             'harga_per_bal' => (float)$b->harga_per_bal,
             'min_order_slop' => (int)($b->min_order_slop ?: 1),
             'min_order_bal' => (int)($b->min_order_bal ?: 1),
-            'stok' => (int)$b->stok, // Stok aktual gudang dalam satuan Bal
-            'stok_slop_estimasi' => (int)($b->stok * $slopPerBal), // Perkiraan slop untuk panduan mitra
-            'status_stok' => $b->stok > 0 ? ($b->status_stok ?: 'Ready Stock') : 'Habis',
+            'stok' => (int)$b->stok, // Stok presisi gudang dalam satuan Slop
+            'stok_bal' => (int)$b->stok_bal_utuh, // Jumlah Bal utuh setara
+            'stok_slop_estimasi' => (int)$b->stok, // Kompatibilitas jumlah Slop tersedia
+            'status_stok' => ($b->stok > 0 && strcasecmp((string) $b->status_stok, 'Habis') !== 0)
+                ? ($b->status_stok ?: 'Ready Stock')
+                : 'Habis',
+            'aktif' => (bool)$b->aktif,
+            'best_seller' => (bool)$b->best_seller,
             'image_url' => $b->image_url,
             'gallery_images' => $b->gallery_images,
         ];

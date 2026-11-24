@@ -2,6 +2,8 @@ package com.keretakencana.mitra.ui.beranda
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -28,6 +30,7 @@ class BerandaFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var adapter: BarangAdapter
+    private var allProducts = listOf<Barang>()
     private var productList = mutableListOf<Barang>()
 
     override fun onCreateView(
@@ -86,6 +89,35 @@ class BerandaFragment : Fragment() {
             val intent = Intent(requireContext(), com.keretakencana.mitra.ui.cart.CartActivity::class.java)
             startActivity(intent)
         }
+
+        binding.etSearchProduk.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                applyProductFilter(s?.toString() ?: "")
+            }
+        })
+    }
+
+    private fun applyProductFilter(query: String) {
+        val q = query.trim().lowercase()
+        val filtered = if (q.isEmpty()) {
+            allProducts
+        } else {
+            allProducts.filter {
+                it.nama.lowercase().contains(q) || it.kodeBarang.lowercase().contains(q)
+            }
+        }
+        productList.clear()
+        productList.addAll(filtered)
+        adapter.submitList(productList)
+
+        if (allProducts.isNotEmpty() && filtered.isEmpty()) {
+            binding.tvEmptyCatalog.visibility = View.VISIBLE
+            binding.tvEmptyCatalog.text = "Produk \"$query\" tidak ditemukan."
+        } else if (allProducts.isNotEmpty()) {
+            binding.tvEmptyCatalog.visibility = View.GONE
+        }
     }
 
     private fun loadCatalog() {
@@ -119,15 +151,12 @@ class BerandaFragment : Fragment() {
 
                 if (response.isSuccessful && response.body()?.success == true) {
                     val data = response.body()?.data ?: emptyList()
-                    productList.clear()
-                    productList.addAll(data)
-                    adapter.submitList(productList)
+                    allProducts = data
+                    applyProductFilter(binding.etSearchProduk.text?.toString() ?: "")
 
-                    if (productList.isEmpty()) {
+                    if (allProducts.isEmpty()) {
                         binding.tvEmptyCatalog.visibility = View.VISIBLE
                         binding.tvEmptyCatalog.text = "Belum ada produk aktif di katalog pabrik."
-                    } else {
-                        binding.tvEmptyCatalog.visibility = View.GONE
                     }
                 } else {
                     binding.tvEmptyCatalog.visibility = View.VISIBLE

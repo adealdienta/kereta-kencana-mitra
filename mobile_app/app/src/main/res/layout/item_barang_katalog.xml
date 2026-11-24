@@ -52,6 +52,20 @@
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/tv_barang_best_seller"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:background="@drawable/bg_badge_belum_bayar"
+                android:paddingHorizontal="7dp"
+                android:paddingVertical="2dp"
+                android:text="Paling Diminati"
+                android:textColor="@color/price_red"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <TextView
                 android:id="@+id/tv_barang_harga"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

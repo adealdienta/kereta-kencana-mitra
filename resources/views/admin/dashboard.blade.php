@@ -95,6 +95,7 @@
                                     $badgeColor = match($trx->status) {
                                         'Baru Masuk' => 'background: #fef3c7; color: #92400e;',
                                         'Diproses' => 'background: #e0f2fe; color: #0369a1;',
+                                        'Dikirim' => 'background: #ede9fe; color: #5b21b6;',
                                         'Selesai' => 'background: #ecfdf5; color: #065f46;',
                                         'Dibatalkan' => 'background: #fef2f2; color: #991b1b;',
                                         default => 'background: #f1f5f9; color: #475569;'
@@ -128,7 +129,7 @@
                         <li style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f1f5f9;">
                             <span>{{ $stk->nama }}</span>
                             <span style="background: #fef2f2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-weight: 700;">
-                                Sisa: {{ $stk->stok }} Bal
+                                Sisa: {{ $stk->formatted_stok }}
                             </span>
                         </li>
                     @endforeach

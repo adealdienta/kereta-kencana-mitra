@@ -1,31 +1,59 @@
 @extends('layouts.app')
 
-@section('title', 'Masuk Akun Mitra & Staf Pabrik')
+@section('title', 'Masuk Akun Mitra & Admin Pabrik')
 
 @section('content')
-<section class="section-py" style="min-height: 80vh; display: flex; align-items: center; padding: 40px 0;">
-    <div class="container" style="max-width: 480px;">
-        <div class="auth-card scroll-reveal reveal-zoom">
-            
-            <div style="text-align: center; margin-bottom: 24px;">
-                <div style="text-align: center; margin-bottom: 14px;">
-                    <img src="{{ asset('assets/img/logo-resmi.png') }}?v={{ filemtime(public_path('assets/img/logo-resmi.png')) }}" alt="PR. Kereta Kencana" style="height: 65px; width: auto; object-fit: contain; margin: 0 auto;">
+@php
+    $loginBanner = $loginBanner ?? \App\Services\PabrikConfigService::getLoginBanner();
+@endphp
+
+<section class="login-split-section">
+    <!-- Panel Kanan: Gambar Kustom dari Pengaturan & Media -->
+    <div class="login-split-right">
+        @if(!empty($loginBanner['exists']))
+            <img src="{{ $loginBanner['url'] }}" alt="{{ $loginBanner['caption'] ?? 'PR. Kereta Kencana' }}" class="login-split-bg-img">
+        @endif
+        <div class="login-split-bg-overlay"></div>
+
+        <!-- Gelombang Halus Mobile (Tampil hanya di layar kecil saat bertumpuk) -->
+        <svg class="login-wave-mobile" viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0,40 C260,115 480,0 760,65 C980,115 1100,45 1200,75 L1200,120 L0,120 Z" fill="#ffffff"></path>
+        </svg>
+
+        @if(!empty($loginBanner['caption']))
+            <div class="login-split-caption">
+                <span class="login-split-caption-eyebrow">PR. KERETA KENCANA &bull; BLITAR</span>
+                <div class="login-split-caption-text">{{ $loginBanner['caption'] }}</div>
+            </div>
+        @endif
+    </div>
+
+    <!-- Panel Kiri: Formulir Login + Pemisah Gelombang Organik -->
+    <div class="login-split-left">
+        <!-- Gelombang Vertikal Organik Pembatas Kiri -> Kanan (Desktop) -->
+        <svg class="login-wave-desktop" viewBox="0 0 210 800" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0,0 L28,0 C4,95 16,160 66,205 C122,255 126,315 96,368 C66,422 108,468 134,524 C158,576 136,642 166,710 C184,752 196,778 208,800 L0,800 Z" fill="#ffffff"></path>
+        </svg>
+
+        <div class="login-split-form-wrap">
+            <div class="login-brand-head">
+                <img src="{{ asset('assets/img/logo-resmi.png') }}?v={{ filemtime(public_path('assets/img/logo-resmi.png')) }}" alt="PR. Kereta Kencana" class="login-brand-logo">
+                <div>
+                    <div class="login-brand-title">PORTAL MASUK AKUN</div>
+                    <div class="login-brand-sub">PR. KERETA KENCANA &bull; Ponggok, Blitar</div>
                 </div>
-                <h2 style="font-family: var(--font-serif); color: var(--gold-hover); font-size: 22px; margin-bottom: 6px; font-weight: 800;">PORTAL MASUK AKUN</h2>
-                <p style="color: var(--text-muted); font-size: 13.5px;">PR. KERETA KENCANA - Ponggok, Kab. Blitar</p>
             </div>
 
-
             @if(session('warning'))
-                <div style="background: rgba(234, 179, 8, 0.12); border: 1px solid #eab308; color: #854d0e; padding: 12px; border-radius: 2px; margin-bottom: 18px; font-size: 13px; display: flex; align-items: center; gap: 10px;">
-                    <i class="fa-solid fa-circle-exclamation" style="font-size: 16px;"></i>
+                <div class="login-alert login-alert-warning">
+                    <i class="fa-solid fa-circle-exclamation"></i>
                     <span>{{ session('warning') }}</span>
                 </div>
             @endif
 
             @if($errors->any())
-                <div style="background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 12px 14px; border-radius: 2px; margin-bottom: 18px; font-size: 13px; display: flex; align-items: flex-start; gap: 10px;">
-                    <i class="fa-solid fa-triangle-exclamation" style="font-size: 15px; margin-top: 2px;"></i>
+                <div class="login-alert login-alert-danger">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
                     <div>
                         @foreach($errors->all() as $err)
                             <div>{{ $err }}</div>
@@ -34,51 +62,69 @@
                 </div>
             @endif
 
-            <form action="{{ route('login') }}" method="POST">
+            <form action="{{ route('login') }}" method="POST" class="login-clean-form">
                 @csrf
-                <div class="form-group" style="margin-bottom: 16px;">
-                    <label style="display: block; color: var(--text-dark); font-size: 13.5px; margin-bottom: 6px; font-weight: 600;">Alamat Email</label>
-                    <input type="email" name="email" id="inputEmail" class="form-control" required value="{{ old('email') }}" placeholder="nama@email.com"
-                           style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid var(--border-light); color: var(--text-dark); border-radius: 6px;">
+
+                <div class="login-field-group">
+                    <label for="inputEmail" class="login-field-label">EMAIL</label>
+                    <input
+                        type="email"
+                        name="email"
+                        id="inputEmail"
+                        class="login-underline-input"
+                        required
+                        autocomplete="email"
+                        value="{{ old('email') }}"
+                        placeholder="nama@email.com"
+                    >
                 </div>
 
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label style="display: block; color: var(--text-dark); font-size: 13.5px; margin-bottom: 6px; font-weight: 600;">Kata Sandi</label>
-                    <div style="position: relative;">
-                        <input type="password" name="password" id="inputPassword" class="form-control" required placeholder="••••••••"
-                               style="width: 100%; padding: 12px 42px 12px 12px; background: #ffffff; border: 1px solid var(--border-light); color: var(--text-dark); border-radius: 6px;">
-                        <button type="button" id="togglePasswordBtn" onclick="togglePasswordVisibility('inputPassword', 'togglePasswordIcon')" 
-                                style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; font-size: 15px;"
-                                title="Lihat / Sembunyikan Kata Sandi">
+                <div class="login-field-group">
+                    <label for="inputPassword" class="login-field-label">PASSWORD</label>
+                    <div class="login-password-wrap">
+                        <input
+                            type="password"
+                            name="password"
+                            id="inputPassword"
+                            class="login-underline-input"
+                            required
+                            autocomplete="current-password"
+                            placeholder="••••••••••"
+                        >
+                        <button
+                            type="button"
+                            id="togglePasswordBtn"
+                            class="login-password-toggle"
+                            onclick="togglePasswordVisibility('inputPassword', 'togglePasswordIcon')"
+                            aria-label="Lihat / Sembunyikan Kata Sandi"
+                            title="Lihat / Sembunyikan Kata Sandi"
+                        >
                             <i id="togglePasswordIcon" class="fa-solid fa-eye"></i>
                         </button>
                     </div>
                 </div>
 
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; font-size: 13px; flex-wrap: wrap; gap: 8px;">
-                    <label style="color: var(--text-muted); display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                        <input type="checkbox" name="remember" value="1"> Ingat saya di perangkat ini
+                <div class="login-options-row">
+                    <label class="login-remember-label">
+                        <input type="checkbox" name="remember" value="1">
+                        <span>Remember Me</span>
                     </label>
-                    <a href="{{ route('password.request') }}" 
-                       style="color: var(--gold-hover); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
-                        <i class="fa-solid fa-key" style="color: var(--gold-hover); font-size: 13px;"></i> Lupa Kata Sandi?
+                    <a href="{{ route('password.request') }}" class="login-forgot-link">
+                        <i class="fa-solid fa-key"></i> Lupa Kata Sandi?
                     </a>
                 </div>
 
-                <button type="submit" class="btn btn-gold" style="width: 100%; padding: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    <i class="fa-solid fa-right-to-bracket"></i> Masuk Sekarang
-                </button>
+                <div class="login-action-buttons">
+                    <button type="submit" class="login-btn-primary">
+                        MASUK
+                    </button>
+                    <a href="{{ route('register') }}" class="login-btn-secondary">
+                        BUAT AKUN
+                    </a>
+                </div>
             </form>
-
-            <div style="border-top: 1px dashed var(--border-light); margin-top: 24px; padding-top: 16px; text-align: center;">
-                <p style="color: var(--text-muted); font-size: 13.5px; margin-bottom: 10px;">
-                    Belum memiliki akun mitra toko?
-                </p>
-                <a href="{{ route('register') }}" class="btn btn-outline-gold btn-block btn-sm" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px;">
-                    <i class="fa-solid fa-user-plus"></i> Daftar Akun Mitra / Toko Baru
-                </a>
-            </div>
         </div>
+    </div>
 </section>
 
 @push('scripts')
@@ -99,5 +145,4 @@ function togglePasswordVisibility(inputId, iconId) {
 }
 </script>
 @endpush
-
 @endsection

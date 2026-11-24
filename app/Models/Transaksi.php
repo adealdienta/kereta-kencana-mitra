@@ -83,6 +83,22 @@ class Transaksi extends Model
         return 'Rp ' . number_format((float)$this->total_harga, 0, ',', '.');
     }
 
+    public function isTransferBank(): bool
+    {
+        return $this->metode_pembayaran !== null
+            && stripos($this->metode_pembayaran, 'transfer') !== false;
+    }
+
+    /**
+     * Pesanan Transfer Bank hanya boleh diproses/dikirim setelah
+     * bukti transfer diunggah pembeli dan diverifikasi Lunas oleh admin.
+     */
+    public function isTransferBelumLunas(): bool
+    {
+        return $this->isTransferBank()
+            && (!$this->bukti_transfer || $this->status_pembayaran !== 'Lunas');
+    }
+
     /**
      * Menghasilkan teks ringkasan varian produk yang dipesan
      * Contoh: "1 Bal Sembada 12, 1 Slop Kereta Kencana 12"

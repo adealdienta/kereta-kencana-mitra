@@ -24,6 +24,7 @@ class CartActivity : AppCompatActivity() {
     private lateinit var cartAdapter: CartAdapter
 
     private var isOrderLocked = false
+    private var isOrderLockChecking = false
     private var lockedOrderCode = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,7 +39,27 @@ class CartActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         refreshCartView()
+        syncCartWithLiveCatalog()
         checkUserSessionAndOrderLock()
+    }
+
+    private fun syncCartWithLiveCatalog() {
+        val cartManager = CartManager.getInstance(this)
+        if (cartManager.getItems().isEmpty()) return
+
+        lifecycleScope.launch {
+            try {
+                val res = ApiClient.getService(this@CartActivity).getBarang()
+                val liveCatalog = res.body()?.data
+                if (res.isSuccessful && res.body()?.success == true && liveCatalog != null) {
+                    val notice = cartManager.syncWithCatalog(liveCatalog)
+                    refreshCartView()
+                    if (!notice.isNullOrBlank()) {
+                        Toast.makeText(this@CartActivity, notice, Toast.LENGTH_LONG).show()
+                    }
+                }
+            } catch (_: Exception) {}
+        }
     }
 
     private fun setupRecyclerView() {
@@ -97,6 +118,20 @@ class CartActivity : AppCompatActivity() {
             binding.tvRingkasanSubtotalLabel.text = "Subtotal ($totalSlop/${Barang.MAX_SLOP_PER_ORDER} slop • ${CurrencyHelper.formatRupiah(tierPrice)}/slop)"
             binding.tvRingkasanSubtotalValue.text = CurrencyHelper.formatRupiah(subtotal)
             binding.tvCartBottomTotal.text = CurrencyHelper.formatRupiah(subtotal)
+
+            binding.tvCartTierHint.text = when {
+                totalSlop <= 5 -> {
+                    val need = 6 - totalSlop
+                    "💡 Tambah $need slop lagi agar tarif turun jadi Rp 65.000/slop!"
+                }
+                totalSlop in 6..10 -> {
+                    val need = 11 - totalSlop
+                    "✓ Tarif Rp 65.000/slop aktif! Tambah $need slop lagi untuk tarif Rp 60.000/slop."
+                }
+                else -> {
+                    "✓ Tarif grosir terbaik Rp 60.000/slop aktif (maks. ${Barang.MAX_SLOP_PER_ORDER} slop/pesanan)."
+                }
+            }
         }
     }
 
@@ -108,6 +143,7 @@ class CartActivity : AppCompatActivity() {
 
         if (isLoggedIn) {
             // Cek Order Lock (Aturan B4)
+            isOrderLockChecking = true
             lifecycleScope.launch {
                 try {
                     val api = ApiClient.getService(this@CartActivity)
@@ -132,9 +168,13 @@ class CartActivity : AppCompatActivity() {
                     }
                 } catch (_: Exception) {
                     // Jaringan offline atau fallback
+                } finally {
+                    isOrderLockChecking = false
                 }
             }
         } else {
+            isOrderLockChecking = false
+            isOrderLocked = false
             binding.cardOrderLockBanner.visibility = View.GONE
             binding.btnProceedToCheckout.isEnabled = true
             binding.btnProceedToCheckout.alpha = 1.0f
@@ -154,6 +194,11 @@ class CartActivity : AppCompatActivity() {
             val session = SessionManager.getInstance(this)
             if (!session.isLoggedIn()) {
                 showLoginSheet()
+                return@setOnClickListener
+            }
+
+            if (isOrderLockChecking) {
+                Toast.makeText(this, "Sedang memeriksa status pesanan berjalan...", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 

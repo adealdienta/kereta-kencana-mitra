@@ -15,6 +15,9 @@ data class Pengaturan(
     @SerializedName("alamat_pabrik")
     val alamatPabrik: String?,
 
+    @SerializedName("jam_operasional")
+    val jamOperasional: String? = null,
+
     @SerializedName("bank_nama")
     val bankNama: String? = null,
 

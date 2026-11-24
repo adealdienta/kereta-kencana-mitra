@@ -12,6 +12,7 @@ use App\Helpers\ActivityLogger;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Exception;
 
 class TransaksiController extends Controller
@@ -23,6 +24,18 @@ class TransaksiController extends Controller
         // Filter status
         if ($request->filled('status')) {
             $query->where('status', $request->status);
+        }
+
+        // Filter status pembayaran
+        if ($request->filled('status_pembayaran')) {
+            if ($request->status_pembayaran === 'Belum Dibayar') {
+                $query->where(function ($q) {
+                    $q->where('status_pembayaran', 'Belum Dibayar')
+                      ->orWhereNull('status_pembayaran');
+                });
+            } else {
+                $query->where('status_pembayaran', $request->status_pembayaran);
+            }
         }
 
         // Filter sumber (Web, Mobile App, WhatsApp, Offline)
@@ -55,8 +68,6 @@ class TransaksiController extends Controller
 
     public function update(Request $request, $id)
     {
-        $transaksi = Transaksi::with(['details.barang', 'barang'])->findOrFail($id);
-
         $validated = $request->validate([
             'status' => ['required', 'in:Baru Masuk,Diproses,Dikirim,Selesai,Dibatalkan'],
             'nomor_do' => ['nullable', 'string', 'max:100'],
@@ -64,54 +75,78 @@ class TransaksiController extends Controller
             'catatan' => ['nullable', 'string'],
         ]);
 
-        $statusLama = $transaksi->status;
         $statusBaru = $validated['status'];
 
-        // Proteksi Fraud: Staf operasional tidak boleh mengubah status ke 'Selesai' secara sepihak
-        if ($statusBaru === 'Selesai' && $statusLama !== 'Selesai') {
-            if (Auth::user()->isStaff()) {
-                return back()->with('error', 'Akses ditolak: Staf operasional tidak memiliki hak menyelesaikan pesanan secara langsung. Status Selesai hanya dapat diotorisasi oleh Owner / Super Admin dengan melampirkan foto Surat Jalan fisik, atau dikonfirmasi langsung oleh mitra.');
-            }
-        }
-
         try {
-            DB::transaction(function () use ($transaksi, $validated, $statusLama, $statusBaru) {
+            $transaksi = DB::transaction(function () use ($id, $validated, $statusBaru) {
+                $transaksi = Transaksi::with(['details.barang', 'barang'])->lockForUpdate()->findOrFail($id);
+                $statusLama = $transaksi->status;
+
+                // Admin operasional tidak boleh mengubah/membatalkan pesanan yang sudah Selesai
+                if ($statusLama === 'Selesai' && $statusBaru !== 'Selesai' && Auth::user()->isAdmin()) {
+                    throw new Exception('Pesanan yang sudah Selesai hanya dapat dikoreksi atau dibatalkan oleh Owner atau Super Admin.');
+                }
+
+                // Opsi 1: Pesanan Transfer Bank wajib punya bukti transfer & diverifikasi Lunas sebelum diproses/dikirim/diselesaikan
+                if (in_array($statusBaru, ['Diproses', 'Dikirim', 'Selesai'], true) && $transaksi->isTransferBelumLunas()) {
+                    $alasan = !$transaksi->bukti_transfer
+                        ? 'pembeli belum mengunggah bukti transfer bank'
+                        : 'bukti transfer bank belum diverifikasi Lunas oleh admin';
+
+                    throw new Exception("Status tidak dapat diubah ke '{$statusBaru}' karena {$alasan}.");
+                }
+
+                // Proteksi Fraud: Admin operasional tidak boleh mengubah status ke 'Selesai' secara sepihak
+                if ($statusBaru === 'Selesai' && $statusLama !== 'Selesai' && Auth::user()->isAdmin()) {
+                    throw new Exception('Akses ditolak: Admin operasional tidak memiliki hak menyelesaikan pesanan secara langsung. Status Selesai hanya dapat diotorisasi oleh Owner / Super Admin dengan melampirkan foto Surat Jalan fisik, atau dikonfirmasi langsung oleh mitra.');
+                }
+
                 if ($statusBaru === 'Dibatalkan' && $statusLama !== 'Dibatalkan') {
+                    // Agregasi pengembalian stok presisi (Slop) per barang_id
+                    $restorationMap = [];
                     if ($transaksi->details && $transaksi->details->isNotEmpty()) {
                         foreach ($transaksi->details as $detail) {
                             if ($detail->barang) {
                                 $slopPerBal = $detail->barang->slop_per_bal ?: 20;
-                                $balRestored = ($detail->satuan === 'Bal') ? $detail->jumlah : max(1, (int)ceil($detail->jumlah / $slopPerBal));
-                                $detail->barang->increment('stok', $balRestored);
+                                $slopUnit = ($detail->satuan === 'Bal') ? ($detail->jumlah * $slopPerBal) : $detail->jumlah;
+                                $restorationMap[$detail->barang_id] = ($restorationMap[$detail->barang_id] ?? 0) + $slopUnit;
                             }
                         }
                     } elseif ($transaksi->barang) {
                         $slopPerBal = $transaksi->barang->slop_per_bal ?: 20;
-                        $balDeduct = $transaksi->satuan === 'Bal' ? $transaksi->jumlah : max(1, (int)ceil($transaksi->jumlah / $slopPerBal));
-                        $transaksi->barang->increment('stok', $balDeduct);
+                        $slopUnit = $transaksi->satuan === 'Bal' ? ($transaksi->jumlah * $slopPerBal) : $transaksi->jumlah;
+                        $restorationMap[$transaksi->barang_id] = $slopUnit;
+                    }
+
+                    ksort($restorationMap);
+                    foreach ($restorationMap as $bId => $slopRestored) {
+                        $lockedBarang = Barang::where('id', $bId)->lockForUpdate()->first();
+                        if ($lockedBarang) {
+                            $lockedBarang->increment('stok', $slopRestored);
+                        }
                     }
                 } elseif ($statusLama === 'Dibatalkan' && $statusBaru !== 'Dibatalkan') {
-                    // Validasi kecukupan stok sebelum mengaktifkan kembali pesanan yang dibatalkan
+                    // Validasi kecukupan stok presisi (Slop) sebelum mengaktifkan kembali pesanan
+                    $demandMap = [];
                     if ($transaksi->details && $transaksi->details->isNotEmpty()) {
                         foreach ($transaksi->details as $detail) {
-                            if ($detail->barang) {
-                                $lockedBarang = Barang::lockForUpdate()->findOrFail($detail->barang_id);
-                                $slopPerBal = $lockedBarang->slop_per_bal ?: 20;
-                                $balDeduct = ($detail->satuan === 'Bal') ? $detail->jumlah : max(1, (int)ceil($detail->jumlah / $slopPerBal));
-                                if ($lockedBarang->stok < $balDeduct) {
-                                    throw new Exception("Stok {$lockedBarang->nama} tidak mencukupi untuk mengaktifkan kembali pesanan (tersedia: {$lockedBarang->stok} Bal, butuh: {$balDeduct} Bal).");
-                                }
-                                $lockedBarang->decrement('stok', $balDeduct);
-                            }
+                            $slopPerBal = $detail->barang?->slop_per_bal ?: 20;
+                            $slopUnit = ($detail->satuan === 'Bal') ? ($detail->jumlah * $slopPerBal) : $detail->jumlah;
+                            $demandMap[$detail->barang_id] = ($demandMap[$detail->barang_id] ?? 0) + $slopUnit;
                         }
-                    } elseif ($transaksi->barang) {
-                        $lockedBarang = Barang::lockForUpdate()->findOrFail($transaksi->barang_id);
-                        $slopPerBal = $lockedBarang->slop_per_bal ?: 20;
-                        $balDeduct = $transaksi->satuan === 'Bal' ? $transaksi->jumlah : max(1, (int)ceil($transaksi->jumlah / $slopPerBal));
-                        if ($lockedBarang->stok < $balDeduct) {
-                            throw new Exception("Stok {$lockedBarang->nama} tidak mencukupi untuk mengaktifkan kembali pesanan (tersedia: {$lockedBarang->stok} Bal, butuh: {$balDeduct} Bal).");
+                    } elseif ($transaksi->barang_id) {
+                        $slopPerBal = $transaksi->barang?->slop_per_bal ?: 20;
+                        $slopUnit = $transaksi->satuan === 'Bal' ? ($transaksi->jumlah * $slopPerBal) : $transaksi->jumlah;
+                        $demandMap[$transaksi->barang_id] = $slopUnit;
+                    }
+
+                    ksort($demandMap);
+                    foreach ($demandMap as $bId => $slopDeduct) {
+                        $lockedBarang = Barang::lockForUpdate()->findOrFail($bId);
+                        if ($lockedBarang->stok < $slopDeduct) {
+                            throw new Exception("Stok {$lockedBarang->nama} tidak mencukupi untuk mengaktifkan kembali pesanan (tersedia: {$lockedBarang->stok} Slop, butuh: {$slopDeduct} Slop).");
                         }
-                        $lockedBarang->decrement('stok', $balDeduct);
+                        $lockedBarang->decrement('stok', $slopDeduct);
                     }
                 }
 
@@ -123,6 +158,7 @@ class TransaksiController extends Controller
                 }
 
                 $transaksi->update($validated);
+                return $transaksi;
             });
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());
@@ -142,8 +178,6 @@ class TransaksiController extends Controller
             abort(403, 'Akses ditolak: Hanya Owner atau Super Admin yang berwenang melakukan verifikasi manual / bypass penyelesaian pesanan.');
         }
 
-        $transaksi = Transaksi::findOrFail($id);
-
         $validated = $request->validate([
             'bukti_surat_jalan' => ['required', 'file', 'image', 'mimes:jpeg,png,jpg,webp', 'max:3072'],
             'alasan_bypass' => ['required', 'string', 'min:5', 'max:255'],
@@ -155,18 +189,37 @@ class TransaksiController extends Controller
             'alasan_bypass.min' => 'Alasan verifikasi manual minimal 5 karakter.',
         ]);
 
-        $path = $request->file('bukti_surat_jalan')->store('bukti_penerimaan', 'public');
-        $roleName = strtoupper(Auth::user()->role);
+        try {
+            $transaksi = DB::transaction(function () use ($request, $id, $validated) {
+                $transaksi = Transaksi::lockForUpdate()->findOrFail($id);
+
+                if ($transaksi->status !== 'Dikirim') {
+                    throw new Exception("Verifikasi manual hanya dapat dilakukan untuk pesanan berstatus 'Dikirim'. Status saat ini: {$transaksi->status}.");
+                }
+
+                if ($transaksi->isTransferBelumLunas()) {
+                    throw new Exception('Verifikasi manual tidak dapat dilakukan sebelum bukti transfer bank diunggah dan diverifikasi Lunas.');
+                }
+
+                $path = $request->file('bukti_surat_jalan')->store('bukti_penerimaan', 'public');
+                $roleName = strtoupper(Auth::user()->role);
+                $userName = Auth::user()->name;
+
+                $transaksi->update([
+                    'status' => 'Selesai',
+                    'status_pembayaran' => 'Lunas',
+                    'diterima_pada' => now(),
+                    'bukti_penerimaan' => $path,
+                    'catatan_penerima' => "[Verifikasi Manual {$roleName} - {$userName}]: " . trim($validated['alasan_bypass']),
+                ]);
+
+                return $transaksi;
+            });
+        } catch (Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
         $userName = Auth::user()->name;
-
-        $transaksi->update([
-            'status' => 'Selesai',
-            'status_pembayaran' => 'Lunas',
-            'diterima_pada' => now(),
-            'bukti_penerimaan' => $path,
-            'catatan_penerima' => "[Verifikasi Manual {$roleName} - {$userName}]: " . trim($validated['alasan_bypass']),
-        ]);
-
         ActivityLogger::log('Verifikasi Manual Transaksi', "Owner/Super Admin {$userName} mengotorisasi penyelesaian transaksi {$transaksi->kode_transaksi} dengan lampiran surat jalan fisik.");
 
         return back()->with('success', "Transaksi {$transaksi->kode_transaksi} berhasil diselesaikan dengan arsip bukti fisik surat jalan. Kunci pemesanan mitra telah dibuka.");
@@ -177,23 +230,49 @@ class TransaksiController extends Controller
      */
     public function verifikasiPembayaran(Request $request, $id)
     {
-        $transaksi = Transaksi::findOrFail($id);
+        $validated = $request->validate([
+            'action' => ['required', 'in:terima,tolak'],
+        ]);
 
-        $action = $request->input('action', 'terima');
+        $action = $validated['action'];
+
+        try {
+            $transaksi = DB::transaction(function () use ($id, $action) {
+                $transaksi = Transaksi::lockForUpdate()->findOrFail($id);
+
+                if (in_array($transaksi->status, ['Selesai', 'Dibatalkan'], true)) {
+                    throw new Exception("Pembayaran pesanan dengan status '{$transaksi->status}' sudah final dan tidak dapat diubah lagi.");
+                }
+
+                if (!$transaksi->isTransferBank()) {
+                    throw new Exception('Verifikasi transfer hanya berlaku untuk transaksi dengan metode Transfer Bank.');
+                }
+
+                if (!$transaksi->bukti_transfer) {
+                    throw new Exception('Bukti transfer belum diunggah oleh pembeli, sehingga pembayaran belum dapat diverifikasi.');
+                }
+
+                if ($transaksi->status_pembayaran === 'Lunas') {
+                    throw new Exception('Pembayaran pesanan ini sudah diverifikasi Lunas dan tidak dapat ditolak kembali.');
+                }
+
+                $transaksi->update([
+                    'status_pembayaran' => $action === 'terima' ? 'Lunas' : 'Ditolak / Belum Valid',
+                ]);
+
+                return $transaksi;
+            });
+        } catch (Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         if ($action === 'terima') {
-            $transaksi->update([
-                'status_pembayaran' => 'Lunas',
-            ]);
             ActivityLogger::log('Verifikasi Pembayaran', "Pembayaran Transfer Bank transaksi {$transaksi->kode_transaksi} diverifikasi Lunas oleh " . Auth::user()->name);
             return back()->with('success', "Pembayaran Transfer Bank untuk transaksi {$transaksi->kode_transaksi} berhasil diverifikasi Lunas.");
-        } else {
-            $transaksi->update([
-                'status_pembayaran' => 'Ditolak / Belum Valid',
-            ]);
-            ActivityLogger::log('Tolak Bukti Transfer', "Bukti transfer bank transaksi {$transaksi->kode_transaksi} ditolak oleh " . Auth::user()->name);
-            return back()->with('warning', "Bukti transfer transaksi {$transaksi->kode_transaksi} ditandai tidak valid / ditolak.");
         }
+
+        ActivityLogger::log('Tolak Bukti Transfer', "Bukti transfer bank transaksi {$transaksi->kode_transaksi} ditolak oleh " . Auth::user()->name);
+        return back()->with('warning', "Bukti transfer transaksi {$transaksi->kode_transaksi} ditandai tidak valid / ditolak.");
     }
 
     /**
@@ -220,93 +299,77 @@ class TransaksiController extends Controller
             'telepon' => ['nullable', 'string', 'max:30'],
             'alamat' => ['nullable', 'string'],
             'catatan' => ['nullable', 'string'],
-            'user_id' => ['nullable', 'exists:users,id'],
+            'user_id' => ['nullable', Rule::exists('users', 'id')->where('role', 'pelanggan')],
         ]);
 
-        $barang = Barang::findOrFail($request->barang_id);
-        $satuan = $request->satuan;
-        $hargaSatuan = $satuan === 'Slop'
-            ? Barang::hargaSlopByQty((int) $request->jumlah)
-            : $barang->harga_per_bal;
-        $total_harga = $request->jumlah * $hargaSatuan;
+        try {
+            $result = DB::transaction(function () use ($request) {
+                $barang = Barang::where('id', $request->barang_id)->lockForUpdate()->firstOrFail();
 
-        // Validasi stok
-        $slopPerBal = $barang->slop_per_bal ?: 20;
-        $balDeduct = $satuan === 'Bal' ? $request->jumlah : max(1, (int)ceil($request->jumlah / $slopPerBal));
+                if (!$barang->aktif) {
+                    throw new Exception("Produk {$barang->nama} saat ini sedang nonaktif.");
+                }
 
-        if ($barang->stok < $balDeduct) {
+                $satuan = $request->satuan;
+                $hargaSatuan = $satuan === 'Slop'
+                    ? Barang::hargaSlopByQty((int) $request->jumlah)
+                    : $barang->harga_per_bal;
+                $total_harga = $request->jumlah * $hargaSatuan;
+
+                // Validasi stok presisi dalam satuan Slop
+                $slopPerBal = $barang->slop_per_bal ?: 20;
+                $slopDeduct = $satuan === 'Bal' ? ((int) $request->jumlah * $slopPerBal) : (int) $request->jumlah;
+
+                if ($barang->stok < $slopDeduct) {
+                    throw new Exception("Stok di gudang tidak mencukupi (tersisa {$barang->formatted_stok}, butuh {$slopDeduct} Slop).");
+                }
+
+                $kode_transaksi = 'OFF-' . date('Ymd') . '-' . strtoupper(Str::random(4));
+
+                $transaksi = Transaksi::create([
+                    'kode_transaksi' => $kode_transaksi,
+                    'user_id' => $request->user_id ?: null,
+                    'barang_id' => $barang->id,
+                    'nama_mitra' => Str::limit(trim($request->nama_mitra), 150, ''),
+                    'telepon' => $request->telepon ?: '-',
+                    'alamat' => $request->alamat ?: 'Serah Terima Langsung di Pabrik (Ponggok, Blitar)',
+                    'jumlah' => $request->jumlah,
+                    'satuan' => $satuan,
+                    'total_harga' => $total_harga,
+                    'catatan' => $request->catatan ?: 'Pembelian Tunai / Kasir Langsung di Pabrik',
+                    'metode_pembayaran' => 'Tunai (Kasir Pabrik)',
+                    'status_pembayaran' => 'Lunas',
+                    'status' => 'Selesai',
+                    'sumber' => 'Langsung di Pabrik (Offline)',
+                    'diterima_pada' => now(),
+                    'catatan_penerima' => 'Barang langsung diterima pembeli di pabrik (Cash & Carry)',
+                ]);
+
+                // Kurangi stok gudang presisi dalam satuan Slop
+                $barang->decrement('stok', $slopDeduct);
+
+                // Catat rincian item ke transaksi_details
+                TransaksiDetail::create([
+                    'transaksi_id' => $transaksi->id,
+                    'barang_id' => $barang->id,
+                    'satuan' => $satuan,
+                    'jumlah' => $request->jumlah,
+                    'harga_satuan' => $hargaSatuan,
+                    'subtotal' => $total_harga,
+                ]);
+
+                return $transaksi;
+            });
+        } catch (Exception $e) {
             return back()->withInput()->withErrors([
-                'jumlah' => "Stok di gudang tidak mencukupi (sisa {$barang->stok} Bal).",
+                'jumlah' => $e->getMessage(),
             ]);
         }
 
-        $kode_transaksi = 'OFF-' . date('Ymd') . '-' . strtoupper(Str::random(4));
+        ActivityLogger::log('Transaksi Offline', "Transaksi kasir langsung di pabrik {$result->kode_transaksi} ({$request->nama_mitra})");
 
-        $transaksi = Transaksi::create([
-            'kode_transaksi' => $kode_transaksi,
-            'user_id' => $request->user_id ?: null,
-            'barang_id' => $barang->id,
-            'nama_mitra' => $request->nama_mitra,
-            'telepon' => $request->telepon ?: '-',
-            'alamat' => $request->alamat ?: 'Serah Terima Langsung di Pabrik (Ponggok, Blitar)',
-            'jumlah' => $request->jumlah,
-            'satuan' => $satuan,
-            'total_harga' => $total_harga,
-            'catatan' => $request->catatan ?: 'Pembelian Tunai / Kasir Langsung di Pabrik',
-            'metode_pembayaran' => 'Tunai (Kasir Pabrik)',
-            'status_pembayaran' => 'Lunas',
-            'status' => 'Selesai',
-            'sumber' => 'Langsung di Pabrik (Offline)',
-            'diterima_pada' => now(),
-            'catatan_penerima' => 'Barang langsung diterima pembeli di pabrik (Cash & Carry)',
-        ]);
-
-        // Kurangi stok gudang
-        $barang->decrement('stok', $balDeduct);
-
-        // Catat rincian item ke transaksi_details
-        TransaksiDetail::create([
-            'transaksi_id' => $transaksi->id,
-            'barang_id' => $barang->id,
-            'satuan' => $satuan,
-            'jumlah' => $request->jumlah,
-            'harga_satuan' => $hargaSatuan,
-            'subtotal' => $total_harga,
-        ]);
-
-        ActivityLogger::log('Transaksi Offline', "Transaksi kasir langsung di pabrik {$kode_transaksi} ({$request->nama_mitra})");
-
-        return redirect()->route('admin.transaksis.faktur', $transaksi->id)
-            ->with('success', "Transaksi langsung di pabrik {$kode_transaksi} berhasil dicatat dan lunas! Faktur kasir siap dicetak.");
-    }
-
-    public function destroy($id)
-    {
-        $transaksi = Transaksi::with(['details.barang', 'barang'])->findOrFail($id);
-
-        // Pulihkan stok hanya jika pesanan belum Selesai dan belum Dibatalkan
-        if (!in_array($transaksi->status, ['Dibatalkan', 'Selesai'])) {
-            if ($transaksi->details && $transaksi->details->isNotEmpty()) {
-                foreach ($transaksi->details as $detail) {
-                    if ($detail->barang) {
-                        $slopPerBal = $detail->barang->slop_per_bal ?: 20;
-                        $balRestored = ($detail->satuan === 'Bal') ? $detail->jumlah : max(1, (int)ceil($detail->jumlah / $slopPerBal));
-                        $detail->barang->increment('stok', $balRestored);
-                    }
-                }
-            } elseif ($transaksi->barang) {
-                $slopPerBal = $transaksi->barang->slop_per_bal ?: 20;
-                $balDeduct = $transaksi->satuan === 'Bal' ? $transaksi->jumlah : max(1, (int)ceil($transaksi->jumlah / $slopPerBal));
-                $transaksi->barang->increment('stok', $balDeduct);
-            }
-        }
-
-        $kode = $transaksi->kode_transaksi;
-        $transaksi->delete();
-
-        ActivityLogger::log('Hapus Transaksi', "Menghapus transaksi: {$kode}");
-
-        return redirect()->route('admin.transaksis.index')->with('success', 'Transaksi berhasil dihapus dan stok telah dipulihkan.');
+        return redirect()->route('admin.transaksis.faktur', $result->id)
+            ->with('success', "Transaksi langsung di pabrik {$result->kode_transaksi} berhasil dicatat dan lunas! Faktur kasir siap dicetak.");
     }
 
     public function cetakFaktur($id)

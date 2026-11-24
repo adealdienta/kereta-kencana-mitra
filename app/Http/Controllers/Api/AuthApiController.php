@@ -169,6 +169,13 @@ class AuthApiController extends ApiController
 
         $user->save();
 
+        if (!empty($validated['password'])) {
+            $currentTokenId = $user->currentAccessToken()?->id;
+            $user->tokens()
+                ->when($currentTokenId, fn ($q) => $q->where('id', '!=', $currentTokenId))
+                ->delete();
+        }
+
         ActivityLogger::log('API Update Profil', "Mitra '{$user->nama_toko}' memperbarui data profil via mobile");
 
         return $this->successResponse([
@@ -240,16 +247,17 @@ class AuthApiController extends ApiController
 
         $user = User::where('email', strtolower(trim($validated['email'])))->first();
 
-        if (!$user) {
-            return $this->errorResponse('Alamat email tidak terdaftar dalam sistem mitra kami.', 404);
+        if (!$user || $user->role !== 'pelanggan') {
+            return $this->errorResponse('Alamat email tidak terdaftar sebagai mitra dalam sistem kami.', 404);
         }
 
         // Generate token dan OTP 6 digit
         $token = Str::random(64);
         $otpCode = str_pad((string)random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+        $normalizedEmail = strtolower(trim($user->email));
 
         DB::table('password_reset_tokens')->updateOrInsert(
-            ['email' => $user->email],
+            ['email' => $normalizedEmail],
             [
                 'token' => Hash::make($token),
                 'created_at' => now(),
@@ -257,29 +265,29 @@ class AuthApiController extends ApiController
         );
 
         Cache::put(
-            $this->resetOtpCacheKey($user->email),
+            $this->resetOtpCacheKey($normalizedEmail),
             Hash::make($otpCode),
             now()->addMinutes(60)
         );
+        Cache::forget($this->resetAttemptCacheKey($normalizedEmail));
 
         $resetUrl = route('password.reset', [
             'token' => $token,
-            'email' => $user->email,
+            'email' => $normalizedEmail,
         ]);
 
         try {
-            Mail::to($user->email)->send(new ResetPasswordMail($user, $token, $resetUrl, $otpCode));
+            Mail::to($normalizedEmail)->send(new ResetPasswordMail($user, $token, $resetUrl, $otpCode));
         } catch (\Exception $e) {
             return $this->errorResponse('Gagal mengirim email reset sandi. Pastikan konfigurasi server email aktif.', 500, [
                 'error_detail' => config('app.debug') ? $e->getMessage() : null,
             ]);
         }
 
-        ActivityLogger::log('API Reset Sandi Mobile', "Permintaan reset sandi via Mobile API untuk {$user->email}");
+        ActivityLogger::log('API Reset Sandi Mobile', "Permintaan reset sandi via Mobile API untuk {$normalizedEmail}");
 
         return $this->successResponse([
-            'email' => $user->email,
-            'token' => $token,
+            'email' => $normalizedEmail,
         ], 'Kode verifikasi 6-digit dan tautan reset sandi telah berhasil dikirimkan ke email Anda.');
     }
 
@@ -298,9 +306,10 @@ class AuthApiController extends ApiController
         ]);
 
         $email = strtolower(trim($request->email));
-        $record = DB::table('password_reset_tokens')->where('email', $email)->first();
+        $user = User::where('email', $email)->where('role', 'pelanggan')->first();
+        $record = $user ? DB::table('password_reset_tokens')->where('email', $email)->first() : null;
 
-        if (!$record || !$this->matchesResetCredential($email, $request->token, $record->token)) {
+        if (!$record) {
             return response()->json([
                 'success' => false,
                 'status' => 'error',
@@ -318,6 +327,28 @@ class AuthApiController extends ApiController
                 'status' => 'error',
                 'valid' => false,
                 'message' => 'Kode verifikasi atau token telah kedaluwarsa.',
+                'errors' => ['valid' => false],
+            ], 422);
+        }
+
+        if (!$this->matchesResetCredential($email, $request->token, $record->token)) {
+            $attempts = $this->incrementResetAttempts($email);
+            if ($attempts >= 5) {
+                $this->clearResetCredentials($email);
+                return response()->json([
+                    'success' => false,
+                    'status' => 'error',
+                    'valid' => false,
+                    'message' => 'Terlalu banyak percobaan kode verifikasi gagal. Silakan ajukan permintaan reset sandi baru.',
+                    'errors' => ['valid' => false],
+                ], 429);
+            }
+
+            return response()->json([
+                'success' => false,
+                'status' => 'error',
+                'valid' => false,
+                'message' => 'Kode verifikasi atau token tidak valid atau tidak ditemukan.',
                 'errors' => ['valid' => false],
             ], 422);
         }
@@ -353,9 +384,10 @@ class AuthApiController extends ApiController
         ]);
 
         $email = strtolower(trim($request->email));
-        $record = DB::table('password_reset_tokens')->where('email', $email)->first();
+        $user = User::where('email', $email)->where('role', 'pelanggan')->first();
+        $record = $user ? DB::table('password_reset_tokens')->where('email', $email)->first() : null;
 
-        if (!$record || !$this->matchesResetCredential($email, $request->token, $record->token)) {
+        if (!$record) {
             return $this->errorResponse('Kode verifikasi atau token tidak valid atau telah usang.', 422);
         }
 
@@ -365,13 +397,18 @@ class AuthApiController extends ApiController
             return $this->errorResponse('Kode verifikasi atau token telah kedaluwarsa.', 422);
         }
 
-        $user = User::where('email', $email)->first();
-        if (!$user) {
-            return $this->errorResponse('Akun pengguna tidak ditemukan.', 404);
+        if (!$this->matchesResetCredential($email, $request->token, $record->token)) {
+            $attempts = $this->incrementResetAttempts($email);
+            if ($attempts >= 5) {
+                $this->clearResetCredentials($email);
+                return $this->errorResponse('Terlalu banyak percobaan kode verifikasi gagal. Silakan ajukan permintaan reset sandi baru.', 429);
+            }
+            return $this->errorResponse('Kode verifikasi atau token tidak valid atau telah usang.', 422);
         }
 
         $user->password = Hash::make($request->password);
         $user->save();
+        $user->tokens()->delete();
 
         $this->clearResetCredentials($email);
 
@@ -383,6 +420,19 @@ class AuthApiController extends ApiController
     protected function resetOtpCacheKey(string $email): string
     {
         return 'mobile_reset_otp:' . strtolower(trim($email));
+    }
+
+    protected function resetAttemptCacheKey(string $email): string
+    {
+        return 'mobile_reset_otp_attempts:' . strtolower(trim($email));
+    }
+
+    protected function incrementResetAttempts(string $email): int
+    {
+        $key = $this->resetAttemptCacheKey($email);
+        $attempts = ((int) Cache::get($key, 0)) + 1;
+        Cache::put($key, $attempts, now()->addMinutes(15));
+        return $attempts;
     }
 
     protected function matchesResetCredential(string $email, string $input, string $storedTokenHash): bool
@@ -400,5 +450,6 @@ class AuthApiController extends ApiController
         $normalized = strtolower(trim($email));
         DB::table('password_reset_tokens')->where('email', $normalized)->delete();
         Cache::forget($this->resetOtpCacheKey($normalized));
+        Cache::forget($this->resetAttemptCacheKey($normalized));
     }
 }

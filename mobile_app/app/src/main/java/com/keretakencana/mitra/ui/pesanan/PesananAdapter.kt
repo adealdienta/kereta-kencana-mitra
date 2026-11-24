@@ -91,7 +91,7 @@ class PesananAdapter(
                     firstDetail.kodeBarang.contains("KK", ignoreCase = true) -> R.drawable.produk_kereta_kencana_12
                     firstDetail.kodeBarang.contains("SC", ignoreCase = true) -> R.drawable.produk_sembada_cethe_12
                     firstDetail.kodeBarang.contains("SM", ignoreCase = true) -> R.drawable.produk_sembada_12
-                    else -> R.drawable.logo_resmi
+                    else -> R.drawable.ic_logo_kereta_kencana
                 }
 
                 if (!firstDetail.imageUrl.isNullOrBlank()) {
@@ -106,7 +106,7 @@ class PesananAdapter(
             } else {
                 binding.tvItemRingkasanProduk.text = "Pesanan Grosir Kretek"
                 binding.tvItemMuatanDetail.text = item.alamat
-                binding.ivItemProduk.setImageResource(R.drawable.logo_resmi)
+                binding.ivItemProduk.setImageResource(R.drawable.ic_logo_kereta_kencana)
             }
 
             // Tombol Aksi Bawah Dinamis
@@ -121,12 +121,23 @@ class PesananAdapter(
                     binding.btnItemPrimary.text = "Lihat Faktur"
                     binding.btnItemSecondary.text = "Pesan Lagi"
                 }
-                "Baru Masuk" -> {
+                "Diproses" -> {
                     binding.btnItemPrimary.visibility = View.VISIBLE
-                    binding.btnItemPrimary.text = "Detail"
-                    binding.btnItemSecondary.text = "Batalkan"
+                    binding.btnItemPrimary.text = "Lihat Faktur"
+                    binding.btnItemSecondary.text = "Lihat Detail"
                 }
-                else -> { // Diproses / Dibatalkan
+                "Baru Masuk" -> {
+                    if (item.bolehBatal) {
+                        binding.btnItemPrimary.visibility = View.VISIBLE
+                        binding.btnItemPrimary.text = "Lihat Faktur"
+                        binding.btnItemSecondary.text = "Batalkan"
+                    } else {
+                        binding.btnItemPrimary.visibility = View.VISIBLE
+                        binding.btnItemPrimary.text = "Lihat Faktur"
+                        binding.btnItemSecondary.text = "Lihat Detail"
+                    }
+                }
+                else -> { // Dibatalkan
                     binding.btnItemPrimary.visibility = View.GONE
                     binding.btnItemSecondary.text = "Lihat Detail"
                 }

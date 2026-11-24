@@ -48,7 +48,7 @@
                            style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid var(--border-light); color: var(--text-dark); border-radius: 6px;">
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
+                <div class="grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
                     <div class="form-group">
                         <label style="display: block; color: var(--text-dark); font-size: 13.5px; margin-bottom: 6px; font-weight: 600;">
                             Email Aktif <span style="color: #ef4444;">*</span>
@@ -74,7 +74,7 @@
                     <small style="color: var(--text-muted); font-size: 11.5px; display: block; margin-top: 4px;">Alamat ini akan digunakan kurir armada pabrik/ekspedisi logistik untuk pengiriman rokok.</small>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px;">
+                <div class="grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px;">
                     <div class="form-group">
                         <label style="display: block; color: var(--text-dark); font-size: 13.5px; margin-bottom: 6px; font-weight: 600;">
                             Kata Sandi <span style="color: #ef4444;">*</span>

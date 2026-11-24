@@ -41,3 +41,5 @@ cloudflared.exe
 /mobile_app/app/build/
 /mobile_app/local.properties
 .vercel
+/hostinger_deploy/
+/hostinger_deploy*.zip

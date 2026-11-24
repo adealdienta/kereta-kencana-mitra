@@ -31,7 +31,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:text="Detail Produk Kretek"
+            android:text="Detail Produk"
             android:textColor="@color/white"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -123,6 +123,21 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
+            <!-- Tag Paling Diminati (Opsional sesuai API best_seller) -->
+            <TextView
+                android:id="@+id/tv_detail_best_seller"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_badge_belum_bayar"
+                android:paddingHorizontal="9dp"
+                android:paddingVertical="3dp"
+                android:text="Paling Diminati"
+                android:textColor="@color/price_red"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
             <!-- Harga Aktif Sesuai Satuan Terpilih -->
             <TextView
                 android:id="@+id/tv_detail_harga"
@@ -131,7 +146,7 @@
                 android:layout_marginTop="6dp"
                 android:text="Rp 70.000 / slop"
                 android:textColor="@color/price_red"
-                android:textSize="16sp"
+                android:textSize="20sp"
                 android:textStyle="bold" />
 
             <!-- Deskripsi Cita Rasa Produk -->

@@ -5,13 +5,28 @@
 
 @section('content')
 <div style="background: #fff; border-radius: 8px; border: 1px solid #e2e8f0; padding: 24px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 14px;">
         <div>
             <h3 style="font-size: 16px; color: #1e293b;">Catatan Log Sistem & Keamanan</h3>
             <p style="color: #64748b; font-size: 13px;">Merekam setiap tindakan autentikasi, transaksi, dan perubahan data.</p>
         </div>
+        <form action="{{ route('admin.logs.index') }}" method="GET" style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama, aksi, detail, IP..."
+                   style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; min-width: 210px;">
+            <select name="role" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+                <option value="">-- Semua Role --</option>
+                <option value="owner" {{ request('role') === 'owner' ? 'selected' : '' }}>OWNER</option>
+                <option value="superadmin" {{ request('role') === 'superadmin' ? 'selected' : '' }}>SUPERADMIN</option>
+                <option value="admin" {{ request('role') === 'admin' ? 'selected' : '' }}>ADMIN</option>
+                <option value="pelanggan" {{ request('role') === 'pelanggan' ? 'selected' : '' }}>PELANGGAN</option>
+            </select>
+            <button type="submit" class="btn btn-secondary btn-sm">
+                <i class="fa-solid fa-magnifying-glass"></i> Filter
+            </button>
+        </form>
     </div>
 
+    <div style="overflow-x: auto;">
     <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
         <thead>
             <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left; color: #475569;">
@@ -42,6 +57,7 @@
             @endforelse
         </tbody>
     </table>
+    </div>
 
     <div style="margin-top: 20px;">
         {{ $logs->links() }}

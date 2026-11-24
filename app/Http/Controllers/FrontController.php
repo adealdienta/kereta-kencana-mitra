@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Barang;
 use App\Models\LegalDocument;
+use App\Services\PabrikConfigService;
 
 class FrontController extends Controller
 {
@@ -16,14 +17,17 @@ class FrontController extends Controller
             ->get();
 
         $legalitas = LegalDocument::orderBy('urutan')->take(4)->get();
+        $fasilitasImages = PabrikConfigService::getFasilitasImages();
+        $heroSlides = PabrikConfigService::getHeroSlides();
 
-        return view('front.beranda', compact('produks', 'legalitas'));
+        return view('front.beranda', compact('produks', 'legalitas', 'fasilitasImages', 'heroSlides'));
     }
 
     public function profil()
     {
         $legalitas = LegalDocument::orderBy('urutan')->get();
+        $fasilitasImages = PabrikConfigService::getFasilitasImages();
 
-        return view('front.profil', compact('legalitas'));
+        return view('front.profil', compact('legalitas', 'fasilitasImages'));
     }
 }

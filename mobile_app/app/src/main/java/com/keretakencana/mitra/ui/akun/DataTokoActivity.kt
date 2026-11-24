@@ -8,6 +8,7 @@ import androidx.lifecycle.lifecycleScope
 import com.keretakencana.mitra.data.api.ApiClient
 import com.keretakencana.mitra.data.local.SessionManager
 import com.keretakencana.mitra.databinding.ActivityDataTokoBinding
+import com.keretakencana.mitra.utils.ApiErrorHelper
 import kotlinx.coroutines.launch
 
 class DataTokoActivity : AppCompatActivity() {
@@ -94,8 +95,8 @@ class DataTokoActivity : AppCompatActivity() {
                         Toast.makeText(this@DataTokoActivity, "✓ Data & alamat toko berhasil diperbarui.", Toast.LENGTH_SHORT).show()
                         finish()
                     } else {
-                        val msg = response.body()?.message ?: "Gagal memperbarui data profil."
-                        Toast.makeText(this@DataTokoActivity, msg, Toast.LENGTH_SHORT).show()
+                        val msg = ApiErrorHelper.parseMessage(response, response.body()?.message ?: "Gagal memperbarui data profil.")
+                        Toast.makeText(this@DataTokoActivity, msg, Toast.LENGTH_LONG).show()
                     }
                 } catch (e: Exception) {
                     setLoading(false)

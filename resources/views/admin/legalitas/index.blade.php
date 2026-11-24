@@ -55,7 +55,7 @@
                                         style="background: none; border: none; color: #0284c7; cursor: pointer; padding: 4px;" title="Edit Dokumen">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </button>
-                                <form action="{{ route('admin.legalitas.destroy', $doc->id) }}" method="POST" onsubmit="return confirm('Hapus dokumen {{ $doc->nama_dokumen }}?')">
+                                <form action="{{ route('admin.legalitas.destroy', $doc->id) }}" method="POST" onsubmit='return confirm(@json("Hapus dokumen " . $doc->nama_dokumen . "?"))'>
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" style="background: none; border: none; color: #dc2626; cursor: pointer; padding: 4px;" title="Hapus Dokumen">

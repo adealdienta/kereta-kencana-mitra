@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -24,7 +25,9 @@ class AuthController extends Controller
             }
             return redirect()->route('admin.dashboard');
         }
-        return view('auth.login');
+        return view('auth.login', [
+            'loginBanner' => \App\Services\PabrikConfigService::getLoginBanner(),
+        ]);
     }
 
     public function showRegister()
@@ -40,6 +43,10 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
+        $request->merge([
+            'email' => strtolower(trim((string) $request->input('email'))),
+        ]);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'nama_toko' => ['required', 'string', 'max:150'],
@@ -82,6 +89,10 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        $request->merge([
+            'email' => strtolower(trim((string) $request->input('email'))),
+        ]);
+
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
@@ -130,6 +141,10 @@ class AuthController extends Controller
     {
         $user = Auth::user();
 
+        $request->merge([
+            'email' => strtolower(trim((string) $request->input('email'))),
+        ]);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'nama_toko' => ['nullable', 'string', 'max:150'],
@@ -141,12 +156,17 @@ class AuthController extends Controller
 
         $user->name = $validated['name'];
         if (isset($validated['nama_toko'])) $user->nama_toko = $validated['nama_toko'];
-        if (isset($validated['telepon'])) $user->telepon = $validated['telepon'];
+        if (isset($validated['telepon'])) {
+            $user->telepon = $validated['telepon'] !== ''
+                ? \App\Http\Controllers\Api\ApiController::normalizePhoneNumber($validated['telepon'])
+                : '';
+        }
         if (isset($validated['alamat'])) $user->alamat = $validated['alamat'];
         $user->email = $validated['email'];
 
         if (!empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);
+            $user->tokens()->delete();
         }
 
         $user->save();
@@ -168,6 +188,10 @@ class AuthController extends Controller
             abort(403, 'Aksi hanya diperuntukkan bagi akun mitra toko.');
         }
 
+        $request->merge([
+            'email' => strtolower(trim((string) $request->input('email'))),
+        ]);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'nama_toko' => ['required', 'string', 'max:150'],
@@ -187,12 +211,13 @@ class AuthController extends Controller
 
         $user->name = $validated['name'];
         $user->nama_toko = $validated['nama_toko'];
-        $user->telepon = $validated['telepon'];
+        $user->telepon = \App\Http\Controllers\Api\ApiController::normalizePhoneNumber($validated['telepon']);
         $user->alamat = $validated['alamat'];
         $user->email = $validated['email'];
 
         if (!empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);
+            $user->tokens()->delete();
         }
 
         $user->save();
@@ -225,7 +250,8 @@ class AuthController extends Controller
             'email.email' => 'Format email tidak valid.',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $email = strtolower(trim((string) $request->email));
+        $user = User::where('email', $email)->first();
 
         if (!$user) {
             return back()->with('error', 'Alamat email tidak terdaftar dalam sistem mitra kami. Silakan periksa kembali atau hubungi pengelola.');
@@ -234,28 +260,33 @@ class AuthController extends Controller
         // Generate token aman dan OTP 6 digit
         $token = Str::random(64);
         $otpCode = str_pad((string)random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+        $normalizedEmail = strtolower(trim($user->email));
 
         DB::table('password_reset_tokens')->updateOrInsert(
-            ['email' => $user->email],
+            ['email' => $normalizedEmail],
             [
                 'token' => Hash::make($token),
                 'created_at' => now(),
             ]
         );
 
+        // Sinkronkan OTP ke Cache agar berlaku untuk Mobile API & Web
+        Cache::put('mobile_reset_otp:' . $normalizedEmail, Hash::make($otpCode), now()->addMinutes(60));
+        Cache::forget('mobile_reset_otp_attempts:' . $normalizedEmail);
+
         $resetUrl = route('password.reset', [
             'token' => $token,
-            'email' => $user->email,
+            'email' => $normalizedEmail,
         ]);
 
         try {
-            Mail::to($user->email)->send(new ResetPasswordMail($user, $token, $resetUrl, $otpCode));
+            Mail::to($normalizedEmail)->send(new ResetPasswordMail($user, $token, $resetUrl, $otpCode));
         } catch (\Exception $e) {
             Log::error('Gagal mengirim email reset: ' . $e->getMessage());
             return back()->with('error', 'Gagal mengirim email verifikasi. Pastikan konfigurasi mail server aktif.');
         }
 
-        ActivityLogger::log('Permintaan Reset Sandi', "Mitra '{$user->name}' ({$user->email}) meminta tautan reset kata sandi");
+        ActivityLogger::log('Permintaan Reset Sandi', "Mitra '{$user->name}' ({$normalizedEmail}) meminta tautan reset kata sandi");
 
         return back()->with('success', 'Tautan pengaturan ulang kata sandi telah berhasil dikirimkan ke email Anda. Silakan periksa kotak masuk (inbox) atau folder spam.');
     }
@@ -274,6 +305,10 @@ class AuthController extends Controller
      */
     public function resetPassword(Request $request)
     {
+        $request->merge([
+            'email' => strtolower(trim((string) $request->input('email'))),
+        ]);
+
         $request->validate([
             'token' => ['required', 'string'],
             'email' => ['required', 'email'],
@@ -286,7 +321,8 @@ class AuthController extends Controller
             'password.confirmed' => 'Konfirmasi kata sandi baru tidak cocok.',
         ]);
 
-        $record = DB::table('password_reset_tokens')->where('email', $request->email)->first();
+        $email = $request->email;
+        $record = DB::table('password_reset_tokens')->where('email', $email)->first();
 
         if (!$record) {
             return back()->withErrors(['email' => 'Permintaan atur ulang kata sandi tidak ditemukan atau sudah kedaluwarsa.']);
@@ -298,19 +334,24 @@ class AuthController extends Controller
 
         $createdAt = Carbon::parse($record->created_at);
         if ($createdAt->addMinutes(60)->isPast()) {
-            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+            DB::table('password_reset_tokens')->where('email', $email)->delete();
+            Cache::forget('mobile_reset_otp:' . $email);
+            Cache::forget('mobile_reset_otp_attempts:' . $email);
             return back()->withErrors(['token' => 'Tautan atur ulang kata sandi telah kedaluwarsa (lebih dari 60 menit). Silakan ajukan permohonan baru.']);
         }
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $email)->first();
         if (!$user) {
             return back()->withErrors(['email' => 'Pengguna tidak ditemukan.']);
         }
 
         $user->password = Hash::make($request->password);
         $user->save();
+        $user->tokens()->delete();
 
-        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+        DB::table('password_reset_tokens')->where('email', $email)->delete();
+        Cache::forget('mobile_reset_otp:' . $email);
+        Cache::forget('mobile_reset_otp_attempts:' . $email);
 
         ActivityLogger::log('Sandi Diperbarui', "Pengguna {$user->name} ({$user->email}) berhasil mereset kata sandi secara mandiri");
 

@@ -39,7 +39,7 @@ class CartAdapter(
                 barang.kodeBarang.contains("KK", ignoreCase = true) -> R.drawable.produk_kereta_kencana_12
                 barang.kodeBarang.contains("SC", ignoreCase = true) -> R.drawable.produk_sembada_cethe_12
                 barang.kodeBarang.contains("SM", ignoreCase = true) -> R.drawable.produk_sembada_12
-                else -> R.drawable.logo_resmi
+                else -> R.drawable.ic_logo_kereta_kencana
             }
 
             if (!barang.imageUrl.isNullOrBlank()) {

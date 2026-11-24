@@ -52,6 +52,9 @@
                             <span class="category-tag category-{{ strtolower($p->kategori->slug) }}">
                                 {{ $p->kategori->nama_kategori }}
                             </span>
+                            @if($p->best_seller)
+                                <span class="bestseller-tag">Paling Diminati</span>
+                            @endif
                         </div>
 
                         <div class="product-info">
@@ -77,9 +80,11 @@
                                     <a href="{{ route('produk.detail', $p->slug) }}" class="btn btn-secondary btn-sm" title="Detail Spesifikasi">
                                         Detail
                                     </a>
-                                    <a href="{{ route('pesanan.form', ['produk' => $p->slug]) }}" class="btn btn-gold btn-sm">
-                                        Order
-                                    </a>
+                                    @if(!Auth::check() || Auth::user()->isPelanggan())
+                                        <a href="{{ route('pesanan.form', ['produk' => $p->slug]) }}" class="btn btn-gold btn-sm">
+                                            Order
+                                        </a>
+                                    @endif
                                 </div>
                             </div>
                         </div>

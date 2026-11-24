@@ -83,6 +83,7 @@
                         android:inputType="textPassword"
                         android:paddingHorizontal="14dp"
                         android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_muted"
                         android:textSize="14sp" />
 
                     <!-- Konfirmasi Kata Sandi Baru -->
@@ -105,6 +106,7 @@
                         android:inputType="textPassword"
                         android:paddingHorizontal="14dp"
                         android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_muted"
                         android:textSize="14sp" />
 
                 </LinearLayout>

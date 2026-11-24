@@ -12,10 +12,14 @@
                         <i class="fa-solid fa-arrow-left"></i> Kembali ke Pesanan Saya
                     </a>
                     <span style="color: var(--border-light);">|</span>
+                    <a href="{{ route('pesanan.form') }}" style="color: var(--text-medium); text-decoration: none; font-size: 14px;">
+                        <i class="fa-solid fa-cart-plus"></i> Buat Pesanan Baru
+                    </a>
+                @elseif(Auth::check())
+                    <a href="{{ route('admin.transaksis.show', $transaksi->id) }}" style="color: var(--text-dark); text-decoration: none; font-size: 14px; font-weight: 600;">
+                        <i class="fa-solid fa-arrow-left"></i> Kembali ke Detail Transaksi Admin
+                    </a>
                 @endif
-                <a href="{{ route('pesanan.form') }}" style="color: var(--text-medium); text-decoration: none; font-size: 14px;">
-                    <i class="fa-solid fa-cart-plus"></i> Buat Pesanan Baru
-                </a>
             </div>
             <button onclick="window.print()" class="btn btn-secondary btn-sm">
                 <i class="fa-solid fa-print"></i> Cetak Dokumen Faktur
@@ -48,7 +52,7 @@
             </div>
 
             <!-- Identitas Mitra & Pembayaran -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 24px;">
+            <div class="grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 24px;">
                 <div>
                     <span style="font-size: 11px; text-transform: uppercase; color: #94a3b8; font-weight: 700; display: block; margin-bottom: 4px;">Tujuan Pengiriman Mitra:</span>
                     <strong style="font-size: 16px; color: #0f1316;">{{ $transaksi->nama_mitra }}</strong>
@@ -85,7 +89,7 @@
                             No. Rekening: <strong style="font-family: monospace; font-size: 14px; color: #0f172a;">{{ $bankInfo['rekening'] }}</strong> a.n. <strong>{{ $bankInfo['atas_nama'] ?? 'PR. KERETA KENCANA' }}</strong>
                         @else
                             <strong style="color: #0f172a; display: block; margin-bottom: 2px;">Instruksi Pembayaran Transfer Bank:</strong>
-                            Nomor rekening tujuan transfer dikonfirmasi resmi melalui Admin WhatsApp (<span style="font-family: monospace; font-weight: 600;">+62 857-9062-7104</span>).
+                            Nomor rekening tujuan transfer dikonfirmasi resmi melalui Admin WhatsApp (<span style="font-family: monospace; font-weight: 600;">{{ $pabrikWaDisplay ?? '+62 857-9062-7104' }}</span>).
                         @endif
                         <span style="display: block; font-size: 12px; color: #64748b;">
                             Setelah transfer, unggah foto struk/bukti transfer melalui halaman Pesanan Saya agar diproses bagian keuangan.
@@ -182,7 +186,7 @@
             @endif
 
             <!-- Instruksi & Tanda Tangan -->
-            <div style="border-top: 1px dashed #cbd5e1; padding-top: 20px; display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px;">
+            <div class="grid-2col" style="border-top: 1px dashed #cbd5e1; padding-top: 20px; display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px;">
                 <div style="font-size: 12px; color: #64748b; line-height: 1.6;">
                     <strong>Ketentuan Distribusi:</strong>
                     <ol style="padding-left: 16px; margin-top: 4px;">
@@ -192,7 +196,7 @@
                     </ol>
                 </div>
                 <div style="text-align: center; font-size: 12px; color: #475569;">
-                    <div>Ponggok, Blitar, {{ date('d M Y') }}</div>
+                    <div>Ponggok, Blitar, {{ ($transaksi->created_at ?? now())->translatedFormat('d M Y') }}</div>
                     <div style="margin-top: 60px; font-weight: 700; text-decoration: underline;">PR. KERETA KENCANA</div>
                     <div>Bagian Logistik &amp; Distribusi</div>
                 </div>
@@ -200,7 +204,7 @@
 
             <!-- Tombol Konfirmasi WhatsApp (No Print) -->
             <div style="margin-top: 30px; text-align: center;" class="no-print">
-                <a href="https://wa.me/{{ config('pabrik.wa_pabrik', '6285790627104') }}?text={{ $pesanWa }}" target="_blank" rel="noopener noreferrer"
+                <a href="https://wa.me/{{ $pabrikWa ?? config('pabrik.wa_pabrik', '6285790627104') }}?text={{ $pesanWa }}" target="_blank" rel="noopener noreferrer"
                    class="btn btn-gold" style="padding: 14px 28px; font-size: 15px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
                     <i class="fa-brands fa-whatsapp" style="font-size: 20px;"></i> Konfirmasi Pesanan ke WhatsApp Pabrik
                 </a>

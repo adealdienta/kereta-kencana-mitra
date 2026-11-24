@@ -55,7 +55,7 @@ class CartManager(context: Context) {
     @Synchronized
     fun tryAddSlop(barang: Barang, qtyToAdd: Int): Pair<Boolean, String?> {
         if (qtyToAdd <= 0) return false to "Jumlah minimal 1 Slop."
-        if (barang.stok <= 0) return false to "Stok ${barang.nama} saat ini sedang habis."
+        if (!barang.hasAvailableStock) return false to "Stok ${barang.nama} saat ini sedang habis."
 
         val items = getItems()
         val totalCurrentSlop = items.sumOf { it.jumlah }
@@ -67,26 +67,28 @@ class CartManager(context: Context) {
             it.barang.id == barang.id && it.satuan.equals("Slop", ignoreCase = true)
         }
         val currentForBarang = if (existingIndex >= 0) items[existingIndex].jumlah else 0
-        val targetForBarang = currentForBarang + qtyToAdd
-        val slopPerBal = if (barang.slopPerBal > 0) barang.slopPerBal else 20
-        val balNeeded = kotlin.math.ceil(targetForBarang.toDouble() / slopPerBal).toInt()
-        if (balNeeded > barang.stok) {
-            return false to "Stok gudang ${barang.nama} tidak mencukupi (Tersedia perkiraan ${barang.perkiraanSlopTersedia} Slop)."
+        val minOrder = if (barang.minOrderSlop > 0) barang.minOrderSlop else 1
+        val targetForBarang = if (existingIndex >= 0) currentForBarang + qtyToAdd else maxOf(qtyToAdd, minOrder)
+
+        if (otherSlopTotal(items, existingIndex) + targetForBarang > Barang.MAX_SLOP_PER_ORDER) {
+            return false to "Maksimal ${Barang.MAX_SLOP_PER_ORDER} Slop gabungan per pesanan online."
+        }
+        if (targetForBarang > barang.stokTersediaSlop) {
+            return false to "Stok gudang ${barang.nama} tidak mencukupi (Tersedia ${barang.stokTersediaSlop} Slop)."
         }
 
         if (existingIndex >= 0) {
             items[existingIndex].jumlah = targetForBarang
         } else {
-            val minOrder = if (barang.minOrderSlop > 0) barang.minOrderSlop else 1
-            val actualQty = if (targetForBarang < minOrder) minOrder else targetForBarang
-            if (totalCurrentSlop + actualQty > Barang.MAX_SLOP_PER_ORDER) {
-                return false to "Maksimal ${Barang.MAX_SLOP_PER_ORDER} Slop gabungan per pesanan online."
-            }
-            items.add(CartItem(barang = barang, satuan = "Slop", jumlah = actualQty))
+            items.add(CartItem(barang = barang, satuan = "Slop", jumlah = targetForBarang))
         }
 
         saveItems(items)
         return true to null
+    }
+
+    private fun otherSlopTotal(items: List<CartItem>, excludeIndex: Int): Int {
+        return items.filterIndexed { idx, _ -> idx != excludeIndex }.sumOf { it.jumlah }
     }
 
     /**
@@ -107,15 +109,13 @@ class CartManager(context: Context) {
             return true to null
         }
 
-        val otherSlops = items.filterIndexed { idx, _ -> idx != index }.sumOf { it.jumlah }
+        val otherSlops = otherSlopTotal(items, index)
         if (otherSlops + newQty > Barang.MAX_SLOP_PER_ORDER) {
             return false to "Maksimal ${Barang.MAX_SLOP_PER_ORDER} Slop gabungan per pesanan online. Untuk pembelian Bal, hubungi Admin via WhatsApp."
         }
 
-        val slopPerBal = if (barang.slopPerBal > 0) barang.slopPerBal else 20
-        val balNeeded = kotlin.math.ceil(newQty.toDouble() / slopPerBal).toInt()
-        if (balNeeded > barang.stok) {
-            return false to "Stok gudang ${barang.nama} tidak mencukupi."
+        if (!barang.hasAvailableStock || newQty > barang.stokTersediaSlop) {
+            return false to "Stok gudang ${barang.nama} tidak mencukupi (Tersedia ${barang.stokTersediaSlop} Slop)."
         }
 
         if (index >= 0) {
@@ -163,16 +163,60 @@ class CartManager(context: Context) {
         val list = mutableListOf<CartItem>()
         var runningSlops = 0
         for ((barang, qty) in newItems) {
-            if (qty <= 0 || barang.stok <= 0) continue
+            if (qty <= 0 || !barang.hasAvailableStock) continue
             val remaining = Barang.MAX_SLOP_PER_ORDER - runningSlops
             if (remaining <= 0) break
-            val capped = minOf(qty, remaining, barang.perkiraanSlopTersedia.coerceAtLeast(0))
+            val capped = minOf(qty, remaining, barang.stokTersediaSlop)
             if (capped > 0) {
                 list.add(CartItem(barang = barang, satuan = "Slop", jumlah = capped))
                 runningSlops += capped
             }
         }
         saveItems(list)
+    }
+
+    /**
+     * Sinkronkan isi keranjang lokal terhadap data katalog & stok terbaru dari API.
+     * Mengembalikan pesan peringatan bila ada produk yang dihapus/disesuaikan karena stok atau status.
+     */
+    @Synchronized
+    fun syncWithCatalog(liveCatalog: List<Barang>): String? {
+        val currentItems = getItems()
+        if (currentItems.isEmpty()) return null
+
+        val catalogMap = liveCatalog.associateBy { it.id }
+        val updatedItems = mutableListOf<CartItem>()
+        val notices = mutableListOf<String>()
+        var runningTotalSlop = 0
+
+        for (item in currentItems) {
+            val liveBarang = catalogMap[item.barang.id]
+            if (liveBarang == null || !liveBarang.hasAvailableStock) {
+                notices.add("${item.barang.nama} dihapus (stok habis/tidak aktif)")
+                continue
+            }
+
+            val remainingOrderCap = (Barang.MAX_SLOP_PER_ORDER - runningTotalSlop).coerceAtLeast(0)
+            val stockCap = liveBarang.stokTersediaSlop
+            val allowedQty = minOf(item.jumlah, remainingOrderCap, stockCap)
+            if (allowedQty <= 0) {
+                notices.add("${liveBarang.nama} dihapus (melebihi kuota/stok)")
+                continue
+            }
+            if (allowedQty < item.jumlah) {
+                notices.add("${liveBarang.nama} disesuaikan ke $allowedQty slop")
+            }
+
+            updatedItems.add(CartItem(barang = liveBarang, satuan = "Slop", jumlah = allowedQty))
+            runningTotalSlop += allowedQty
+        }
+
+        saveItems(updatedItems)
+        return if (notices.isNotEmpty()) {
+            "Keranjang diperbarui: ${notices.joinToString(", ")}."
+        } else {
+            null
+        }
     }
 
     @Synchronized

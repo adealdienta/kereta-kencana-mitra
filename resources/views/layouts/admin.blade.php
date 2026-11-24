@@ -73,10 +73,13 @@
             <a href="{{ route('admin.legalitas.index') }}" class="sidebar-link {{ request()->routeIs('admin.legalitas.*') ? 'active' : '' }}">
                 <i class="fa-solid fa-stamp"></i> Legalitas Cukai
             </a>
+            <a href="{{ route('admin.pengaturan.index') }}" class="sidebar-link {{ request()->routeIs('admin.pengaturan.*') ? 'active' : '' }}">
+                <i class="fa-solid fa-sliders"></i> Pengaturan &amp; Media
+            </a>
 
             @if(auth()->user()->isOwner() || auth()->user()->isSuperAdmin())
                 <a href="{{ route('admin.users.index') }}" class="sidebar-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-                    <i class="fa-solid fa-users-gear"></i> Kelola Staf / Akun
+                    <i class="fa-solid fa-users-gear"></i> Kelola Akun Admin
                 </a>
                 <a href="{{ route('admin.logs.index') }}" class="sidebar-link {{ request()->routeIs('admin.logs.*') ? 'active' : '' }}">
                     <i class="fa-solid fa-clock-rotate-left"></i> Log Audit Trail
@@ -129,6 +132,12 @@
             @if(session('error'))
                 <div class="alert alert-danger" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
                     <i class="fa-solid fa-triangle-exclamation"></i> {{ session('error') }}
+                </div>
+            @endif
+
+            @if(session('warning'))
+                <div class="alert alert-warning" style="background: #fffbeb; color: #92400e; border: 1px solid #fde68a; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-circle-info"></i> {{ session('warning') }}
                 </div>
             @endif
 

@@ -14,6 +14,10 @@ android {
         versionCode 1
         versionName "1.0.0"
 
+        // Ganti via gradle.properties (-PAPI_BASE_URL=https://domain-web.com/api/v1/) saat hosting online
+        def configuredBaseUrl = (project.findProperty("API_BASE_URL") ?: "http://192.168.1.7/api/v1/").toString()
+        buildConfigField "String", "API_BASE_URL", "\"${configuredBaseUrl}\""
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -35,6 +39,7 @@ android {
 
     buildFeatures {
         viewBinding true
+        buildConfig true
     }
 }
 

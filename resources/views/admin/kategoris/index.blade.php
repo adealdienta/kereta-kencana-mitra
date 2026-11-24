@@ -41,7 +41,7 @@
                             <a href="{{ route('admin.kategoris.edit', $k->id) }}" style="color: #0284c7;" title="Edit Kategori">
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </a>
-                            <form action="{{ route('admin.kategoris.destroy', $k->id) }}" method="POST" onsubmit="return confirm('Hapus kategori {{ $k->nama_kategori }}?')">
+                            <form action="{{ route('admin.kategoris.destroy', $k->id) }}" method="POST" onsubmit='return confirm(@json("Hapus kategori " . $k->nama_kategori . "?"))'>
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" style="background: none; border: none; color: #dc2626; cursor: pointer;" title="Hapus Kategori">

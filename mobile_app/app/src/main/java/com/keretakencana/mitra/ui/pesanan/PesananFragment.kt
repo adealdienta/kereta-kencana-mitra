@@ -21,6 +21,7 @@ import com.keretakencana.mitra.databinding.FragmentPesananBinding
 import com.keretakencana.mitra.ui.auth.LoginBottomSheetFragment
 import com.keretakencana.mitra.ui.cart.CartActivity
 import com.keretakencana.mitra.ui.main.MainActivity
+import com.keretakencana.mitra.utils.ApiErrorHelper
 import kotlinx.coroutines.launch
 
 class PesananFragment : Fragment() {
@@ -30,6 +31,10 @@ class PesananFragment : Fragment() {
 
     private lateinit var pesananAdapter: PesananAdapter
     private var currentFilter: String = "semua" // "semua", "berjalan", "selesai"
+    private var currentPage: Int = 1
+    private var lastPage: Int = 1
+    private var isLoadingMore: Boolean = false
+    private val allOrders = mutableListOf<Transaksi>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -68,7 +73,7 @@ class PesananFragment : Fragment() {
                         }
                         startActivity(intent)
                     }
-                    "Selesai" -> {
+                    "Baru Masuk", "Diproses", "Selesai" -> {
                         val intent = Intent(requireContext(), FakturActivity::class.java).apply {
                             putExtra(FakturActivity.EXTRA_PESANAN_ID, transaksi.id)
                         }
@@ -82,10 +87,21 @@ class PesananFragment : Fragment() {
             onSecondaryActionClick = { transaksi ->
                 when (transaksi.status) {
                     "Baru Masuk" -> {
-                        showDialogBatalPesanan(transaksi.id)
+                        if (transaksi.bolehBatal) {
+                            showDialogBatalPesanan(transaksi.id)
+                        } else {
+                            openDetailPesanan(transaksi.id)
+                        }
                     }
                     "Selesai" -> {
-                        pesanLagiDariRiwayat(transaksi)
+                        AlertDialog.Builder(requireContext())
+                            .setTitle("Pesan Lagi?")
+                            .setMessage("Keranjang belanja akan diisi dengan muatan dari pesanan ini (maks. ${Barang.MAX_SLOP_PER_ORDER} Slop online).")
+                            .setPositiveButton("Ya, Muat ke Keranjang") { _, _ ->
+                                pesanLagiDariRiwayat(transaksi)
+                            }
+                            .setNegativeButton("Batal", null)
+                            .show()
                     }
                     else -> {
                         openDetailPesanan(transaksi.id)
@@ -94,8 +110,21 @@ class PesananFragment : Fragment() {
             }
         )
 
-        binding.rvPesanan.layoutManager = LinearLayoutManager(requireContext())
+        val layoutManager = LinearLayoutManager(requireContext())
+        binding.rvPesanan.layoutManager = layoutManager
         binding.rvPesanan.adapter = pesananAdapter
+        binding.rvPesanan.addOnScrollListener(object : androidx.recyclerview.widget.RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: androidx.recyclerview.widget.RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                if (dy <= 0 || isLoadingMore || currentPage >= lastPage) return
+                val visibleCount = layoutManager.childCount
+                val totalCount = layoutManager.itemCount
+                val firstVisible = layoutManager.findFirstVisibleItemPosition()
+                if (visibleCount + firstVisible >= totalCount - 2) {
+                    loadOrders(resetPage = false)
+                }
+            }
+        })
     }
 
     private fun setupListeners() {
@@ -175,25 +204,47 @@ class PesananFragment : Fragment() {
         }
     }
 
-    private fun loadOrders() {
-        binding.progressPesanan.visibility = View.VISIBLE
-        binding.layoutEmptyPesanan.visibility = View.GONE
+    private fun loadOrders(resetPage: Boolean = true) {
+        if (resetPage) {
+            currentPage = 1
+            lastPage = 1
+            binding.progressPesanan.visibility = View.VISIBLE
+            binding.layoutEmptyPesanan.visibility = View.GONE
+        } else {
+            if (isLoadingMore || currentPage >= lastPage) return
+            isLoadingMore = true
+        }
+
+        val targetPage = if (resetPage) 1 else currentPage + 1
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val api = ApiClient.getService(requireContext())
-                val response = api.getPesanan(status = currentFilter)
+                val response = api.getPesanan(status = currentFilter, page = targetPage)
 
                 binding.progressPesanan.visibility = View.GONE
                 binding.swipeRefreshPesanan.isRefreshing = false
+                isLoadingMore = false
 
                 if (response.isSuccessful && response.body()?.success == true) {
                     val listResponse = response.body()?.data
                     val items = listResponse?.items ?: emptyList()
+                    val pagination = listResponse?.pagination
+                    if (pagination != null) {
+                        currentPage = pagination.currentPage
+                        lastPage = pagination.lastPage
+                    } else {
+                        currentPage = targetPage
+                        lastPage = targetPage
+                    }
 
-                    pesananAdapter.submitList(items)
+                    if (resetPage) {
+                        allOrders.clear()
+                    }
+                    allOrders.addAll(items)
+                    pesananAdapter.submitList(allOrders.toList())
 
-                    if (items.isEmpty()) {
+                    if (allOrders.isEmpty()) {
                         binding.rvPesanan.visibility = View.GONE
                         binding.layoutEmptyPesanan.visibility = View.VISIBLE
 
@@ -211,7 +262,7 @@ class PesananFragment : Fragment() {
                 } else if (response.code() == 401) {
                     Toast.makeText(requireContext(), "Sesi akun berakhir. Silakan masuk kembali.", Toast.LENGTH_SHORT).show()
                     checkSessionAndLoadOrders()
-                } else {
+                } else if (resetPage) {
                     binding.rvPesanan.visibility = View.GONE
                     binding.layoutEmptyPesanan.visibility = View.VISIBLE
                     binding.tvEmptyPesananSubtitle.text = "Gagal memuat pesanan: ${response.message()}"
@@ -219,9 +270,12 @@ class PesananFragment : Fragment() {
             } catch (e: Exception) {
                 binding.progressPesanan.visibility = View.GONE
                 binding.swipeRefreshPesanan.isRefreshing = false
-                binding.rvPesanan.visibility = View.GONE
-                binding.layoutEmptyPesanan.visibility = View.VISIBLE
-                binding.tvEmptyPesananSubtitle.text = "Tidak dapat terhubung ke server: ${e.localizedMessage}"
+                isLoadingMore = false
+                if (resetPage) {
+                    binding.rvPesanan.visibility = View.GONE
+                    binding.layoutEmptyPesanan.visibility = View.VISIBLE
+                    binding.tvEmptyPesananSubtitle.text = "Tidak dapat terhubung ke server: ${e.localizedMessage}"
+                }
             }
         }
     }
@@ -260,7 +314,7 @@ class PesananFragment : Fragment() {
 
                 val cartPairs = groupedSlop.mapNotNull { (bId, qty) ->
                     val barang = catalogMap[bId]
-                    if (barang != null && barang.stok > 0 && qty > 0) barang to qty else null
+                    if (barang != null && barang.hasAvailableStock && qty > 0) barang to qty else null
                 }
 
                 if (cartPairs.isEmpty()) {
@@ -304,7 +358,8 @@ class PesananFragment : Fragment() {
                     Toast.makeText(requireContext(), "Pesanan berhasil dibatalkan.", Toast.LENGTH_SHORT).show()
                     loadOrders()
                 } else {
-                    Toast.makeText(requireContext(), "Gagal membatalkan pesanan.", Toast.LENGTH_SHORT).show()
+                    val errMsg = ApiErrorHelper.parseMessage(response, "Gagal membatalkan pesanan.")
+                    Toast.makeText(requireContext(), errMsg, Toast.LENGTH_LONG).show()
                 }
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), "Koneksi terganggu: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
